@@ -1,0 +1,14 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/LootingLooters/LootingLooters.sln
+/LootingLooters/.vs/LootingLooters/v15
+/LootingLooters/Binaries/Win64
+/LootingLooters/Intermediate
+/LootingLooters/Saved
+/Unreal Project/LootingLooters/LootingLooters.sln
+/Unreal Project/LootingLooters/Saved
+/Unreal Project/LootingLooters/Intermediate
+/Unreal Project/LootingLooters/.vs/LootingLooters/v15
+/Unreal Project/LootingLooters/Binaries/Win64
