@@ -21,10 +21,38 @@ protected:
 
 public:	
 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	virtual void TickActor(float DeltaTime, enum ELevelTick TickType, FActorTickFunction& ThisTickFunction) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+
+	//CONTROLS
+	// 
+	 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lock On Camera")
+		float BaseTurnRate;
+
+	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lock On Camera")
+		float BaseLookUpRate;
+	 
+	/** Called for forwards/backward input */
+	UFUNCTION(BlueprintCallable, Category = "Errors")
+	virtual void MoveForward(float Value);
+	/** Called for side to side input */
+	virtual void MoveRight(float Value);
+
+	/* Handle horizontal mouse input */
+	virtual void Turn(float Val);
+	/* Handle vertical mouse input */
+	virtual void LookUp(float Val);
+
+	/* Handle horizontal analog stick input */
+	virtual void TurnAtRate(float Rate);
+
+	/* Handle vertical analog stick input */
+	virtual void LookUpAtRate(float Rate);
 
 	
 	

@@ -5,3 +5,7 @@
 
 
 
+AGuardCharacter::AGuardCharacter() : Super()
+{
+
+}

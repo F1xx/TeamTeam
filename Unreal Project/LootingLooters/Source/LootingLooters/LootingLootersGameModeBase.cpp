@@ -5,3 +5,7 @@
 
 
 
+void ALootingLootersGameModeBase::StartPlay()
+{
+
+}

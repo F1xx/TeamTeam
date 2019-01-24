@@ -14,7 +14,8 @@ class LOOTINGLOOTERS_API AGuardCharacter : public ABaseCharacter
 {
 	GENERATED_BODY()
 	
-	
+public:
+	AGuardCharacter();
 	
 	
 };
