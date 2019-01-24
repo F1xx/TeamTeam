@@ -17,6 +17,8 @@ APlayerCharacter::APlayerCharacter() : Super()
 	PrimaryActorTick.bCanEverTick = true;
 
 	//CAMERA
+	CameraManager = CreateDefaultSubobject<APlayerCameraManager>("CameraManager");
+
 	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
 	Camera->SetupAttachment(RootComponent); //Root is Capsule in ACharacter.cpp
 	Camera->bUsePawnControlRotation = true;
@@ -25,8 +27,6 @@ APlayerCharacter::APlayerCharacter() : Super()
 
 	//Make it so we can't see our own mesh but others can
 	GetMesh()->SetOwnerNoSee(true);
-
-	CameraManager = CreateDefaultSubobject<APlayerCameraManager>("CameraManager");
 
 }
 
@@ -45,9 +45,11 @@ bool APlayerCharacter::PerformRayCast(ECollisionChannel TraceChannel)
 	//A struct that the trace will populate with the results of the hit
 	FHitResult OutHit;
 	//The starting position of the trace, in our case the camera
-	FVector start = Camera->GetRelativeTransform().
+	//FVector start = Camera->GetRelativeTransform().
 
 	//GetWord()->LineTraceSingleByChannel();
+
+	return false;
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent * PlayerInputComponent)
