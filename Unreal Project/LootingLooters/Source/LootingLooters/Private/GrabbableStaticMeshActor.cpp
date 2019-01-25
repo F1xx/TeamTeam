@@ -128,7 +128,7 @@ void AGrabbableStaticMeshActor::Zoom(float Value)
 {
 	m_Distance += Value;
 
-	FMath::Clamp(m_Distance, 150.0f, 500.0f);
+	m_Distance = FMath::Clamp(m_Distance, 150.0f, 500.0f);
 
 	GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Zooming: " + FString::SanitizeFloat(m_Distance)));
 }
