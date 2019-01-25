@@ -30,6 +30,17 @@ void APlayerCharacterController::SetupInputComponent()
  		// Handle analog stick aiming input
  		InputComponent->BindAxis("TurnRate", this, &APlayerCharacterController::TurnAtRate);
  		InputComponent->BindAxis("LookUpRate", this, &APlayerCharacterController::LookUpAtRate);
+
+		//rotation of held item
+ 		InputComponent->BindAxis("RotateObjectX", this, &APlayerCharacterController::RotateHeldObjectX);
+ 		InputComponent->BindAxis("RotateObjectY", this, &APlayerCharacterController::RotateHeldObjectY);
+ 		InputComponent->BindAxis("Zoom", this, &APlayerCharacterController::ZoomObject);
+
+		//handle Actions
+		InputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacterController::Interact);
+		InputComponent->BindAction("ThrowObject", IE_Pressed, this, &APlayerCharacterController::ThrowObject);
+		InputComponent->BindAction("SetRotationMode", IE_Pressed, this, &APlayerCharacterController::RotateMode);
+		InputComponent->BindAction("SetRotationMode", IE_Released, this, &APlayerCharacterController::RotateMode);
 	}
 }
 
@@ -47,52 +58,84 @@ void APlayerCharacterController::MoveForward(float Value)
 {
 	ABaseCharacter* owner = Cast<ABaseCharacter>(GetPawn());
 	if (owner)
-	{
 		owner->MoveForward(Value);
-	}
 }
 
 void APlayerCharacterController::MoveRight(float Value)
 {
 	ABaseCharacter* owner = Cast<ABaseCharacter>(GetPawn());
 	if (owner)
-	{
 		owner->MoveRight(Value);
-	}
 }
 
 void APlayerCharacterController::Turn(float Val)
 {
 	ABaseCharacter* owner = Cast<ABaseCharacter>(GetPawn());
 	if (owner)
-	{
 		owner->Turn(Val);
-	}
 }
 
 void APlayerCharacterController::LookUp(float Val)
 {
 	ABaseCharacter* owner = Cast<ABaseCharacter>(GetPawn());
 	if (owner)
-	{
 		owner->LookUp(Val);
-	}
 }
 
 void APlayerCharacterController::TurnAtRate(float Rate)
 {
 	ABaseCharacter* owner = Cast<ABaseCharacter>(GetPawn());
 	if (owner)
-	{
 		owner->TurnAtRate(Rate);
-	}
 }
 
 void APlayerCharacterController::LookUpAtRate(float Rate)
 {
 	ABaseCharacter* owner = Cast<ABaseCharacter>(GetPawn());
 	if (owner)
-	{
 		owner->LookUpAtRate(Rate);
-	}
+}
+
+//Will either interact if not already interacting
+//if already interacting will stop
+void APlayerCharacterController::Interact()
+{
+	ABaseCharacter* owner = Cast<ABaseCharacter>(GetPawn());
+	if (owner)
+		owner->Interact();
+}
+
+void APlayerCharacterController::RotateMode()
+{
+	ABaseCharacter* owner = Cast<ABaseCharacter>(GetPawn());
+	if (owner)
+		owner->RotateMode();
+}
+
+void APlayerCharacterController::ThrowObject()
+{
+	ABaseCharacter* owner = Cast<ABaseCharacter>(GetPawn());
+	if (owner)
+		owner->ThrowObject();
+}
+
+void APlayerCharacterController::RotateHeldObjectX(float Value)
+{
+	ABaseCharacter* owner = Cast<ABaseCharacter>(GetPawn());
+	if (owner)
+		owner->RotateHeldObjectX(Value);
+}
+
+void APlayerCharacterController::RotateHeldObjectY(float Value)
+{
+	ABaseCharacter* owner = Cast<ABaseCharacter>(GetPawn());
+	if (owner)
+		owner->RotateHeldObjectY(Value);
+}
+
+void APlayerCharacterController::ZoomObject(float Value)
+{
+	ABaseCharacter* owner = Cast<ABaseCharacter>(GetPawn());
+	if (owner)
+		owner->ZoomObject(Value);
 }

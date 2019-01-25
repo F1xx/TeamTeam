@@ -9,6 +9,7 @@
 #include "DrawDebugHelpers.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "PlayerCharacterController.h"
+#include "GrabbableStaticMeshActor.h"
 
 // Sets default values
 ABaseCharacter::ABaseCharacter()
@@ -30,13 +31,19 @@ ABaseCharacter::ABaseCharacter()
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f);
 	GetCharacterMovement()->JumpZVelocity = 600.0f;
 	GetCharacterMovement()->AirControl = 0.2f;
+
+	GetCapsuleComponent()->SetSimulatePhysics(false);
+
+	PickupLoc = CreateDefaultSubobject<USceneComponent>("Puckup holding Location");
+	PickupLoc->SetupAttachment(RootComponent);
+
+	HeldObject = nullptr;
 }
 
 // Called when the game starts or when spawned
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
@@ -77,21 +84,118 @@ void ABaseCharacter::MoveRight(float Value)
 
 void ABaseCharacter::Turn(float Val)
 {
-	AddControllerYawInput(Val);
+	if (!bIsRotating)
+	{
+		AddControllerYawInput(Val);
+	}
 }
 
 void ABaseCharacter::LookUp(float Val)
 {
-	AddControllerPitchInput(Val);
+	if (!bIsRotating)
+	{
+		AddControllerPitchInput(Val);
+	}
 }
 
 void ABaseCharacter::TurnAtRate(float Rate)
 {
-	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
+	if (!bIsRotating)
+	{
+		AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
+	}
 }
 
 void ABaseCharacter::LookUpAtRate(float Rate)
 {
-	AddControllerPitchInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
+	if (!bIsRotating)
+	{
+		AddControllerPitchInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
+	}
+}
+
+bool ABaseCharacter::PerformRayCast(FName TraceProfile, FHitResult &OutHit)
+{
+	FVector campos;
+	FRotator camrot;
+	GetController()->GetPlayerViewPoint(campos, camrot); //Fills with info from the camera
+	//The starting position of the trace, Camera for player, eyes for bot
+	FVector end = campos + (camrot.Vector() * InteractRange);
+
+	//FCollisionQueryParams Params;
+	//Params.AddIgnoredActor(this); //required or they'll only see themself
+
+	bool result = GetWorld()->LineTraceSingleByProfile(OutHit, campos, end, TraceProfile);
+
+#ifdef UE_BUILD_DEBUG
+	if (OutHit.GetActor())
+	{
+		DrawDebugLine(GetWorld(), campos, OutHit.GetActor()->GetActorLocation(), FColor::Red, false, -1.0f, 0, 3.0f);
+	}
+	else
+		DrawDebugLine(GetWorld(), campos, end, FColor::Blue, false, 5.0f, 0, 5.0f);
+#endif
+
+	return result;
+}
+
+//to interact perform a raycast to see if they can interact with what they're looking at
+void ABaseCharacter::Interact()
+{
+	//if already interacting stop
+	if (bIsInteracting)
+	{
+		//Pickup will throw the object if its already held
+		HeldObject->Pickup(this);
+		HeldObject = nullptr;
+		bIsInteracting = false;
+	}
+	else //otherwise try to interact with what we're looking at
+	{
+		//A struct that the trace will populate with the results of the hit
+		FHitResult Hit(ForceInit);
+
+		//raycast to see
+		bool result = PerformRayCast(FName("GrabbableTrace"), Hit);
+
+		//if it succeeds do something with it
+		if (result)
+		{
+			//Making sure what we hit was grabbable
+			if (Hit.GetActor()->ActorHasTag("Grabbable"))
+			{
+				HeldObject = Cast<AGrabbableStaticMeshActor>(Hit.GetActor());
+				bIsInteracting = true;
+				HeldObject->Pickup(this);
+			}
+
+#ifdef UE_BUILD_DEBUG
+			GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Hit: " + Hit.Actor->GetName()));
+#endif
+		}
+	}
+}
+
+void ABaseCharacter::ThrowObject()
+{
+	if (HeldObject)
+	{
+		HeldObject->Throw();
+		HeldObject = nullptr;
+		bIsInteracting = false;
+	}
+}
+
+void ABaseCharacter::RotateMode()
+{
+	bIsRotating = !bIsRotating;
+}
+
+void ABaseCharacter::ZoomObject(float Value)
+{
+	if (HeldObject)
+	{
+		HeldObject->Zoom(Value);
+	}
 }
 

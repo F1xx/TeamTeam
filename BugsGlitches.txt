@@ -1,0 +1,2 @@
+Sometimes when you pick up an item while moving it will crash inside unreal.
+I can't reliably replicate it nor see where the error is coming from.

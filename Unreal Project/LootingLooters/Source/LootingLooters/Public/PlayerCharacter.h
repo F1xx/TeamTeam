@@ -26,22 +26,24 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class UCameraComponent* Camera;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		class APlayerCameraManager* CameraManager;
-
-	//returns true if it hit the given channel
-	bool PerformRayCast(ECollisionChannel TraceChannel);
-
 public:
+
+	virtual UCameraComponent* GetCamera() const;
+
+	//Create a playerstate for every player in the game
+	class APlayerCharacterState* m_PlayerState;
+
+	virtual void Interact() override;
+
 	// Called every frame
 	virtual void TickActor(float DeltaTime, enum ELevelTick TickType, FActorTickFunction& ThisTickFunction) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	virtual void RotateHeldObjectX(float Value) override;
+	virtual void RotateHeldObjectY(float Value) override;
+
 	UFUNCTION(BlueprintCallable, Category = "Camera")
 		FORCEINLINE class UCameraComponent* GetFollowCamera() const { return Camera; }
-
-	UPROPERTY(BlueprintReadWrite, Category = "RayCast")
-		float PlayerInteractionRange = 200.0f;
 };

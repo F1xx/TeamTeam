@@ -40,4 +40,13 @@ protected:
 
 	/* Handle vertical analog stick input */
 	void LookUpAtRate(float Rate);
+
+	void Interact();
+	void RotateMode();
+	void ThrowObject();
+
+	void RotateHeldObjectX(float Value);
+	void RotateHeldObjectY(float Value);
+
+	void ZoomObject(float Value);
 };
