@@ -21,7 +21,7 @@ ADoorActor::ADoorActor()
 	Sphere = CreateDefaultSubobject<USphereComponent>("Collision");
 	Sphere->SetSimulatePhysics(false);
 	Sphere->SetEnableGravity(false);
-	Sphere->SetCollisionProfileName("OverlapOnlyPawn");
+	Sphere->SetCollisionProfileName("OverlapOnlyPawn"); //Note that this means it blocks everything that isn't a pawn
 	Sphere->SetupAttachment(RootComponent);
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &ADoorActor::TeleportPawnToOtherDoor);
 
