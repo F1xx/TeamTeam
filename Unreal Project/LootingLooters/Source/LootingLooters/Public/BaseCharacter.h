@@ -48,6 +48,7 @@ public:
 		float InteractRange = 800.0f;
 	 
 	/** Called for forwards/backward input */
+	UFUNCTION(BlueprintCallable)
 	virtual void MoveForward(float Value);
 	/** Called for side to side input */
 	virtual void MoveRight(float Value);
