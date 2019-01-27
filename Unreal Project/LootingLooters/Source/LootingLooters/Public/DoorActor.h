@@ -18,8 +18,6 @@ class LOOTINGLOOTERS_API ADoorActor : public AStaticMeshActor
 public:
 	ADoorActor();
 
-public:
-
 	//Collision to trigger the teleport event from 1 door to another.
 	UPROPERTY(EditAnywhere)
 		class USphereComponent* Sphere;
