@@ -162,6 +162,7 @@ void ABaseCharacter::Interact()
 		if (result)
 		{
 			//Making sure what we hit was grabbable
+			if (Hit.GetActor())
 			if (Hit.GetActor()->ActorHasTag("Grabbable"))
 			{
 				HeldObject = Cast<AGrabbableStaticMeshActor>(Hit.GetActor());
