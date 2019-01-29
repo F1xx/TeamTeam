@@ -161,12 +161,15 @@ void ABaseCharacter::Interact()
 		//if it succeeds do something with it
 		if (result)
 		{
-			//Making sure what we hit was grabbable
-			if (Hit.GetActor()->ActorHasTag("Grabbable"))
+			if (Hit.GetActor())
 			{
-				HeldObject = Cast<AGrabbableStaticMeshActor>(Hit.GetActor());
-				bIsInteracting = true;
-				HeldObject->Pickup(this);
+				//Making sure what we hit was grabbable
+				if (Hit.GetActor()->ActorHasTag("Grabbable"))
+				{
+					HeldObject = Cast<AGrabbableStaticMeshActor>(Hit.GetActor());
+					bIsInteracting = true;
+					HeldObject->Pickup(this);
+				}
 			}
 
 #ifdef UE_BUILD_DEBUG
