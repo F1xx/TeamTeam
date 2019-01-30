@@ -17,14 +17,8 @@ AGrabbableStaticMeshActor::AGrabbableStaticMeshActor()
 	PrimaryActorTick.bCanEverTick = true;
 
 	//By default the static mesh will physically block everything.
-	GetDestructibleComponent()->SetCollisionProfileName(FName("BlockAllDynamic"));
+	GetDestructibleComponent()->SetCollisionProfileName(FName("GrabbableTrace"));
 	GetDestructibleComponent()->SetSimulatePhysics(true);
-
-	//Add a sphere for the trace channel which is slightly bigger than the object and allows the player to grab things easier.
-	Sphere = CreateDefaultSubobject<USphereComponent>("Collision");
-	Sphere->SetupAttachment(RootComponent);
-	Sphere->SetCollisionProfileName("GrabbableTrace"); //this line is integral for this actor to be seen as "grabbable"
-
 	Tags.Add("Grabbable");
 }
 
@@ -66,7 +60,7 @@ void AGrabbableStaticMeshActor::Pickup(ABaseCharacter* acharacter)
 		bIsHeld = !bIsHeld;
 		bIsGravityOn = !bIsGravityOn;
 		GetDestructibleComponent()->SetEnableGravity(bIsGravityOn);
-		GetDestructibleComponent()->SetSimulatePhysics(bIsHeld ? false : true);
+		GetDestructibleComponent()->SetSimulatePhysics(!bIsHeld);
 
 		//this line may be a problem, we'll see
 		GetDestructibleComponent()->SetCollisionEnabled(bIsHeld ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryAndPhysics);
@@ -95,7 +89,8 @@ void AGrabbableStaticMeshActor::Throw()
 		if (player) //if its a player throw with the camera
 		{
 			m_CamForward = player->GetCamera()->GetForwardVector();
-			GetDestructibleComponent()->AddForce(m_CamForward * 100000 * GetDestructibleComponent()->GetMass());
+			//GetDestructibleComponent()->AddForce(m_CamForward * 100000 * GetDestructibleComponent()->GetMass());
+			GetDestructibleComponent()->ApplyDamage(5000.0f, GetActorLocation(), m_CamForward, 1000.0f);
 		}
 		else // if its a guard just throw forward
 		{

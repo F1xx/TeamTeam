@@ -23,9 +23,6 @@ protected:
 public:
 	virtual void Tick(float DeltaSeconds);
 
-	UPROPERTY(EditAnywhere)
-		class USphereComponent* Sphere;
-
 	UFUNCTION()
 		void Pickup(class ABaseCharacter* acharacter);
 
