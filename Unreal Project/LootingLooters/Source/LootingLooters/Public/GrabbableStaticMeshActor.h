@@ -3,14 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Engine/StaticMeshActor.h"
+#include "DestructibleActor.h"
+#include "DestructibleComponent.h"
 #include "GrabbableStaticMeshActor.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class LOOTINGLOOTERS_API AGrabbableStaticMeshActor : public AStaticMeshActor
+class LOOTINGLOOTERS_API AGrabbableStaticMeshActor : public ADestructibleActor
 {
 	GENERATED_BODY()
 
@@ -21,9 +22,6 @@ protected:
 
 public:
 	virtual void Tick(float DeltaSeconds);
-
-	UPROPERTY(EditAnywhere)
-		class USphereComponent* Sphere;
 
 	UFUNCTION()
 		void Pickup(class ABaseCharacter* acharacter);
