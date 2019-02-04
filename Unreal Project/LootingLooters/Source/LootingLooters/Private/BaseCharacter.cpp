@@ -133,7 +133,7 @@ bool ABaseCharacter::PerformRayCast(FName TraceProfile, FHitResult &OutHit)
 	{
 		if (OutHit.GetActor())
 		{
-			DrawDebugLine(GetWorld(), campos, OutHit.GetActor()->GetActorLocation(), FColor::Red, false, 3.0f, 0, 3.0f);
+			DrawDebugLine(GetWorld(), campos, OutHit.ImpactPoint, FColor::Red, false, 3.0f, 0, 3.0f);
 		}
 	}
 	else
@@ -177,6 +177,10 @@ void ABaseCharacter::Interact()
 						HeldObject->Pickup(this);
 					}
 				}
+				else if (Hit.GetActor()->ActorHasTag("Trap"))
+				{
+					GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("ITS A TRAP"));//do something later
+				}
 			}
 #ifdef UE_BUILD_DEBUG
 			GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Hit: " + Hit.Actor->GetName()));
@@ -195,6 +199,12 @@ void ABaseCharacter::ThrowObject()
 	}
 }
 
+//place a trap. This is more for the AI and will place a trap at the character's feet
+void ABaseCharacter::PlaceTrap()
+{
+
+}
+
 void ABaseCharacter::RotateMode()
 {
 	bIsRotating = !bIsRotating;
@@ -206,5 +216,49 @@ void ABaseCharacter::ZoomObject(float Value)
 	{
 		HeldObject->Zoom(Value);
 	}
+}
+
+void ABaseCharacter::SetDebuff(EDebuffs debuff, AActor* OtherActor /*= nullptr*/)
+{
+	FTimerDelegate del;
+	del.BindUFunction(this, FName("RemoveDebuff"), OtherActor);
+
+	switch (debuff)
+	{
+	case EDebuffs::DE_Stop:
+		currentDebuff = EDebuffs::DE_Stop;
+		GetCharacterMovement()->MaxWalkSpeed = 0.0f;
+		GetWorld()->GetTimerManager().SetTimer(DebuffTime, del, 5.0f, false);
+		break;
+	case EDebuffs::DE_Slow:
+		currentDebuff = EDebuffs::DE_Slow;
+		GetCharacterMovement()->MaxWalkSpeed = 300.0f;
+		GetWorld()->GetTimerManager().SetTimer(DebuffTime, del, 10.0f, false);
+		break;
+	default:
+		break;
+	}
+}
+
+void ABaseCharacter::RemoveDebuff(AActor* OtherActor /*= nullptr*/)
+{
+	if (OtherActor->ActorHasTag("Trap"))
+	{
+		OtherActor->Destroy();
+	}
+
+	switch (currentDebuff)
+	{
+	case EDebuffs::DE_Stop:
+		GetCharacterMovement()->MaxWalkSpeed = 600.0f;
+		break;
+	case EDebuffs::DE_Slow:
+		GetCharacterMovement()->MaxWalkSpeed = 600.0f;
+		break;
+	default:
+		break;
+	}
+
+	currentDebuff = EDebuffs::DE_Nothing;
 }
 

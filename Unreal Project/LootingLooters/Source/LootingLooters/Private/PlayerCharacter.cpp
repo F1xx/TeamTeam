@@ -13,6 +13,7 @@
 #include "GrabbableStaticMeshActor.h"
 #include "Camera/PlayerCameraManager.h"
 #include "PlayerCharacterState.h"
+#include "InventoryComponent.h"
 
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
@@ -22,12 +23,12 @@ APlayerCharacter::APlayerCharacter() : Super()
 	PrimaryActorTick.bCanEverTick = true;
 
 	//CAMERA
-
 	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
 	Camera->SetupAttachment(RootComponent); //Root is Capsule in ACharacter.cpp
 	Camera->bUsePawnControlRotation = true;
-
 	Camera->SetRelativeLocation(FVector(0.0f, 0.0f, BaseEyeHeight));
+
+	m_Inventory = CreateDefaultSubobject<UInventoryComponent>("Inventory");
 
 	//Make it so we can't see our own mesh but others can
 	GetMesh()->SetOwnerNoSee(true);
@@ -35,6 +36,8 @@ APlayerCharacter::APlayerCharacter() : Super()
 	//Player state
 	m_PlayerState = CreateDefaultSubobject<APlayerCharacterState>("PlayerState");
 	m_PlayerState->Score = 0;
+
+	Tags.Add("Player");
 }
 
 void APlayerCharacter::BeginPlay()
@@ -97,10 +100,35 @@ void APlayerCharacter::Interact()
 			{
 				Hit.GetActor()->Destroy();
 				
-				m_PlayerState->Score += 50;
+				m_PlayerState->Score += m_Inventory->CollectLoot();
 			}
 		}
 	}
+}
+
+//place a trap. This is for the player and will place it where they're aiming
+void APlayerCharacter::PlaceTrap()
+{
+	//if we have traps
+	if (m_Inventory->GetTrapCount() > 0)
+	{
+		//A struct that the trace will populate with the results of the hit
+		FHitResult Hit(ForceInit);
+
+		//raycast to see
+		bool result = PerformRayCast(FName("GrabbableTrace"), Hit);
+
+		//if it succeeds do something with it
+		if (result)
+		{
+			m_Inventory->PlaceTrap(Hit.ImpactPoint);
+		}
+	}
+}
+
+void APlayerCharacter::NextInventory()
+{
+	m_Inventory->NextInventoryItem();
 }
 
 void APlayerCharacter::TickActor(float DeltaTime, enum ELevelTick TickType, FActorTickFunction& ThisTickFunction)

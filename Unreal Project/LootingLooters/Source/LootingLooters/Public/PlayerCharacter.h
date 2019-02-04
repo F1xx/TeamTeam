@@ -26,6 +26,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class UCameraComponent* Camera;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
+		class UInventoryComponent* m_Inventory;
+
 public:
 
 	virtual UCameraComponent* GetCamera() const;
@@ -34,6 +37,8 @@ public:
 	class APlayerCharacterState* m_PlayerState;
 
 	virtual void Interact() override;
+	virtual void PlaceTrap() override;
+	virtual void NextInventory() override;
 
 	// Called every frame
 	virtual void TickActor(float DeltaTime, enum ELevelTick TickType, FActorTickFunction& ThisTickFunction) override;

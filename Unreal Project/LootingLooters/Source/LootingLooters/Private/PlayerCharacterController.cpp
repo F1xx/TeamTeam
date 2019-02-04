@@ -39,6 +39,8 @@ void APlayerCharacterController::SetupInputComponent()
 		//handle Actions
 		InputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacterController::Interact);
 		InputComponent->BindAction("ThrowObject", IE_Pressed, this, &APlayerCharacterController::ThrowObject);
+		InputComponent->BindAction("PlaceTrap", IE_Pressed, this, &APlayerCharacterController::PlaceTrap);
+		InputComponent->BindAction("NextInventory", IE_Pressed, this, &APlayerCharacterController::NextInventory);
 		InputComponent->BindAction("SetRotationMode", IE_Pressed, this, &APlayerCharacterController::RotateMode);
 		InputComponent->BindAction("SetRotationMode", IE_Released, this, &APlayerCharacterController::RotateMode);
 	}
@@ -117,6 +119,20 @@ void APlayerCharacterController::ThrowObject()
 	ABaseCharacter* owner = Cast<ABaseCharacter>(GetPawn());
 	if (owner)
 		owner->ThrowObject();
+}
+
+void APlayerCharacterController::PlaceTrap()
+{
+	ABaseCharacter* owner = Cast<ABaseCharacter>(GetPawn());
+	if (owner)
+		owner->PlaceTrap();
+}
+
+void APlayerCharacterController::NextInventory()
+{
+	ABaseCharacter* owner = Cast<ABaseCharacter>(GetPawn());
+	if (owner)
+		owner->NextInventory();
 }
 
 void APlayerCharacterController::RotateHeldObjectX(float Value)

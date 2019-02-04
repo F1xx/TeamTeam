@@ -6,6 +6,14 @@
 #include "GameFramework/Character.h"
 #include "BaseCharacter.generated.h"
 
+UENUM(BlueprintType)		//"BlueprintType" is essential to include
+enum  EDebuffs
+{
+	DE_Nothing 	UMETA(DisplayName = "Nothing"),
+	DE_Stop 	UMETA(DisplayName = "Stop"),
+	DE_Slow 	UMETA(DisplayName = "Slow"),
+};
+
 UCLASS()
 class LOOTINGLOOTERS_API ABaseCharacter : public ACharacter
 {
@@ -22,6 +30,9 @@ protected:
 	class AGrabbableStaticMeshActor* HeldObject;
 	bool bIsInteracting = false;
 	bool bIsRotating = false;
+
+	FTimerHandle DebuffTime;
+	TEnumAsByte<EDebuffs> currentDebuff;
 
 public:	
 	// Called every frame
@@ -69,6 +80,8 @@ public:
 
 	virtual void Interact();	
 	virtual void ThrowObject();
+	virtual void PlaceTrap();
+	virtual void NextInventory(){};
 
 	virtual void RotateMode();
 
@@ -76,4 +89,10 @@ public:
 	virtual void RotateHeldObjectY(float Value) {};
 
 	virtual void ZoomObject(float Value);
+
+	
+	void SetDebuff(EDebuffs debuff, AActor* OtherActor = nullptr);
+
+	UFUNCTION()
+		void RemoveDebuff(AActor* OtherActor = nullptr);
 };

@@ -44,6 +44,8 @@ protected:
 	void Interact();
 	void RotateMode();
 	void ThrowObject();
+	void PlaceTrap();
+	void NextInventory();
 
 	void RotateHeldObjectX(float Value);
 	void RotateHeldObjectY(float Value);
