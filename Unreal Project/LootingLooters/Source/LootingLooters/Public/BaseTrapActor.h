@@ -6,6 +6,14 @@
 #include "Engine/StaticMeshActor.h"
 #include "BaseTrapActor.generated.h"
 
+UENUM(BlueprintType)		//"BlueprintType" is essential to include
+enum  EDebuffs
+{
+	DE_Nothing 	UMETA(DisplayName = "Nothing"),
+	DE_Stop 	UMETA(DisplayName = "Stop"),
+	DE_Slow 	UMETA(DisplayName = "Slow"),
+};
+
 /**
  * 
  */
@@ -21,4 +29,23 @@ public:
 
 		UFUNCTION()
 			virtual void HandleOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+		UPROPERTY(EditAnywhere)
+			float DebuffLength;
+
+		UPROPERTY(VisibleAnywhere)
+			TEnumAsByte<enum EDebuffs> TrapDebuff;
+
+protected:
+	virtual void Die();
+
+	virtual void SetTarget(class ABaseCharacter* character);
+
+	UFUNCTION()
+		virtual void ApplyDebuff() {};
+	UFUNCTION()
+		virtual void RemoveDebuff() {};
+
+	FTimerHandle DebuffTime;
+	class ABaseCharacter* m_Target;
 };

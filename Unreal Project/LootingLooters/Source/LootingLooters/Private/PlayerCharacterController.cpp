@@ -2,6 +2,12 @@
 
 #include "PlayerCharacterController.h"
 #include "BaseCharacter.h"
+#include "PlayerCharacterState.h"
+
+APlayerCharacterController::APlayerCharacterController() : Super()
+{
+	m_PlayerState = CreateDefaultSubobject<APlayerCharacterState>("PlayerState");
+}
 
 void APlayerCharacterController::Possess(APawn* aPawn)
 {
@@ -11,6 +17,11 @@ void APlayerCharacterController::Possess(APawn* aPawn)
 void APlayerCharacterController::UnPossess()
 {
 	Super::UnPossess();
+}
+
+APlayerCharacterState* APlayerCharacterController::GetPlayerCharacterState()
+{
+	return m_PlayerState;
 }
 
 void APlayerCharacterController::SetupInputComponent()

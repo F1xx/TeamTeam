@@ -22,6 +22,7 @@ ABaseTrapActor::ABaseTrapActor() : Super()
 
 	GetStaticMeshComponent()->OnComponentBeginOverlap.AddDynamic(this, &ABaseTrapActor::HandleOverlap);
 
+	TrapDebuff = EDebuffs::DE_Nothing;
 	Tags.Add("Trap");
 }
 
@@ -49,8 +50,20 @@ void ABaseTrapActor::HandleOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
 			ABaseCharacter* dummy = Cast<ABaseCharacter>(OtherActor);
 			if (dummy)
 			{
-				dummy->SetDebuff(DE_Stop, this);
+				SetTarget(dummy);
+				ApplyDebuff();
 			}
 		}
 	}
+}
+
+//for now just destroy itself
+void ABaseTrapActor::Die()
+{
+	Destroy();
+}
+
+void ABaseTrapActor::SetTarget(class ABaseCharacter* character)
+{
+	m_Target = character;
 }

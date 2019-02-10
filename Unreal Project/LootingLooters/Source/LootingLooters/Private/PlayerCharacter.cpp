@@ -14,6 +14,7 @@
 #include "Camera/PlayerCameraManager.h"
 #include "PlayerCharacterState.h"
 #include "InventoryComponent.h"
+#include "PlayerCharacterController.h"
 
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
@@ -33,10 +34,6 @@ APlayerCharacter::APlayerCharacter() : Super()
 	//Make it so we can't see our own mesh but others can
 	GetMesh()->SetOwnerNoSee(true);
 
-	//Player state
-	m_PlayerState = CreateDefaultSubobject<APlayerCharacterState>("PlayerState");
-	m_PlayerState->Score = 0;
-
 	Tags.Add("Player");
 }
 
@@ -44,6 +41,12 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	class APlayerCharacterController* controller = Cast<APlayerCharacterController>(GetController());
+
+	if (controller)
+	{
+		m_PlayerState = controller->GetPlayerCharacterState();
+	}
 	//UGameplayStatics::GetPlayerCameraManager(this, 0)->bEnableFading = true;
 }
 
@@ -86,21 +89,15 @@ void APlayerCharacter::Interact()
 	//if after super we're still not interacting with anything check if we can grab some loot
 	if (!bIsInteracting)
 	{
-		//A struct that the trace will populate with the results of the hit
 		FHitResult Hit(ForceInit);
 
-		//raycast to see
-		bool result = PerformRayCast(FName("GrabbableTrace"), Hit);
-
-		//if it succeeds do something with it
-		if (result)
+		if (PerformRayCast(FName("GrabbableTrace"), Hit))
 		{
-			//Making sure what we hit was grabbable
+			//Making sure what we hit was Loot
 			if (Hit.GetActor()->ActorHasTag("Loot"))
 			{
-				Hit.GetActor()->Destroy();
-				
-				m_PlayerState->Score += m_Inventory->CollectLoot();
+				Hit.GetActor()->Destroy(); //change for respawning loot?
+				m_PlayerState->Score += (float)m_Inventory->CollectLoot();
 			}
 		}
 	}
@@ -112,14 +109,9 @@ void APlayerCharacter::PlaceTrap()
 	//if we have traps
 	if (m_Inventory->GetTrapCount() > 0)
 	{
-		//A struct that the trace will populate with the results of the hit
 		FHitResult Hit(ForceInit);
 
-		//raycast to see
-		bool result = PerformRayCast(FName("GrabbableTrace"), Hit);
-
-		//if it succeeds do something with it
-		if (result)
+		if (PerformRayCast(FName("GrabbableTrace"), Hit))
 		{
 			m_Inventory->PlaceTrap(Hit.ImpactPoint);
 		}

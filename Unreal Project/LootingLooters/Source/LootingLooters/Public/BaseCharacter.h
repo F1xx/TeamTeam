@@ -6,14 +6,6 @@
 #include "GameFramework/Character.h"
 #include "BaseCharacter.generated.h"
 
-UENUM(BlueprintType)		//"BlueprintType" is essential to include
-enum  EDebuffs
-{
-	DE_Nothing 	UMETA(DisplayName = "Nothing"),
-	DE_Stop 	UMETA(DisplayName = "Stop"),
-	DE_Slow 	UMETA(DisplayName = "Slow"),
-};
-
 UCLASS()
 class LOOTINGLOOTERS_API ABaseCharacter : public ACharacter
 {
@@ -30,9 +22,6 @@ protected:
 	class AGrabbableStaticMeshActor* HeldObject;
 	bool bIsInteracting = false;
 	bool bIsRotating = false;
-
-	FTimerHandle DebuffTime;
-	TEnumAsByte<EDebuffs> currentDebuff;
 
 public:	
 	// Called every frame
@@ -58,10 +47,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = RayCast, meta = (AllowPrivateAccess = "true"))
 		float InteractRange = 800.0f;
 	 
+	UFUNCTION(BlueprintCallable)
+		void SetMaxSpeed(float speed);
+
+	UFUNCTION(BlueprintCallable)
+		float GetMaxSpeed();
+
 	/** Called for forwards/backward input */
 	UFUNCTION(BlueprintCallable)
 	virtual void MoveForward(float Value);
 	/** Called for side to side input */
+	UFUNCTION(BlueprintCallable)
 	virtual void MoveRight(float Value);
 
 	/* Handle horizontal mouse input */
@@ -79,6 +75,7 @@ public:
 	bool PerformRayCast(FName TraceProfile, FHitResult &OutHit);
 
 	virtual void Interact();	
+	virtual void Grab(FHitResult Hit);
 	virtual void ThrowObject();
 	virtual void PlaceTrap();
 	virtual void NextInventory(){};
@@ -89,10 +86,4 @@ public:
 	virtual void RotateHeldObjectY(float Value) {};
 
 	virtual void ZoomObject(float Value);
-
-	
-	void SetDebuff(EDebuffs debuff, AActor* OtherActor = nullptr);
-
-	UFUNCTION()
-		void RemoveDebuff(AActor* OtherActor = nullptr);
 };

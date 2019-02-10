@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "BaseTrapActor.h"
 #include "InventoryComponent.generated.h"
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -22,9 +21,25 @@ protected:
 
 	short TrapCount = 0;
 	short SelectedInventorySlot = 0;
-	short MaxTrapAmount = 6;
 
-	TArray<FString> Traps; //real janky using an array of strings
+	const short MaxInventorySlots = 6;
+
+	//a % chance. Setting above 100 will set it to 100
+	UPROPERTY(EditAnywhere)
+		int ChanceToFindTrap = 50;
+
+	//Holds a list of all trap types
+	//The first element is the base class and counts as empty
+	TArray<TSubclassOf<class ABaseTrapActor>> Traps;
+
+	//The player's inventory
+	//Holds all traps they have up to MaxInventory Slots
+	UPROPERTY(VisibleAnywhere)
+		TArray<TSubclassOf<class ABaseTrapActor>> Inventory;
+
+	bool DidFindTrap();
+	bool HasOpenSlot();
+	void AddRandomTrap();
 
 public:	
 	// Called every frame
@@ -32,9 +47,10 @@ public:
 
 	//returns the score value from the loot
 	//Has a chance to also award a trap if the player has space for one.
-	float CollectLoot();
+	int CollectLoot();
 
 	void NextInventoryItem();
+	void PrevInventoryItem();
 
 	short GetTrapCount() { return TrapCount; }
 	void SetTrapCount(short amount) { TrapCount = amount; }

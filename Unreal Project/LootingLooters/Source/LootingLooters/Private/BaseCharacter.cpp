@@ -58,28 +58,38 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
+void ABaseCharacter::SetMaxSpeed(float speed)
+{
+	GetCharacterMovement()->MaxWalkSpeed = speed;
+}
+
+float ABaseCharacter::GetMaxSpeed()
+{
+	return GetCharacterMovement()->MaxWalkSpeed;
+}
+
 void ABaseCharacter::MoveForward(float Value)
 {
- 	if (Controller && Value)
- 	{
+	if (Controller && Value)
+	{
 		FRotator Rotation = Controller->GetControlRotation();
 		FRotator YawRotation = FRotator::ZeroRotator;
 		YawRotation.Yaw = Rotation.Yaw;
 		FVector Direction = FRotationMatrix(YawRotation).GetScaledAxis(EAxis::X);
 		AddMovementInput(Direction, Value);
- 	}
+	}
 }
 
 void ABaseCharacter::MoveRight(float Value)
 {
- 	if (Controller && Value)
- 	{
+	if (Controller && Value)
+	{
 		FRotator Rotation = Controller->GetControlRotation();
 		FRotator YawRotation = FRotator::ZeroRotator;
 		YawRotation.Yaw = Rotation.Yaw;
- 		FVector Direction = FRotationMatrix(YawRotation).GetScaledAxis(EAxis::Y);
- 		AddMovementInput(Direction, Value);
- 	}
+		FVector Direction = FRotationMatrix(YawRotation).GetScaledAxis(EAxis::Y);
+		AddMovementInput(Direction, Value);
+	}
 }
 
 void ABaseCharacter::Turn(float Val)
@@ -149,7 +159,7 @@ void ABaseCharacter::Interact()
 	//if already interacting stop
 	if (bIsInteracting)
 	{
-		//Pickup will throw the object if its already held
+		//Pickup will drop the object if its already held
 		HeldObject->Pickup(this);
 		HeldObject = nullptr;
 		bIsInteracting = false;
@@ -165,28 +175,33 @@ void ABaseCharacter::Interact()
 		//if it succeeds do something with it
 		if (result)
 		{
-			//Making sure what we hit was grabbable
-			if (Hit.GetActor())
-			{
-				if (Hit.GetActor()->ActorHasTag("Grabbable"))
-				{
-					HeldObject = Cast<AGrabbableStaticMeshActor>(Hit.GetActor());
-					if (HeldObject)
-					{
-						bIsInteracting = true;
-						HeldObject->Pickup(this);
-					}
-				}
-				else if (Hit.GetActor()->ActorHasTag("Trap"))
-				{
-					GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("ITS A TRAP"));//do something later
-				}
-			}
-#ifdef UE_BUILD_DEBUG
-			GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Hit: " + Hit.Actor->GetName()));
-#endif
+			Grab(Hit);
 		}
 	}
+}
+
+void ABaseCharacter::Grab(FHitResult Hit)
+{
+	//Making sure what we hit was an actor
+	if (Hit.GetActor())
+	{
+		if (Hit.GetActor()->ActorHasTag("Grabbable")) //pick it up if it can be grabbed
+		{
+			HeldObject = Cast<AGrabbableStaticMeshActor>(Hit.GetActor());
+			if (HeldObject)
+			{
+				bIsInteracting = true;
+				HeldObject->Pickup(this);
+			}
+		}
+		else if (Hit.GetActor()->ActorHasTag("Trap")) //Disarm traps?
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Emerald, FString("ITS A TRAP"));//do something later
+		}
+	}
+#ifdef UE_BUILD_DEBUG
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Emerald, FString("Hit: " + Hit.Actor->GetName()));
+#endif
 }
 
 void ABaseCharacter::ThrowObject()
@@ -216,49 +231,5 @@ void ABaseCharacter::ZoomObject(float Value)
 	{
 		HeldObject->Zoom(Value);
 	}
-}
-
-void ABaseCharacter::SetDebuff(EDebuffs debuff, AActor* OtherActor /*= nullptr*/)
-{
-	FTimerDelegate del;
-	del.BindUFunction(this, FName("RemoveDebuff"), OtherActor);
-
-	switch (debuff)
-	{
-	case EDebuffs::DE_Stop:
-		currentDebuff = EDebuffs::DE_Stop;
-		GetCharacterMovement()->MaxWalkSpeed = 0.0f;
-		GetWorld()->GetTimerManager().SetTimer(DebuffTime, del, 5.0f, false);
-		break;
-	case EDebuffs::DE_Slow:
-		currentDebuff = EDebuffs::DE_Slow;
-		GetCharacterMovement()->MaxWalkSpeed = 300.0f;
-		GetWorld()->GetTimerManager().SetTimer(DebuffTime, del, 10.0f, false);
-		break;
-	default:
-		break;
-	}
-}
-
-void ABaseCharacter::RemoveDebuff(AActor* OtherActor /*= nullptr*/)
-{
-	if (OtherActor->ActorHasTag("Trap"))
-	{
-		OtherActor->Destroy();
-	}
-
-	switch (currentDebuff)
-	{
-	case EDebuffs::DE_Stop:
-		GetCharacterMovement()->MaxWalkSpeed = 600.0f;
-		break;
-	case EDebuffs::DE_Slow:
-		GetCharacterMovement()->MaxWalkSpeed = 600.0f;
-		break;
-	default:
-		break;
-	}
-
-	currentDebuff = EDebuffs::DE_Nothing;
 }
 
