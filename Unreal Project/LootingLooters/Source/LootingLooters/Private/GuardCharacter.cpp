@@ -8,4 +8,5 @@
 AGuardCharacter::AGuardCharacter() : Super()
 {
 
+	Tags.Add("Guard");
 }

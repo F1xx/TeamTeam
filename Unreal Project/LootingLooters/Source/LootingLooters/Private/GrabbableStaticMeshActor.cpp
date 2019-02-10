@@ -1,7 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "GrabbableStaticMeshActor.h"
-#include "Components/StaticMeshComponent.h"
+#include "DestructibleActor.h"
+#include "DestructibleComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "BaseCharacter.h"
@@ -16,14 +17,8 @@ AGrabbableStaticMeshActor::AGrabbableStaticMeshActor()
 	PrimaryActorTick.bCanEverTick = true;
 
 	//By default the static mesh will physically block everything.
-	GetStaticMeshComponent()->SetCollisionProfileName(FName("BlockAllDynamic"));
-	GetStaticMeshComponent()->SetSimulatePhysics(true);
-
-	//Add a sphere for the trace channel which is slightly bigger than the object and allows the player to grab things easier.
-	Sphere = CreateDefaultSubobject<USphereComponent>("Collision");
-	Sphere->SetupAttachment(RootComponent);
-	Sphere->SetCollisionProfileName("GrabbableTrace"); //this line is integral for this actor to be seen as "grabbable"
-
+	GetDestructibleComponent()->SetCollisionProfileName(FName("GrabbableTrace"));
+	GetDestructibleComponent()->SetSimulatePhysics(true);
 	Tags.Add("Grabbable");
 }
 
@@ -64,11 +59,11 @@ void AGrabbableStaticMeshActor::Pickup(ABaseCharacter* acharacter)
 
 		bIsHeld = !bIsHeld;
 		bIsGravityOn = !bIsGravityOn;
-		GetStaticMeshComponent()->SetEnableGravity(bIsGravityOn);
-		GetStaticMeshComponent()->SetSimulatePhysics(bIsHeld ? false : true);
+		GetDestructibleComponent()->SetEnableGravity(bIsGravityOn);
+		GetDestructibleComponent()->SetSimulatePhysics(!bIsHeld);
 
 		//this line may be a problem, we'll see
-		GetStaticMeshComponent()->SetCollisionEnabled(bIsHeld ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryAndPhysics);
+		GetDestructibleComponent()->SetCollisionEnabled(bIsHeld ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryAndPhysics);
 
 		if (bIsHeld == false) //Drop
 		{
@@ -83,9 +78,9 @@ void AGrabbableStaticMeshActor::Throw()
 {
 	bIsHeld = false;
 	bIsGravityOn = true;
-	GetStaticMeshComponent()->SetEnableGravity(bIsGravityOn);
-	GetStaticMeshComponent()->SetSimulatePhysics(true);
-	GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetDestructibleComponent()->SetEnableGravity(bIsGravityOn);
+	GetDestructibleComponent()->SetSimulatePhysics(true);
+	GetDestructibleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 	if (m_Character)
 	{
@@ -94,12 +89,13 @@ void AGrabbableStaticMeshActor::Throw()
 		if (player) //if its a player throw with the camera
 		{
 			m_CamForward = player->GetCamera()->GetForwardVector();
-			GetStaticMeshComponent()->AddForce(m_CamForward * 100000 * GetStaticMeshComponent()->GetMass());
+			//GetDestructibleComponent()->AddForce(m_CamForward * 100000 * GetDestructibleComponent()->GetMass());
+			GetDestructibleComponent()->ApplyDamage(5000.0f, GetActorLocation(), m_CamForward, 1000.0f);
 		}
 		else // if its a guard just throw forward
 		{
 			m_CamForward = m_Character->GetActorForwardVector();
-			GetStaticMeshComponent()->AddForce(m_CamForward * 100000 * GetStaticMeshComponent()->GetMass());
+			GetDestructibleComponent()->AddForce(m_CamForward * 100000 * GetDestructibleComponent()->GetMass());
 		}
 	}
 	//its not held anymore so forget who was holding us
