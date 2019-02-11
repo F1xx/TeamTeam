@@ -13,12 +13,7 @@ ABaseTrapActor::ABaseTrapActor() : Super()
 	GetStaticMeshComponent()->SetGenerateOverlapEvents(true);
 	GetStaticMeshComponent()->SetSimulatePhysics(true);
 	
-
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> FoundMesh(TEXT("/Engine/EditorMeshes/EditorSphere.EditorSphere"));
-	if (FoundMesh.Succeeded())
-	{
-		GetStaticMeshComponent()->SetStaticMesh(FoundMesh.Object);
-	}
+	SetMeshes("TRAP_Bear_Open", "TRAP_Bear_Closed");
 
 	GetStaticMeshComponent()->OnComponentBeginOverlap.AddDynamic(this, &ABaseTrapActor::HandleOverlap);
 
@@ -50,6 +45,7 @@ void ABaseTrapActor::HandleOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
 			ABaseCharacter* dummy = Cast<ABaseCharacter>(OtherActor);
 			if (dummy)
 			{
+				GetStaticMeshComponent()->SetStaticMesh(ChangeMesh);
 				SetTarget(dummy);
 				ApplyDebuff();
 			}
@@ -61,6 +57,28 @@ void ABaseTrapActor::HandleOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
 void ABaseTrapActor::Die()
 {
 	Destroy();
+}
+
+//for some reason is not properly finding the changemesh
+void ABaseTrapActor::SetMeshes(FString mesh1, FString mesh2)
+{
+	FString starting = "/Game/Assets/TrapMeshes/" + mesh1;
+	const TCHAR* startingchar = *starting;
+
+	FString ending = "/Game/Assets/TrapMeshes/" + mesh2;
+	const TCHAR* endingchar = *ending;
+
+	ConstructorHelpers::FObjectFinder<UStaticMesh> FoundMesh(startingchar);
+	if (FoundMesh.Succeeded())
+	{
+		GetStaticMeshComponent()->SetStaticMesh(FoundMesh.Object);
+	}
+
+	ConstructorHelpers::FObjectFinder<UStaticMesh> SecondFoundMesh(endingchar);
+	if (FoundMesh.Succeeded())
+	{
+		ChangeMesh = FoundMesh.Object;
+	}
 }
 
 void ABaseTrapActor::SetTarget(class ABaseCharacter* character)

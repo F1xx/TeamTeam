@@ -37,8 +37,10 @@ public:
 			TEnumAsByte<enum EDebuffs> TrapDebuff;
 
 protected:
-	virtual void Die();
+	UStaticMesh* ChangeMesh;
 
+	virtual void Die();
+	virtual void SetMeshes(FString mesh1, FString mesh2);
 	virtual void SetTarget(class ABaseCharacter* character);
 
 	UFUNCTION()
