@@ -16,5 +16,30 @@ class LOOTINGLOOTERS_API ALootingLootersGameModeBase : public AGameModeBase
 	
 	
 		virtual void StartPlay() override;
+
+	UFUNCTION(Server, WithValidation, Reliable)
+		void GenerateRandomRoomLayout();
+
+	UFUNCTION(Server, WithValidation, Reliable)
+		void GenerateRandomRoomConnections();
+
+	UFUNCTION(Server, WithValidation, Reliable)
+		void PopulateRoomSockets();
+
+
+public:
+
+	void GetRoomArray(TArray<class ARoomActorBase*>& RoomArray);
+
+protected:
+
+	UPROPERTY(/*Replicated, */BlueprintReadOnly, Category = "Rooms")
+	TArray<ARoomActorBase*> Rooms;
+
+	UPROPERTY(EditAnywhere, Category = "Rooms")
+		int Total_Rooms_To_Generate = 10;
+
+	UPROPERTY(EditAnywhere, Category = "Rooms")
+		TArray<TSubclassOf<class AStaticMeshActor>> Room_Meshes;
 	
 };

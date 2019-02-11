@@ -4,6 +4,9 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/ArrowComponent.h"
+#include "BaseCharacter.h"
+#include "Camera/CameraComponent.h"
+#include "PlayerCharacter.h"
 
 
 
@@ -28,11 +31,25 @@ ADoorActor::ADoorActor()
 	Tags.Add("Door");
 }
 
+bool ADoorActor::IsConnected()
+{
+	return Connector != nullptr;
+}
+
+void ADoorActor::ApplyConnection(ADoorActor* OtherDoor)
+{
+	check(Connector == nullptr);
+
+	Connector = OtherDoor;
+	OtherDoor->Connector = this;
+}
+
 void ADoorActor::TeleportPawnToOtherDoor(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
 	//If the other door isnt set then this collision function doesn't do anything.
 	if (Connector != nullptr)
 	{
+
 		//Fetch the other doors location and arrow.
 		FVector NewLocation = Connector->GetActorLocation();
 		FRotator Direction = Connector->ArrowComponent->GetComponentQuat().Rotator();
@@ -40,6 +57,23 @@ void ADoorActor::TeleportPawnToOtherDoor(UPrimitiveComponent* OverlappedComponen
 
 		//Move the pawn to the other door (with some buffer room) and rotate him to face the arrow components direction.
 		OtherActor->SetActorLocation((Direction.Vector() * TELEPORT_DISTANCE_FROM_DOOR) + NewLocation);
-		OtherActor->SetActorRotation(Direction);
+		//OtherActor->SetActorRotation(Direction);
+
+		//Adjust player camera
+		APlayerCharacter* character = Cast<APlayerCharacter>(OtherActor);
+		if (character)
+		{
+
+			//Get the camera
+			UCameraComponent* Camera = character->GetCamera();
+			
+			//If the camera exists, snap it to adjust.
+			if (Camera != nullptr)
+			{
+				FTransform CameraTransform = Camera->GetRelativeTransform();
+				CameraTransform.SetRotation(Direction.Quaternion());
+				Camera->SetRelativeTransform(CameraTransform);
+			}
+		}
 	}
 }
