@@ -15,18 +15,20 @@ public:
 	// Sets default values for this component's properties
 	UInventoryComponent();
 
+	//functions
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+	bool DidFindTrap(class ALootActor* loot);
+	bool HasOpenSlot();
+	void AddRandomTrap();
 
+	//variables
+protected:
 	short TrapCount = 0;
 	short SelectedInventorySlot = 0;
 
 	const short MaxInventorySlots = 6;
-
-	//a % chance. Setting above 100 will set it to 100
-	UPROPERTY(EditAnywhere)
-		int ChanceToFindTrap = 50;
 
 	//Holds a list of all trap types
 	//The first element is the base class and counts as empty
@@ -37,23 +39,18 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 		TArray<TSubclassOf<class ABaseTrapActor>> Inventory;
 
-	bool DidFindTrap();
-	bool HasOpenSlot();
-	void AddRandomTrap();
-
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	//returns the score value from the loot
 	//Has a chance to also award a trap if the player has space for one.
-	int CollectLoot();
+	int CollectLoot(AActor* lootedObject);
 
 	void NextInventoryItem();
 	void PrevInventoryItem();
 
 	short GetTrapCount() { return TrapCount; }
-	void SetTrapCount(short amount) { TrapCount = amount; }
 	void PlaceTrap(FVector location);
 	
 };

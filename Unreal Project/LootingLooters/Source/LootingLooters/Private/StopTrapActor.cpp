@@ -7,6 +7,8 @@ AStopTrapActor::AStopTrapActor() : Super()
 {
 	TrapDebuff = EDebuffs::DE_Stop;
 	DebuffLength = 5.0f;
+
+	//Uses the default Meshes so nothing to add
 }
 
 void AStopTrapActor::ApplyDebuff()

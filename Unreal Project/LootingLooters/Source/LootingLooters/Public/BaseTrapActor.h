@@ -36,11 +36,16 @@ public:
 		UPROPERTY(VisibleAnywhere)
 			TEnumAsByte<enum EDebuffs> TrapDebuff;
 
-protected:
-	UStaticMesh* ChangeMesh;
+		//The mesh for when the trap is activated
+		UPROPERTY(EditAnywhere)
+			UStaticMesh* ActivatedMesh;
 
+		//Mesh for when the trap is waiting
+		UPROPERTY(EditAnywhere)
+			UStaticMesh* DefaultMesh;
+
+protected:
 	virtual void Die();
-	virtual void SetMeshes(FString mesh1, FString mesh2);
 	virtual void SetTarget(class ABaseCharacter* character);
 
 	UFUNCTION()
@@ -50,4 +55,5 @@ protected:
 
 	FTimerHandle DebuffTime;
 	class ABaseCharacter* m_Target;
+	bool bIsTriggered = false;
 };

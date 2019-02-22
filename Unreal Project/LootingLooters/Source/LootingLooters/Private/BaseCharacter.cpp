@@ -169,11 +169,8 @@ void ABaseCharacter::Interact()
 		//A struct that the trace will populate with the results of the hit
 		FHitResult Hit(ForceInit);
 
-		//raycast to see
-		bool result = PerformRayCast(FName("GrabbableTrace"), Hit);
-
 		//if it succeeds do something with it
-		if (result)
+		if (PerformRayCast(FName("GrabbableTrace"), Hit))
 		{
 			Grab(Hit);
 		}

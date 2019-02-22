@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "InventoryComponent.h"
+#include "LootActor.h"
 #include "BaseTrapActor.h"
 #include "StopTrapActor.h"
 #include "SlowTrapActor.h"
@@ -28,14 +29,11 @@ void UInventoryComponent::BeginPlay()
 
 //simple rand check to see if we found a trap on this loot
 //chance is between ChanceToFindTrap and 100 (ie ChanceToFindTrap is a direct percentage int)
-bool UInventoryComponent::DidFindTrap()
+bool UInventoryComponent::DidFindTrap(class ALootActor* loot)
 {
-	if (ChanceToFindTrap > 100)
-		ChanceToFindTrap = 100;
-	else if (ChanceToFindTrap < 0)
-		ChanceToFindTrap = 0;
-
-	if (FMath::RandRange(0, 100) < ChanceToFindTrap)
+	//between 1 and 100 so that if the chance is 0 it will never spawn
+	//also if chance is 100 then no matter what this is true
+	if (FMath::RandRange(1, 100) <= loot->ChanceToFindTrap)
 		return true;
 
 	return false;
@@ -79,15 +77,24 @@ void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 }
 
 //increments score for grabbing the loot and does a random check which if passed gives a Trap as well
-int UInventoryComponent::CollectLoot()
+int UInventoryComponent::CollectLoot(AActor* lootedObject)
 {
-	if (DidFindTrap() && HasOpenSlot())
+	ALootActor* loot = Cast<ALootActor>(lootedObject);
+
+	if (loot)
 	{
-		AddRandomTrap();
+		if (DidFindTrap(loot) && HasOpenSlot())
+		{
+			AddRandomTrap();
+		}
+		//return a score for the loot
+
+		loot->Die();
+		return FMath::RandRange(20, 60);
 	}
 
-	//return a score for the loot
-	return FMath::RandRange(20, 60);
+	//it wasn't loot, return nothing
+	return 0;
 }
 
 //Cycles through the inventory forward
@@ -116,7 +123,7 @@ void UInventoryComponent::PrevInventoryItem()
 void UInventoryComponent::PlaceTrap(FVector location)
 {
 	//if we actually have a trap selected
-	if (Inventory[SelectedInventorySlot]->GetName() != "Nothing" && TrapCount > 0)
+	if (Inventory[SelectedInventorySlot] != Traps[0] && TrapCount > 0)
 	{
 		//Spawn the trap in-world
 		FRotator Rotation(0.0f, 0.0f, 0.0f);

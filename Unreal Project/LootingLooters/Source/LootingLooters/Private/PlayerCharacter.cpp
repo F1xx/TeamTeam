@@ -96,8 +96,8 @@ void APlayerCharacter::Interact()
 			//Making sure what we hit was Loot
 			if (Hit.GetActor()->ActorHasTag("Loot"))
 			{
-				Hit.GetActor()->Destroy(); //change for respawning loot?
-				m_PlayerState->Score += (float)m_Inventory->CollectLoot();
+				//Hit.GetActor()->Destroy(); //change for respawning loot?
+				m_PlayerState->Score += (float)m_Inventory->CollectLoot(Hit.GetActor());
 			}
 		}
 	}

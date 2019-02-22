@@ -12,10 +12,15 @@ ABaseTrapActor::ABaseTrapActor() : Super()
 	GetStaticMeshComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	GetStaticMeshComponent()->SetGenerateOverlapEvents(true);
 	GetStaticMeshComponent()->SetSimulatePhysics(true);
-	
-	SetMeshes("TRAP_Bear_Open", "TRAP_Bear_Closed");
 
 	GetStaticMeshComponent()->OnComponentBeginOverlap.AddDynamic(this, &ABaseTrapActor::HandleOverlap);
+
+	DefaultMesh = ConstructorHelpers::FObjectFinder<UStaticMesh>(TEXT("/Game/Assets/TrapMeshes/TRAP_Bear_Open")).Object;
+	ActivatedMesh = ConstructorHelpers::FObjectFinder<UStaticMesh>(TEXT("/Game/Assets/TrapMeshes/TRAP_Bear_Closed")).Object;
+	GetStaticMeshComponent()->SetStaticMesh(DefaultMesh);
+
+	//Required or the mesh can't be changed
+	GetStaticMeshComponent()->SetMobility(EComponentMobility::Movable);
 
 	TrapDebuff = EDebuffs::DE_Nothing;
 	Tags.Add("Trap");
@@ -28,26 +33,51 @@ void ABaseTrapActor::Tick(float DeltaSeconds)
 
 void ABaseTrapActor::HandleOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && (OtherActor != GetOwner()))
+	//only do anything if the trap hasn't been triggered
+	if (!bIsTriggered)
 	{
-		//do trap thing
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Emerald, FString("Someone Stepped on a TRAP!!!!!!!!!"));//do something later
-	}
-
-	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && (OtherActor == GetOwner()))
-	{
-		//Nothing actually should happen here. This is just so we know it knows it's owner
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Emerald, FString("My Owner Stepped on their own TRAP!!!!!!!!"));//do something later
-
-
-		if (OtherActor->ActorHasTag("Player"))
+		if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && (OtherActor != GetOwner()))
 		{
-			ABaseCharacter* dummy = Cast<ABaseCharacter>(OtherActor);
-			if (dummy)
+			//do trap thing
+			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Emerald, FString("Someone Stepped on a TRAP!!!!!!!!!"));//do something later
+
+			if (OtherActor->ActorHasTag("Player"))
 			{
-				GetStaticMeshComponent()->SetStaticMesh(ChangeMesh);
-				SetTarget(dummy);
-				ApplyDebuff();
+				ABaseCharacter* dummy = Cast<ABaseCharacter>(OtherActor);
+				if (dummy)
+				{
+					//Not all Traps have one
+					if (ActivatedMesh)
+					{
+						GetStaticMeshComponent()->SetStaticMesh(ActivatedMesh);
+					}
+					SetTarget(dummy);
+					ApplyDebuff();
+					bIsTriggered = true;
+				}
+			}
+		}
+
+		//REMOVE this entire if so we can't hit our own trap
+		if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && (OtherActor == GetOwner()))
+		{
+			//Nothing actually should happen here. This is just so we know it knows it's owner
+			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Emerald, FString("My Owner Stepped on their own TRAP!!!!!!!!"));//do something later
+
+			if (OtherActor->ActorHasTag("Player"))
+			{
+				ABaseCharacter* dummy = Cast<ABaseCharacter>(OtherActor);
+				if (dummy)
+				{
+					//Not all Traps have one
+					if (ActivatedMesh)
+					{
+						GetStaticMeshComponent()->SetStaticMesh(ActivatedMesh);
+					}
+					SetTarget(dummy);
+					ApplyDebuff();
+					bIsTriggered = true;
+				}
 			}
 		}
 	}
@@ -57,28 +87,6 @@ void ABaseTrapActor::HandleOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
 void ABaseTrapActor::Die()
 {
 	Destroy();
-}
-
-//for some reason is not properly finding the changemesh
-void ABaseTrapActor::SetMeshes(FString mesh1, FString mesh2)
-{
-	FString starting = "/Game/Assets/TrapMeshes/" + mesh1;
-	const TCHAR* startingchar = *starting;
-
-	FString ending = "/Game/Assets/TrapMeshes/" + mesh2;
-	const TCHAR* endingchar = *ending;
-
-	ConstructorHelpers::FObjectFinder<UStaticMesh> FoundMesh(startingchar);
-	if (FoundMesh.Succeeded())
-	{
-		GetStaticMeshComponent()->SetStaticMesh(FoundMesh.Object);
-	}
-
-	ConstructorHelpers::FObjectFinder<UStaticMesh> SecondFoundMesh(endingchar);
-	if (FoundMesh.Succeeded())
-	{
-		ChangeMesh = FoundMesh.Object;
-	}
 }
 
 void ABaseTrapActor::SetTarget(class ABaseCharacter* character)

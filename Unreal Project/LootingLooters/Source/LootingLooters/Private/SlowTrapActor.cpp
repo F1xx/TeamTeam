@@ -2,13 +2,17 @@
 
 #include "SlowTrapActor.h"
 #include "BaseCharacter.h"
-
-
+#include "UObject/ConstructorHelpers.h"
 
 ASlowTrapActor::ASlowTrapActor() : Super()
 {
 	TrapDebuff = EDebuffs::DE_Slow;
 	DebuffLength = 10.0f;
+
+	DefaultMesh = ConstructorHelpers::FObjectFinder<UStaticMesh>(TEXT("/Game/Assets/TrapMeshes/TRAP_Slow")).Object;
+	ActivatedMesh = nullptr; //Doesn't have an activated Mesh
+
+	GetStaticMeshComponent()->SetStaticMesh(DefaultMesh);
 }
 
 void ASlowTrapActor::ApplyDebuff()

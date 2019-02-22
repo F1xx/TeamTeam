@@ -3,11 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Engine/StaticMeshActor.h"
+#include "GameFramework/Actor.h"
 #include "LootActor.generated.h"
 
 UCLASS()
-class LOOTINGLOOTERS_API ALootActor : public AStaticMeshActor
+class LOOTINGLOOTERS_API ALootActor : public AActor
 {
 	GENERATED_BODY()
 	
@@ -19,13 +19,36 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	FTimerHandle RespawnTimer;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Effects")
+		class UParticleSystem* m_ParticleSystem;
+
+	UPROPERTY(VisibleAnywhere)
+		class UParticleSystemComponent* m_ParticleComponent;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void PostInitializeComponents() override;
+
+	//remove the loot without actually deleting it.
+	//unless bCanRespawn is false in which case it is Destroyed
+	virtual void Die();
+
+	//return the loot to the field
+	virtual void Respawn();
+
 	UPROPERTY(EditAnywhere)
 		class USphereComponent* Sphere;
 
-	
-	
+	//a % chance. Setting above 100 will set it to 100
+	UPROPERTY(EditAnywhere)
+		int ChanceToFindTrap = 50;
+
+	//How long before the item will respawn. 
+	//Setting this to or lower than zero will cause the item to never respawn
+	UPROPERTY(EditAnywhere)
+		float RespawnDelay = 60;
 };
