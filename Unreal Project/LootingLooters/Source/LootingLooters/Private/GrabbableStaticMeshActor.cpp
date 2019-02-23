@@ -19,6 +19,9 @@ AGrabbableStaticMeshActor::AGrabbableStaticMeshActor()
 	//By default the static mesh will physically block everything.
 	GetDestructibleComponent()->SetCollisionProfileName(FName("GrabbableTrace"));
 	GetDestructibleComponent()->SetSimulatePhysics(true);
+
+	GetDestructibleComponent()->SetCanEverAffectNavigation(true); //make sure the navmesh makes the AI try to avoid these
+
 	Tags.Add("Grabbable");
 }
 
