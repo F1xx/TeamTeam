@@ -1,0 +1,14 @@
+Finalize UML
+Create Sequence Diagrams
+Create Collaboration Diagrams
+Full Psuedocode
+
+3-4 UI Designs (All aspects of the Game are designed and well thought out)
+Concept Art, characters, props etc
+Level Concept Designs
+Actually Design some rooms
+
+
+TEST
+Controls
+list 4 gameplay features

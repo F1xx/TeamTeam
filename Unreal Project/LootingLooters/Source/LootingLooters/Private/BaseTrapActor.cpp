@@ -41,20 +41,17 @@ void ABaseTrapActor::HandleOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
 			//do trap thing
 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Emerald, FString("Someone Stepped on a TRAP!!!!!!!!!"));//do something later
 
-			if (OtherActor->ActorHasTag("Player"))
+			ABaseCharacter* dummy = Cast<ABaseCharacter>(OtherActor);
+			if (dummy)
 			{
-				ABaseCharacter* dummy = Cast<ABaseCharacter>(OtherActor);
-				if (dummy)
+				//Not all Traps have one
+				if (ActivatedMesh)
 				{
-					//Not all Traps have one
-					if (ActivatedMesh)
-					{
-						GetStaticMeshComponent()->SetStaticMesh(ActivatedMesh);
-					}
-					SetTarget(dummy);
-					ApplyDebuff();
-					bIsTriggered = true;
+					GetStaticMeshComponent()->SetStaticMesh(ActivatedMesh);
 				}
+				SetTarget(dummy);
+				ApplyDebuff();
+				bIsTriggered = true;
 			}
 		}
 
@@ -63,21 +60,17 @@ void ABaseTrapActor::HandleOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
 		{
 			//Nothing actually should happen here. This is just so we know it knows it's owner
 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Emerald, FString("My Owner Stepped on their own TRAP!!!!!!!!"));//do something later
-
-			if (OtherActor->ActorHasTag("Player"))
+			ABaseCharacter* dummy = Cast<ABaseCharacter>(OtherActor);
+			if (dummy)
 			{
-				ABaseCharacter* dummy = Cast<ABaseCharacter>(OtherActor);
-				if (dummy)
+				//Not all Traps have one
+				if (ActivatedMesh)
 				{
-					//Not all Traps have one
-					if (ActivatedMesh)
-					{
-						GetStaticMeshComponent()->SetStaticMesh(ActivatedMesh);
-					}
-					SetTarget(dummy);
-					ApplyDebuff();
-					bIsTriggered = true;
+					GetStaticMeshComponent()->SetStaticMesh(ActivatedMesh);
 				}
+				SetTarget(dummy);
+				ApplyDebuff();
+				bIsTriggered = true;
 			}
 		}
 	}
