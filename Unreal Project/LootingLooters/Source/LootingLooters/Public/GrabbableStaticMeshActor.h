@@ -20,6 +20,10 @@ class LOOTINGLOOTERS_API AGrabbableStaticMeshActor : public ADestructibleActor
 protected:
 	virtual void BeginPlay();
 
+	FTimerHandle DespawnTimer;
+	float TimerBeforeDespawn = 5.0f;
+	bool bWasThrown = false;
+
 public:
 	virtual void Tick(float DeltaSeconds);
 
@@ -45,4 +49,10 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	float m_Distance = 200.0f;
+
+	virtual void Die();
+
+private:
+	UFUNCTION()
+		void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
 };

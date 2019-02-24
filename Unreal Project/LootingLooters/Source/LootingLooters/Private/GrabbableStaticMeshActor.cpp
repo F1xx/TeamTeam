@@ -19,6 +19,8 @@ AGrabbableStaticMeshActor::AGrabbableStaticMeshActor()
 	//By default the static mesh will physically block everything.
 	GetDestructibleComponent()->SetCollisionProfileName(FName("GrabbableTrace"));
 	GetDestructibleComponent()->SetSimulatePhysics(true);
+	GetDestructibleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetDestructibleComponent()->SetNotifyRigidBodyCollision(true);
 
 	GetDestructibleComponent()->SetCanEverAffectNavigation(true); //make sure the navmesh makes the AI try to avoid these
 
@@ -32,6 +34,8 @@ void AGrabbableStaticMeshActor::BeginPlay()
 	m_Character = nullptr;
 	m_CamForward = FVector::ZeroVector;
 	m_Rotation = GetActorRotation();
+
+	GetDestructibleComponent()->OnComponentHit.AddDynamic(this, &AGrabbableStaticMeshActor::OnHit);
 }
 
 //Updates the object
@@ -92,17 +96,17 @@ void AGrabbableStaticMeshActor::Throw()
 		if (player) //if its a player throw with the camera
 		{
 			m_CamForward = player->GetCamera()->GetForwardVector();
-			//GetDestructibleComponent()->AddForce(m_CamForward * 100000 * GetDestructibleComponent()->GetMass());
-			GetDestructibleComponent()->ApplyDamage(5000.0f, GetActorLocation(), m_CamForward, 1000.0f);
+			GetDestructibleComponent()->AddForce(m_CamForward * 200000 * GetDestructibleComponent()->GetMass());
+			bWasThrown = true;
 		}
 		else // if its a guard just throw forward
 		{
 			m_CamForward = m_Character->GetActorForwardVector();
-			GetDestructibleComponent()->AddForce(m_CamForward * 100000 * GetDestructibleComponent()->GetMass());
+			GetDestructibleComponent()->AddForce(m_CamForward * 200000 * GetDestructibleComponent()->GetMass());
 		}
 	}
 	//its not held anymore so forget who was holding us
-	m_Character = nullptr;
+	//m_Character = nullptr;
 	m_CamForward = FVector::ZeroVector;
 }
 
@@ -130,4 +134,24 @@ void AGrabbableStaticMeshActor::Zoom(float Value)
 	m_Distance = FMath::Clamp(m_Distance, 150.0f, 500.0f);
 
 	GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Zooming: " + FString::SanitizeFloat(m_Distance)));
+}
+
+void AGrabbableStaticMeshActor::Die()
+{
+	Destroy();
+}
+
+void AGrabbableStaticMeshActor::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (OtherActor != m_Character)
+	{
+		if (bWasThrown)
+		{
+			GetDestructibleComponent()->ApplyDamage(5000.0f, GetActorLocation(), -Hit.Normal, 0.0f);
+
+			GetWorldTimerManager().SetTimer(DespawnTimer, this, &AGrabbableStaticMeshActor::Die, TimerBeforeDespawn, false);
+		}
+	}
+
+	m_Character = nullptr;
 }

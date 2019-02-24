@@ -236,7 +236,6 @@ bool AGuardCharacter::isPatrolPointInRoom()
 			}
 		}
 	}
-
 	return false;
 }
 
