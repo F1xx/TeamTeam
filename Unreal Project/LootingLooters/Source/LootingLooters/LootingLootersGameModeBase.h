@@ -13,9 +13,10 @@ UCLASS()
 class LOOTINGLOOTERS_API ALootingLootersGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-	
-	
-		virtual void StartPlay() override;
+
+	ALootingLootersGameModeBase();
+
+	virtual void StartPlay() override;
 
 	UFUNCTION(Server, WithValidation, Reliable)
 		void GenerateRandomRoomLayout();
@@ -33,6 +34,8 @@ public:
 
 	class ARoomActorBase* GetRoomActorIsIn(AActor* actor);
 
+	class UStaticMesh* GetMeshOfType(FString type);
+
 protected:
 
 	UPROPERTY(/*Replicated, */BlueprintReadOnly, Category = "Rooms")
@@ -43,5 +46,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Rooms")
 		TArray<TSubclassOf<class AStaticMeshActor>> Room_Meshes;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Assets")
+		TArray<UStaticMesh*> Game_Assets;
 	
 };

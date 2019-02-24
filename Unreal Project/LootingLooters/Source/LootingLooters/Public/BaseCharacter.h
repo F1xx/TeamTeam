@@ -23,6 +23,9 @@ protected:
 	bool bIsInteracting = false;
 	bool bIsRotating = false;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Last Door Used")
+		class ADoorActor* LastDoorAccessed;
+
 public:	
 	// Called every frame
 	virtual void TickActor(float DeltaTime, enum ELevelTick TickType, FActorTickFunction& ThisTickFunction) override;
@@ -86,4 +89,7 @@ public:
 	virtual void RotateHeldObjectY(float Value) {};
 
 	virtual void ZoomObject(float Value);
+
+	virtual void SetLastDoorAccessed(ADoorActor* actor) { LastDoorAccessed = actor; }
+	virtual ADoorActor* GetLastDoorAccessed() { return LastDoorAccessed; }
 };
