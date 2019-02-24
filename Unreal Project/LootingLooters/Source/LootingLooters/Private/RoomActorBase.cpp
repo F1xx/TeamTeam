@@ -7,12 +7,28 @@
 #include "DoorActor.h"
 #include "Engine/World.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/BoxComponent.h"
+
+ARoomActorBase::ARoomActorBase()
+{
+	RoomOverlap = CreateDefaultSubobject<UBoxComponent>("OverlapBox");
+	RoomOverlap->SetCollisionResponseToAllChannels(ECR_Ignore);
+	RoomOverlap->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	RoomOverlap->SetMobility(EComponentMobility::Static);
+	RoomOverlap->SetupAttachment(RootComponent);
+}
 
 void ARoomActorBase::SetRoomMesh(AStaticMeshActor* Mesh)
 {
 	RoomMesh = Mesh;
 	RoomMesh->SetOwner(Cast<AActor>(this));
 	RoomMesh->AttachToActor(Cast<AActor>(this), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+
+	FVector origin;
+	FVector bounds;
+
+	RoomMesh->GetActorBounds(false, origin, bounds);
+	RoomOverlap->SetBoxExtent(bounds);
 }
 
 void ARoomActorBase::PopulateEmptySockets()

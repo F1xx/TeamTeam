@@ -31,6 +31,8 @@ public:
 
 	void GetRoomArray(TArray<class ARoomActorBase*>& RoomArray);
 
+	class ARoomActorBase* GetRoomActorIsIn(AActor* actor);
+
 protected:
 
 	UPROPERTY(/*Replicated, */BlueprintReadOnly, Category = "Rooms")

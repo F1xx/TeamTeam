@@ -6,6 +6,7 @@
 #include "RoomActorBase.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/StaticMeshActor.h"
+#include "Components/BoxComponent.h"
 
 void ALootingLootersGameModeBase::StartPlay()
 {
@@ -86,6 +87,30 @@ bool ALootingLootersGameModeBase::PopulateRoomSockets_Validate()
 void ALootingLootersGameModeBase::GetRoomArray(TArray<ARoomActorBase*>& RoomArray)
 {
 	RoomArray = Rooms;
+}
+
+//returns nullptr if the actor can't be found in any room
+class ARoomActorBase* ALootingLootersGameModeBase::GetRoomActorIsIn(AActor* actor)
+{
+	//loop through all rooms and find which room the actor is in
+	for (int i = 0; i < Rooms.Num(); i++)
+	{
+		TArray<AActor*> OverlappingActors;
+
+		Rooms[i]->RoomOverlap->GetOverlappingActors(OverlappingActors, actor->StaticClass());
+
+		// loop through all overlapping actors and see if this actor is in it
+		for (int j = 0; j < OverlappingActors.Num(); j++)
+		{
+			//if the searched actor is in this room, return it
+			if (OverlappingActors[j] == actor)
+			{
+				return Rooms[i];
+			}
+		}
+	}
+
+	return nullptr;
 }
 
 //void ARoomActorBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

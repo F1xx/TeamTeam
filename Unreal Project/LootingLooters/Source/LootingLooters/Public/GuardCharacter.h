@@ -46,21 +46,29 @@ protected:
 
 	EAIState GuardState;
 
-	void SetGuardState(EAIState NewState); 
+	UFUNCTION()
+		void DetermineGuardState();
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "AI")
-		void OnStateChanged(EAIState NewState); 
+	UFUNCTION()
+		void SetGuardState(EAIState NewState); 
 
-	UPROPERTY(EditAnywhere, Category = "AI")
-		AActor* FirstPatrolPoint;
-
-	UPROPERTY(EditAnywhere, Category = "AI")
-		AActor* SecondPatrolPoint;
+	UFUNCTION()
+		void HandleAI();
 
 	AActor* CurrentPatrolPoint;
 
 	UFUNCTION()
 		void MoveToNextPatrolPoint();
+
+	UFUNCTION()
+		void FindNewPatrolPoint();
+
+	UFUNCTION()
+		bool isPatrolPointInRoom();
+
+	UFUNCTION()
+		class ARoomActorBase* GetCurrentRoom();
+
 
 public:
 	virtual void Tick(float DeltaTime) override;
@@ -76,4 +84,8 @@ public:
 private:
 	AActor* TargetActor;
 	FVector SearchLocation;
+
+	class ALootingLootersGameModeBase* m_GameMode;
+
+	const FString EnumToString(const TCHAR* Enum, int32 EnumValue);
 };

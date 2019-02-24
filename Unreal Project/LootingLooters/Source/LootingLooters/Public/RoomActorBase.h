@@ -17,6 +17,8 @@ class LOOTINGLOOTERS_API ARoomActorBase : public AActor
 	
 public:
 
+	ARoomActorBase();
+
 	void SetRoomMesh(class AStaticMeshActor* Mesh);
 
 	UFUNCTION()
@@ -30,8 +32,10 @@ public:
 
 	void GetDoorArray(TArray<class ADoorActor*> &Output);
 
-protected:
+	UPROPERTY(VisibleInstanceOnly, Category = "Mesh")
+		class UBoxComponent* RoomOverlap;
 
+protected:
 	//Fetches the total number of doors lacking a connection.
 	int GetNumberOfDoorsWithoutAConnection();
 

@@ -7,6 +7,10 @@
 #include "DrawDebugHelpers.h"
 #include "Kismet/KismetMathLibrary.h"
 
+#include "LootingLootersGameModeBase.h"
+#include "DoorActor.h"
+#include "RoomActorBase.h"
+
 AGuardCharacter::AGuardCharacter() : Super()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -26,6 +30,8 @@ AGuardCharacter::AGuardCharacter() : Super()
 void AGuardCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	m_GameMode = Cast<ALootingLootersGameModeBase>(GetWorld()->GetAuthGameMode());
 
 	OriginalRotator = GetActorRotation();
 	MoveToNextPatrolPoint();
@@ -75,6 +81,28 @@ void AGuardCharacter::ResetPatrol()
 	MoveToNextPatrolPoint();
 }
 
+void AGuardCharacter::DetermineGuardState()
+{
+	//ensure the right state is set
+	//if we are in a chase we'll either attack or search
+	if (TargetActor)
+	{
+		//if we can still see our target we are attacking
+		if (PawnSensingComp->HasLineOfSightTo(TargetActor))
+		{
+			SetGuardState(EAIState::EAttack);
+
+			//Set this location every time so that when we lose sight this location will be the last one we had
+			SearchLocation = TargetActor->GetActorLocation();
+		}
+		//if we can't see our target anymore go to where they last were
+		else
+			SetGuardState(EAIState::ESearch);
+	}
+	else
+		SetGuardState(EAIState::EPatrol);
+}
+
 void AGuardCharacter::SetGuardState(EAIState NewState)
 {
 	if (GuardState == NewState)
@@ -89,12 +117,6 @@ void AGuardCharacter::SetGuardState(EAIState NewState)
 		break;
 	case EAIState::ESearch:
 		SetMaxSpeed(PatrolSpeed);
-
-		if (TargetActor)
-		{
-			SearchLocation = TargetActor->GetActorLocation();
-		}
-
 		break;
 	case EAIState::EAttack:
 		SetMaxSpeed(AttackSpeed);
@@ -102,46 +124,19 @@ void AGuardCharacter::SetGuardState(EAIState NewState)
 	}
 }
 
-//use this function to find the door in the room that the guard will go to
-void AGuardCharacter::MoveToNextPatrolPoint()
+void AGuardCharacter::HandleAI()
 {
-	if (CurrentPatrolPoint == nullptr || CurrentPatrolPoint == SecondPatrolPoint)
-	{
-		CurrentPatrolPoint = FirstPatrolPoint;
-	}
-	else
-	{
-		CurrentPatrolPoint = SecondPatrolPoint;
-	}
-
-	UAIBlueprintHelperLibrary::SimpleMoveToActor(GetController(), CurrentPatrolPoint);
-}
-
-void AGuardCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	//ensure the right state is set
-	//if we are in a chase we'll either attack or search
-	if (TargetActor)
-	{
-		//if we can still see our target we are attacking
-		if (PawnSensingComp->HasLineOfSightTo(TargetActor))
-			SetGuardState(EAIState::EAttack);
-		//if we can't see our target anymore go to where they last were
-		else
-			SetGuardState(EAIState::ESearch);
-	}
-	else
-		SetGuardState(EAIState::EPatrol);
-
-
 	//this switch actually handles the guard's states
 	switch (GuardState)
 	{
 	case EAIState::EPatrol: //no target, patrol
 
-		if (CurrentPatrolPoint)
+		if (!CurrentPatrolPoint)
+		{
+			MoveToNextPatrolPoint();
+		}
+
+		if (CurrentPatrolPoint && isPatrolPointInRoom())
 		{
 			FVector Delta = (CurrentPatrolPoint->GetActorLocation() - GetActorLocation());
 			float DistanceToGoal = Delta.Size();
@@ -151,6 +146,9 @@ void AGuardCharacter::Tick(float DeltaTime)
 				MoveToNextPatrolPoint();
 			}
 		}
+		else
+			MoveToNextPatrolPoint();
+
 		break;
 
 	case EAIState::ESearch://lost them so go to their last position and look around
@@ -179,7 +177,7 @@ void AGuardCharacter::Tick(float DeltaTime)
 	}
 
 	//outputs debug so we know the search info
-	/*
+
 	if (GuardState == EAIState::ESearch)
 	{
 		float x = TargetActor->GetActorLocation().X;
@@ -190,13 +188,95 @@ void AGuardCharacter::Tick(float DeltaTime)
 
 		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Black, "TargetActor Location: " + loc);
 
-		 x = SearchLocation.X;
-		 y = SearchLocation.Y;
-		 z = SearchLocation.Z;
+		x = SearchLocation.X;
+		y = SearchLocation.Y;
+		z = SearchLocation.Z;
 
-		 loc = FString::SanitizeFloat(x) + ", " + FString::SanitizeFloat(y) + ", " + FString::SanitizeFloat(z);
+		loc = FString::SanitizeFloat(x) + ", " + FString::SanitizeFloat(y) + ", " + FString::SanitizeFloat(z);
 
 		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, "Search Location: " + loc);
 	}
-	*/
+}
+
+//use this function to find the door in the room that the guard will go to
+void AGuardCharacter::MoveToNextPatrolPoint()
+{
+	FindNewPatrolPoint();
+
+	UAIBlueprintHelperLibrary::SimpleMoveToActor(GetController(), CurrentPatrolPoint);
+}
+
+void AGuardCharacter::FindNewPatrolPoint()
+{
+	if (GetCurrentRoom())
+	{
+		//find what room I'm in
+		TArray<ADoorActor*> Doors;
+		GetCurrentRoom()->GetDoorArray(Doors);
+
+		int r = FMath::RandRange(0, Doors.Num() - 1);
+
+		CurrentPatrolPoint = Doors[r];
+	}
+}
+
+//returns true if the guard's current patrol point is inside the room he's in. Otherwise false;
+bool AGuardCharacter::isPatrolPointInRoom()
+{
+	if (GetCurrentRoom() && CurrentPatrolPoint)
+	{
+		TArray<ADoorActor*> Doors;
+		GetCurrentRoom()->GetDoorArray(Doors);
+
+		for (int i = 0; i < Doors.Num(); i++)
+		{
+			if (Doors[i] == CurrentPatrolPoint)
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+class ARoomActorBase* AGuardCharacter::GetCurrentRoom()
+{
+	if (m_GameMode)
+	{
+		return m_GameMode->GetRoomActorIsIn(this);
+	}
+
+	return nullptr;
+}
+
+void AGuardCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	DetermineGuardState();
+	HandleAI();
+
+	GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, "Guard State: " + EnumToString(TEXT("EAIState"), static_cast<uint8>(GuardState)));
+
+	float x = GetActorLocation().X;
+	float y = GetActorLocation().Y;
+	float z = GetActorLocation().Z;
+
+	FString loc = FString::SanitizeFloat(x) + ", " + FString::SanitizeFloat(y) + ", " + FString::SanitizeFloat(z);
+
+	GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, "Guard Location: " + loc);
+}
+
+const FString AGuardCharacter::EnumToString(const TCHAR* Enum, int32 EnumValue)
+{
+	const UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, Enum, true);
+	if (!EnumPtr)
+		return NSLOCTEXT("Invalid", "Invalid", "Invalid").ToString();
+
+#if WITH_EDITOR
+	return EnumPtr->GetDisplayNameTextByIndex(EnumValue).ToString();
+#else
+	return EnumPtr->GetEnumName(EnumValue);
+#endif
 }
