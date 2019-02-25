@@ -68,7 +68,6 @@ void AGuardCharacter::ResetState()
 	if (GuardState == EAIState::EAttack)
 		return;
 
-	GetWorldTimerManager().ClearTimer(TimerHandle_ResetState);
 	SetActorRotation(OriginalRotator);
 	ResetPatrol();
 }
@@ -93,7 +92,7 @@ void AGuardCharacter::DetermineGuardState()
 			SetGuardState(EAIState::EAttack);
 
 			//Set this location every time so that when we lose sight this location will be the last one we had
-			SearchLocation = TargetActor->GetActorLocation();
+			SearchLocation = TargetActor->GetActorLocation();	
 		}
 		//if we can't see our target anymore go to where they last were
 		else
@@ -117,6 +116,13 @@ void AGuardCharacter::SetGuardState(EAIState NewState)
 		break;
 	case EAIState::ESearch:
 		SetMaxSpeed(PatrolSpeed);
+
+		//get the last door used by the player (if there is one).
+		LastDoorUsed = Cast<ABaseCharacter>(TargetActor)->GetLastDoorAccessed();
+
+		//Reset search timer
+		GetWorldTimerManager().ClearTimer(TimerHandle_ResetState);
+
 		break;
 	case EAIState::EAttack:
 		SetMaxSpeed(AttackSpeed);
@@ -141,7 +147,7 @@ void AGuardCharacter::HandleAI()
 			FVector Delta = (CurrentPatrolPoint->GetActorLocation() - GetActorLocation());
 			float DistanceToGoal = Delta.Size();
 
-			if (DistanceToGoal < 150)
+			if (DistanceToGoal < 50)
 			{
 				MoveToNextPatrolPoint();
 			}
@@ -153,15 +159,35 @@ void AGuardCharacter::HandleAI()
 
 	case EAIState::ESearch://lost them so go to their last position and look around
 
-		UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), SearchLocation);
+		//if we're at where the player was last seen but still can't find him, use the last door the player was known using.
+		if (bSearchedLastPlayerLocation != true)
+		{
+			bSearchedLastPlayerLocation = FVector::Dist(GetActorLocation(), SearchLocation) <= 100;
+		}
 
-		//Make the guard give up after 3 seconds of inactivity
-		//only starts if they are close or at the target's last known position
-		if (Controller != nullptr && FVector::Dist(GetActorLocation(), SearchLocation) <= 50 && !GetWorldTimerManager().IsTimerActive(TimerHandle_ResetState))
+
+		//if we're still not near the last known player location keep going there
+		if (Controller != nullptr && bSearchedLastPlayerLocation == false)
+		{
+			UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), SearchLocation);
+		}
+
+		//if we've searched where the player was, start searching the last door the player used
+		if (Controller != nullptr && bSearchedLastPlayerLocation == true)
+		{
+			//if that door exists, move towards it
+			if (LastDoorUsed)
+				UAIBlueprintHelperLibrary::SimpleMoveToActor(GetController(), LastDoorUsed);
+		}
+
+		//Make the guard give up after 3 seconds of searching
+		if (!GetWorldTimerManager().IsTimerActive(TimerHandle_ResetState))
 		{
 			Controller->StopMovement();
 			GetWorldTimerManager().SetTimer(TimerHandle_ResetState, this, &AGuardCharacter::ResetState, 3.0f, true);
+			bSearchedLastPlayerLocation = false;
 		}
+
 		break;
 
 	case EAIState::EAttack: //we can see them so chase them

@@ -85,6 +85,9 @@ private:
 	AActor* TargetActor;
 	FVector SearchLocation;
 
+	bool bSearchedLastPlayerLocation;
+	AActor* LastDoorUsed;
+
 	class ALootingLootersGameModeBase* m_GameMode;
 
 	const FString EnumToString(const TCHAR* Enum, int32 EnumValue);

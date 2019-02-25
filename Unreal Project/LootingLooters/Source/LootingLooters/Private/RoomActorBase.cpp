@@ -33,12 +33,12 @@ void ARoomActorBase::SetRoomMesh(AStaticMeshActor* Mesh)
 
 void ARoomActorBase::PopulateEmptySockets()
 {
-	//Get all other components first
+	//Get all static meshes
 	TArray<UStaticMeshComponent*> Meshes;
 	RoomMesh->GetComponents<UStaticMeshComponent>(Meshes);
 
-	//Get the primary component last.
-	Meshes.Add(RoomMesh->GetStaticMeshComponent());
+	//get our game mode
+	ALootingLootersGameModeBase* GameMode = Cast<ALootingLootersGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
 
 	for (int i = 0; i < Meshes.Num(); i++)
 	{
@@ -64,6 +64,18 @@ void ARoomActorBase::PopulateEmptySockets()
 				ADoorActor* door = GetWorld()->SpawnActor<ADoorActor>(ADoorActor::StaticClass(), SpawnLocation, SpawnRotation, SpawnParams);
 				door->SetOwner(this);
 				GeneratedDoors.Add(door);
+			}
+			else
+				//spawn assets. for now we're just spawning using the first filter
+			{
+				UStaticMesh* AssetMesh = GameMode->GetMeshOfType(name_parsed[0]);
+				AStaticMeshActor* Asset = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), SpawnLocation, SpawnRotation, SpawnParams);
+
+				//temporarily adjusting mobility to set mesh
+				Asset->SetMobility(EComponentMobility::Movable);
+				Asset->GetStaticMeshComponent()->SetStaticMesh(AssetMesh);
+				Asset->SetActorScale3D(FVector(4.5f, 4.5f, 4.5f));
+				Asset->SetMobility(EComponentMobility::Static);
 			}
 		}
 	}

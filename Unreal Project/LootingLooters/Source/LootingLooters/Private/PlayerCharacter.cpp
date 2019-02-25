@@ -22,6 +22,7 @@
 APlayerCharacter::APlayerCharacter() : Super()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	LastDoorAccessed = nullptr;
 
 	//CAMERA
 	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");

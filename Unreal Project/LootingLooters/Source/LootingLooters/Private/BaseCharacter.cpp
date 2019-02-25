@@ -229,4 +229,3 @@ void ABaseCharacter::ZoomObject(float Value)
 		HeldObject->Zoom(Value);
 	}
 }
-
