@@ -34,7 +34,7 @@ public:
 
 	class ARoomActorBase* GetRoomActorIsIn(AActor* actor);
 
-	class UStaticMesh* GetMeshOfType(FString type);
+	class AAssetTemplate* GetAssetOfType(FString type);
 
 protected:
 
@@ -48,6 +48,6 @@ protected:
 		TArray<TSubclassOf<class AStaticMeshActor>> Room_Meshes;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Assets")
-		TArray<UStaticMesh*> Game_Assets;
+		TArray<AAssetTemplate*> Game_Assets;
 	
 };

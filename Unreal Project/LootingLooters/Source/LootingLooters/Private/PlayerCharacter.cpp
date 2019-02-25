@@ -44,10 +44,6 @@ void APlayerCharacter::BeginPlay()
 
 	class APlayerCharacterController* controller = Cast<APlayerCharacterController>(GetController());
 
-	if (controller)
-	{
-		m_PlayerState = controller->GetPlayerCharacterState();
-	}
 	//UGameplayStatics::GetPlayerCameraManager(this, 0)->bEnableFading = true;
 }
 
@@ -83,6 +79,11 @@ UCameraComponent* APlayerCharacter::GetCamera() const
 	return Camera;
 }
 
+class APlayerState* APlayerCharacter::GetPlayerCharacterState()
+{
+	return Cast<APlayerState>(PlayerState);
+}
+
 void APlayerCharacter::Interact()
 {
 	Super::Interact();
@@ -98,7 +99,7 @@ void APlayerCharacter::Interact()
 			if (Hit.GetActor()->ActorHasTag("Loot"))
 			{
 				//Hit.GetActor()->Destroy(); //change for respawning loot?
-				m_PlayerState->Score += (float)m_Inventory->CollectLoot(Hit.GetActor());
+				PlayerState->Score += (float)m_Inventory->CollectLoot(Hit.GetActor());
 			}
 		}
 	}
@@ -127,5 +128,5 @@ void APlayerCharacter::NextInventory()
 void APlayerCharacter::TickActor(float DeltaTime, enum ELevelTick TickType, FActorTickFunction& ThisTickFunction)
 {
 	Super::TickActor(DeltaTime, TickType, ThisTickFunction);
-	GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Magenta, FString("Score: " + FString::SanitizeFloat(m_PlayerState->Score)));
+	//GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Magenta, FString("Score: " + FString::SanitizeFloat(PlayerState->Score)));
 }

@@ -20,15 +20,10 @@ public:
 	virtual void Possess(APawn* aPawn) override;
 	virtual void UnPossess() override;
 
-	UFUNCTION()
-		class APlayerCharacterState* GetPlayerCharacterState();
-
 protected:
 	virtual void SetupInputComponent() override;
 	virtual void AcknowledgePossession(APawn* PossesedPawn) override;
 	virtual void Tick(float DeltaSeconds) override;
-
-	class APlayerCharacterState* m_PlayerState;
 
 	//Delegate to the BaseCharacter to handle
 	/** Called for forwards/backward input */

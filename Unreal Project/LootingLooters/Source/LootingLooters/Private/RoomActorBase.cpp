@@ -8,6 +8,7 @@
 #include "Engine/World.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/BoxComponent.h"
+#include "AssetTemplate.h"
 
 ARoomActorBase::ARoomActorBase()
 {
@@ -68,14 +69,8 @@ void ARoomActorBase::PopulateEmptySockets()
 			else
 				//spawn assets. for now we're just spawning using the first filter
 			{
-				UStaticMesh* AssetMesh = GameMode->GetMeshOfType(name_parsed[0]);
-				AStaticMeshActor* Asset = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), SpawnLocation, SpawnRotation, SpawnParams);
-
-				//temporarily adjusting mobility to set mesh
-				Asset->SetMobility(EComponentMobility::Movable);
-				Asset->GetStaticMeshComponent()->SetStaticMesh(AssetMesh);
-				Asset->SetActorScale3D(FVector(4.5f, 4.5f, 4.5f));
-				Asset->SetMobility(EComponentMobility::Static);
+				AAssetTemplate* AssetMesh = GameMode->GetAssetOfType(name_parsed[0]);
+				AAssetTemplate* Asset = GetWorld()->SpawnActor<AAssetTemplate>(AssetMesh->StaticClass(), SpawnLocation, SpawnRotation, SpawnParams);
 			}
 		}
 	}

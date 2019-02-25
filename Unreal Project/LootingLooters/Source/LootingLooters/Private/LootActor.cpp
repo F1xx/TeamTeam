@@ -16,6 +16,7 @@ ALootActor::ALootActor()
 	Sphere->SetSimulatePhysics(false);
 	Sphere->SetEnableGravity(false);
 	Sphere->SetCollisionProfileName("GrabbableTrace");
+	Sphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 
 	Sphere->SetCanEverAffectNavigation(false); //Loot should be completely ignorable by AI
 	

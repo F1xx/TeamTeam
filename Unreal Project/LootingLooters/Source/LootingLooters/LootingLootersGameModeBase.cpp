@@ -9,6 +9,7 @@
 #include "Components/BoxComponent.h"
 #include "FileManager.h"
 #include "Engine/StaticMesh.h"
+#include "AssetTemplate.h"
 
 ALootingLootersGameModeBase::ALootingLootersGameModeBase() : Super()
 {
@@ -19,11 +20,11 @@ ALootingLootersGameModeBase::ALootingLootersGameModeBase() : Super()
 	FString wildcard("*.uasset");
 
 	//get our atomic files
-	FString AtomicFilePath(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content"), TEXT("Assets"), TEXT("Atomic"), *wildcard));
+	FString AtomicFilePath(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content"), TEXT("Blueprints"), TEXT("Furniture"), *wildcard));
 	manager.FindFiles(FileResults, *AtomicFilePath, true, false);
 	
 	//add all atomic objects to the asset list
-	FString ConstructorPath("/Game/Assets/Atomic/");
+	FString ConstructorPath("/Game/Blueprints/Furniture/");
 	for (int i = 0; i < FileResults.Num(); i++)
 	{
 		//raw filepath
@@ -33,7 +34,7 @@ ALootingLootersGameModeBase::ALootingLootersGameModeBase() : Super()
 		AssetFilePath.RemoveFromEnd(".uasset");
 
 		//find our mesh and add it
-		Game_Assets.Add(ConstructorHelpers::FObjectFinder<UStaticMesh>(*AssetFilePath).Object);
+		Game_Assets.Add(ConstructorHelpers::FObjectFinder<AAssetTemplate>(*AssetFilePath).Object);
 	}
 
 	manager.SetSandboxEnabled(false);
@@ -147,9 +148,9 @@ class ARoomActorBase* ALootingLootersGameModeBase::GetRoomActorIsIn(AActor* acto
 	return nullptr;
 }
 
-UStaticMesh* ALootingLootersGameModeBase::GetMeshOfType(FString type)
+class AAssetTemplate* ALootingLootersGameModeBase::GetAssetOfType(FString type)
 {
-	TArray<UStaticMesh*> ViableMeshes;
+	TArray<AAssetTemplate*> ViableMeshes;
 
 	//get all meshes that fit our type
 	for (int i = 0; i < Game_Assets.Num(); i++)

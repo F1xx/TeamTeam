@@ -33,8 +33,8 @@ public:
 
 	virtual UCameraComponent* GetCamera() const;
 
-	//Create a playerstate for every player in the game
-	class APlayerCharacterState* m_PlayerState;
+	UFUNCTION()
+		class APlayerState* GetPlayerCharacterState();
 
 	virtual void Interact() override;
 	virtual void PlaceTrap() override;
