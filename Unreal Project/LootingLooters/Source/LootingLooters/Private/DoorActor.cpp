@@ -19,8 +19,7 @@ ADoorActor::ADoorActor()
 	GetStaticMeshComponent()->SetSimulatePhysics(false);
 	GetStaticMeshComponent()->SetEnableGravity(false);
 
-	GetStaticMeshComponent()->SetStaticMesh(ConstructorHelpers::FObjectFinder<UStaticMesh>(TEXT("/Game/Assets/BuildingStructure/Door_Updated")).Object);
-	GetStaticMeshComponent()->SetWorldScale3D(FVector(2.5f, 2.5f, 2.5f));
+	GetStaticMeshComponent()->SetStaticMesh(ConstructorHelpers::FObjectFinder<UStaticMesh>(TEXT("/Game/Assets/BuildingStructure/Door/ProperDoor")).Object);
 
 	ArrowComponent = CreateDefaultSubobject<UArrowComponent>("Arrow");
 	ArrowComponent->SetupAttachment(RootComponent);
