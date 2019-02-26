@@ -19,11 +19,11 @@ ALootingLootersGameModeBase::ALootingLootersGameModeBase() : Super()
 	manager.SetSandboxEnabled(true);
 	FString wildcard("*.uasset");
 
-	//get our atomic files
-	FString AtomicFilePath(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content"), TEXT("Blueprints"), TEXT("Furniture"), *wildcard));
-	manager.FindFiles(FileResults, *AtomicFilePath, true, false);
-	
-	//add all atomic objects to the asset list
+	//find all asset blueprints and load into memory
+	FString AssetDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content"), TEXT("Blueprints"), TEXT("Furniture"), *wildcard));
+	manager.FindFiles(FileResults, *AssetDirectory, true, false);
+
+	//add all asset objects to the asset list
 	FString ConstructorPath("/Game/Blueprints/Furniture/");
 	for (int i = 0; i < FileResults.Num(); i++)
 	{
@@ -33,9 +33,41 @@ ALootingLootersGameModeBase::ALootingLootersGameModeBase() : Super()
 		//trim file ending
 		AssetFilePath.RemoveFromEnd(".uasset");
 
-		//find our mesh and add it
-		Game_Assets.Add(ConstructorHelpers::FObjectFinder<AAssetTemplate>(*AssetFilePath).Object);
+		//find our blueprint and add it
+		ConstructorHelpers::FObjectFinder<UBlueprint> AssetBlueprint(*AssetFilePath);
+
+		//if the file was found add it to the list
+		if (AssetBlueprint.Succeeded())
+		{
+			Game_Assets.Add( (UClass*) AssetBlueprint.Object->GeneratedClass);
+		}
 	}
+	FileResults.Empty();
+
+	//find all room blueprints and load them into memory
+	FString RoomDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content"), TEXT("Blueprints"), TEXT("Test_Rooms"), *wildcard));
+	manager.FindFiles(FileResults, *RoomDirectory, true, false);
+
+	//add all room objects to the asset list
+	ConstructorPath = "/Game/Blueprints/Test_Rooms/";
+	for (int i = 0; i < FileResults.Num(); i++)
+	{
+		//raw filepath
+		FString RoomFilePath = ConstructorPath + FileResults[i];
+
+		//trim file ending
+		RoomFilePath.RemoveFromEnd(".uasset");
+
+		//find our blueprint and add it
+		ConstructorHelpers::FObjectFinder<UBlueprint> RoomBlueprint(*RoomFilePath);
+
+		//if the file was found add it to the list
+		if (RoomBlueprint.Succeeded())
+		{
+			Room_Meshes.Add((UClass*)RoomBlueprint.Object->GeneratedClass);
+		}
+	}
+	FileResults.Empty();
 
 	manager.SetSandboxEnabled(false);
 }
@@ -54,7 +86,7 @@ void ALootingLootersGameModeBase::StartPlay()
 		//controller->bEnableMouseOverEvents = true;
 	}
 
-	if (Role == ROLE_Authority)
+	if (HasAuthority())
 	{
 		GenerateRandomRoomLayout();
 		PopulateRoomSockets();
@@ -148,9 +180,9 @@ class ARoomActorBase* ALootingLootersGameModeBase::GetRoomActorIsIn(AActor* acto
 	return nullptr;
 }
 
-class AAssetTemplate* ALootingLootersGameModeBase::GetAssetOfType(FString type)
+TSubclassOf<AAssetTemplate> ALootingLootersGameModeBase::GetAssetOfType(FString type)
 {
-	TArray<AAssetTemplate*> ViableMeshes;
+	TArray<TSubclassOf<AAssetTemplate>> ViableMeshes;
 
 	//get all meshes that fit our type
 	for (int i = 0; i < Game_Assets.Num(); i++)
@@ -158,7 +190,6 @@ class AAssetTemplate* ALootingLootersGameModeBase::GetAssetOfType(FString type)
 		if (Game_Assets[i]->GetName().Contains(type))
 			ViableMeshes.Add(Game_Assets[i]);
 	}
-
 
 	//return a random one
 	return ViableMeshes[FMath::RandRange(0, ViableMeshes.Num() - 1)];

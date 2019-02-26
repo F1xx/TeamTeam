@@ -47,7 +47,25 @@ void ADoorActor::ApplyConnection(ADoorActor* OtherDoor)
 	check(Connector == nullptr);
 
 	Connector = OtherDoor;
-	OtherDoor->Connector = this;
+
+	GetStaticMeshComponent()->SetVisibility(true);
+	Sphere->SetHiddenInGame(false, true);
+	Sphere->SetCollisionProfileName("OverlapOnlyPawn");
+	PrimaryActorTick.bCanEverTick = true;
+}
+
+void ADoorActor::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	//if the door lacks a connection it should be invisible and unheard of until it receives one.
+	if (IsConnected() == false)
+	{
+		GetStaticMeshComponent()->SetVisibility(false);
+		Sphere->SetHiddenInGame(true, true);
+		Sphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		PrimaryActorTick.bCanEverTick = false;
+	}
 }
 
 void ADoorActor::TeleportPawnToOtherDoor(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)

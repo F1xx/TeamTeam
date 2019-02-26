@@ -69,8 +69,8 @@ void ARoomActorBase::PopulateEmptySockets()
 			else
 				//spawn assets. for now we're just spawning using the first filter
 			{
-				AAssetTemplate* AssetMesh = GameMode->GetAssetOfType(name_parsed[0]);
-				AAssetTemplate* Asset = GetWorld()->SpawnActor<AAssetTemplate>(AssetMesh->StaticClass(), SpawnLocation, SpawnRotation, SpawnParams);
+				TSubclassOf<AAssetTemplate> AssetMesh = GameMode->GetAssetOfType(name_parsed[0]);
+				AAssetTemplate* Asset = GetWorld()->SpawnActor<AAssetTemplate>(AssetMesh, SpawnLocation, SpawnRotation, SpawnParams);
 			}
 		}
 	}
@@ -142,9 +142,13 @@ void ARoomActorBase::GenerateDoorConnections()
 				//Choose a random number clamped to our list of rooms
 				int random = FMath::RandRange(0, UnconnectedRooms.Num() - 1);
 
-				//connect to said room
+				//get our lucky door
 				ARoomActorBase* ChosenRoom = UnconnectedRooms[random];
-				UnconnectedDoors[i]->ApplyConnection(ChosenRoom->GetARandomUnconnectedDoor());
+				ADoorActor* OtherDoor = ChosenRoom->GetARandomUnconnectedDoor();
+
+				//connect them together
+				UnconnectedDoors[i]->ApplyConnection(OtherDoor);
+				OtherDoor->ApplyConnection(UnconnectedDoors[i]);
 
 				//remove it from the list now that a connection has been made
 				UnconnectedRooms.RemoveSingle(ChosenRoom);

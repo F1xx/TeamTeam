@@ -34,7 +34,7 @@ public:
 
 	class ARoomActorBase* GetRoomActorIsIn(AActor* actor);
 
-	class AAssetTemplate* GetAssetOfType(FString type);
+	TSubclassOf<class AAssetTemplate> GetAssetOfType(FString type);
 
 protected:
 
@@ -44,10 +44,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Rooms")
 		int Total_Rooms_To_Generate = 10;
 
-	UPROPERTY(EditAnywhere, Category = "Rooms")
+	UPROPERTY(BlueprintReadOnly, Category = "Rooms")
 		TArray<TSubclassOf<class AStaticMeshActor>> Room_Meshes;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Assets")
-		TArray<AAssetTemplate*> Game_Assets;
+		TArray<TSubclassOf< AAssetTemplate>> Game_Assets;
 	
 };

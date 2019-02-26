@@ -15,6 +15,10 @@ class LOOTINGLOOTERS_API ADoorActor : public AStaticMeshActor
 {
 	GENERATED_BODY()
 
+protected:
+
+	virtual void PostInitializeComponents() override;
+
 public:
 	ADoorActor();
 
@@ -32,6 +36,8 @@ public:
 
 	bool IsConnected();
 	void ApplyConnection(ADoorActor* OtherDoor);
+
+
 
 
 	UFUNCTION()
