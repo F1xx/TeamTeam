@@ -5,8 +5,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/World.h"
 #include "LootActor.h"
-
-
+#include "Kismet/GameplayStatics.h"
+#include "LootingLootersGameModeBase.h"
 
 
 AAssetTemplate::AAssetTemplate()
@@ -19,6 +19,9 @@ void AAssetTemplate::PopulateLootSockets()
 	//Get all static meshes
 	TArray<UStaticMeshComponent*> Meshes;
 	GetComponents<UStaticMeshComponent>(Meshes);
+
+	//get our game mode
+	ALootingLootersGameModeBase* GM = Cast<ALootingLootersGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
 
 	//only proceed if we have a mesh to work on
 	if (Meshes.Num() > 0)
@@ -37,15 +40,20 @@ void AAssetTemplate::PopulateLootSockets()
 					//Spawning parameters
 					FActorSpawnParameters SpawnParams;
 					SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+					SpawnParams.Owner = this;
 					FVector SpawnLocation = Meshes[i]->GetSocketLocation(Socket_Names[a]);
 					FRotator SpawnRotation = Meshes[i]->GetSocketRotation(Socket_Names[a]);
+					TSubclassOf<ALootActor> LootAsset = GM->GetARandomLootAsset();
 
-					//spawn our loot object
-					ALootActor* SpawnedLoot = GetWorld()->SpawnActor<ALootActor>(ALootActor::StaticClass(), SpawnLocation, SpawnRotation, SpawnParams);
-					SpawnedLoot->SetOwner(this);
-					
-					//add it to the list
-					Loot.Add(SpawnedLoot);
+					if (LootAsset != nullptr)
+					{
+						//spawn our loot object
+						ALootActor* SpawnedLoot = GetWorld()->SpawnActor<ALootActor>(LootAsset, SpawnLocation, SpawnRotation, SpawnParams);
+
+						//if it succeeded add it to the list
+						if (SpawnedLoot)
+							Loot.Add(SpawnedLoot);
+					}
 				}
 			}
 		}

@@ -34,16 +34,18 @@ public:
 	UPROPERTY(EditAnywhere)
 		class UArrowComponent* ArrowComponent;
 
+	//Does this door have a connection?
 	bool IsConnected();
+
+	//Connect a door to this door.
 	void ApplyConnection(ADoorActor* OtherDoor);
 
-
-
-
+	//Event trigger to teleport pawns to connected doors.
 	UFUNCTION()
 		void TeleportPawnToOtherDoor(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult);
 
 private:
 
+	//a small offset to make sure teleporting isnt an infinite loop.
 	const float TELEPORT_DISTANCE_FROM_DOOR = 100.0f;
 };

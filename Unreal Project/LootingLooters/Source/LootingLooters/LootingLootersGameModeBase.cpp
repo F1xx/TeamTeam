@@ -64,7 +64,33 @@ ALootingLootersGameModeBase::ALootingLootersGameModeBase() : Super()
 		//if the file was found add it to the list
 		if (RoomBlueprint.Succeeded())
 		{
-			Room_Meshes.Add((UClass*)RoomBlueprint.Object->GeneratedClass);
+			Room_Assets.Add((UClass*)RoomBlueprint.Object->GeneratedClass);
+		}
+	}
+	FileResults.Empty();
+
+
+	//find all loot blueprints and load them into memory
+	FString LootDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content/Blueprints/Loot/"), *wildcard));
+	manager.FindFiles(FileResults, *LootDirectory, true, false);
+
+	//add all Loot objects to the asset list
+	ConstructorPath = "/Game/Blueprints/Loot/";
+	for (int i = 0; i < FileResults.Num(); i++)
+	{
+		//raw filepath
+		FString LootFilePath = ConstructorPath + FileResults[i];
+
+		//trim file ending
+		LootFilePath.RemoveFromEnd(".uasset");
+
+		//find our blueprint and add it
+		ConstructorHelpers::FObjectFinder<UBlueprint> LootBlueprint(*LootFilePath);
+
+		//if the file was found add it to the list
+		if (LootBlueprint.Succeeded())
+		{
+			Loot_Assets.Add((UClass*)LootBlueprint.Object->GeneratedClass);
 		}
 	}
 	FileResults.Empty();
@@ -95,7 +121,7 @@ void ALootingLootersGameModeBase::StartPlay()
 
 void ALootingLootersGameModeBase::GenerateRandomRoomLayout_Implementation()
 {
-	check(Room_Meshes.Num() > 0);
+	check(Room_Assets.Num() > 0);
 
 	UWorld* world = GetWorld();
 	int room_root = FMath::Sqrt(Total_Rooms_To_Generate);
@@ -104,17 +130,19 @@ void ALootingLootersGameModeBase::GenerateRandomRoomLayout_Implementation()
 	{
 		for (int i = 0; i < Total_Rooms_To_Generate; i++)
 		{
-
-			int random_index = FMath::RandRange(0, Room_Meshes.Num() - 1);
+			//pull a random room 
+			int random_index = FMath::RandRange(0, Room_Assets.Num() - 1);
 
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
 			//Spacing so the rooms aren't on top of one another.
 			FVector SpawnOffset = FVector(2000.0f * (i / room_root), 2000.0f * (i % room_root), -500.0f);
 			FRotator SpawnRotation = FRotator(0.0f, 0.0f, 0.0f);
 
+			//Spawn the room and the Mesh for the room and attach them together.
 			ARoomActorBase* AddedRoom = world->SpawnActor<ARoomActorBase>(ARoomActorBase::StaticClass(), SpawnOffset, SpawnRotation, SpawnParams);
-			AStaticMeshActor* AddedRoomMesh = world->SpawnActor<AStaticMeshActor>(Room_Meshes[random_index], SpawnOffset, SpawnRotation, SpawnParams);
+			AStaticMeshActor* AddedRoomMesh = world->SpawnActor<AStaticMeshActor>(Room_Assets[random_index], SpawnOffset, SpawnRotation, SpawnParams);
 			AddedRoom->SetRoomMesh(AddedRoomMesh);
 			Rooms.Add(AddedRoom);
 		}
@@ -128,6 +156,7 @@ bool ALootingLootersGameModeBase::GenerateRandomRoomLayout_Validate()
 
 void ALootingLootersGameModeBase::GenerateRandomRoomConnections_Implementation()
 {
+	//iterate through all rooms and have them connect to each other
 	for (int i = 0; i < Rooms.Num(); i++)
 		Rooms[i]->GenerateDoorConnections();
 }
@@ -139,6 +168,7 @@ bool ALootingLootersGameModeBase::GenerateRandomRoomConnections_Validate()
 
 void ALootingLootersGameModeBase::PopulateRoomSockets_Implementation()
 {
+	//iterate through all rooms and have them generate assets to fill them
 	for (int i = 0; i < Rooms.Num(); i++)
 		Rooms[i]->PopulateEmptySockets();
 }
@@ -150,6 +180,7 @@ bool ALootingLootersGameModeBase::PopulateRoomSockets_Validate()
 
 void ALootingLootersGameModeBase::GenerateLoot_Implementation()
 {
+	//iterate through all rooms and have them generate loot on their assets
 	for (int i = 0; i < Rooms.Num(); i++)
 		Rooms[i]->GenerateRandomLoot(-1);
 }
@@ -161,6 +192,7 @@ bool ALootingLootersGameModeBase::GenerateLoot_Validate()
 
 void ALootingLootersGameModeBase::GetRoomArray(TArray<ARoomActorBase*>& RoomArray)
 {
+	//copy supplied TArray
 	RoomArray = Rooms;
 }
 
@@ -188,7 +220,7 @@ ARoomActorBase* ALootingLootersGameModeBase::GetRoomActorIsIn(AActor* actor)
 	return nullptr;
 }
 
-//returns an asset from the pool of meshes using a type delimiter
+//DEPERECATED returns an asset from the pool of meshes using a type delimiter DEPRECATED
 TSubclassOf<AAssetTemplate> ALootingLootersGameModeBase::GetAssetOfType(FString type)
 {
 	TArray<TSubclassOf<AAssetTemplate>> ViableMeshes;
@@ -235,6 +267,17 @@ TSubclassOf<class AAssetTemplate> ALootingLootersGameModeBase::GetRandomAssetOfT
 
 	//if we didn't find a mesh return nullptr
 	return nullptr;
+}
+
+//Pulls a random Loot blueprint from the list of loaded blueprints. Will return nullptr if no Loot assets exist
+TSubclassOf <ALootActor> ALootingLootersGameModeBase::GetARandomLootAsset()
+{
+	//return nullptr if empty
+	if (Loot_Assets.Num() == 0)
+		return nullptr;
+
+	//return a random loot asset
+	return Loot_Assets[FMath::RandRange(0, Loot_Assets.Num() - 1)];
 }
 
 void ALootingLootersGameModeBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

@@ -74,12 +74,15 @@ void ARoomActorBase::PopulateEmptySockets()
 					GeneratedDoors.Add(door);
 				}
 				//otherwise spawn assets. We can get as specific as we want when spawning items.
-				//for now we're using 2 type specifiers, location and size.
+				//Type 1 - Location (floor, wall, ceiling)
+				//Type 2 - Size (small, medium, large etc)
+				//Type 3 - Asset type (object, light etc)
 				else
 				{
 					TArray<FString> Types;
 					Types.Add(name_parsed[0]);
 					Types.Add(name_parsed[1]);
+					Types.Add(name_parsed[2]);
 
 					//fetch a random mesh that fits our type specifiers
 					TSubclassOf<AAssetTemplate> AssetMesh = GameMode->GetRandomAssetOfTypes(Types);
