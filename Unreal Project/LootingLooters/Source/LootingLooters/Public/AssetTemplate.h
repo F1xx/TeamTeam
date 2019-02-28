@@ -13,6 +13,14 @@ UCLASS()
 class LOOTINGLOOTERS_API AAssetTemplate : public AStaticMeshActor
 {
 	GENERATED_BODY()
+
+	AAssetTemplate();
+
+public:
 	
-	
+	void PopulateLootSockets();
+
+	UPROPERTY(VisibleInstanceOnly, Category = "Loot")
+		TArray<class ALootActor*> Loot;
+
 };

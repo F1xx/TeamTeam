@@ -48,6 +48,9 @@ protected:
 	UPROPERTY(Replicated, VisibleInstanceOnly, Category = "Doors")
 		TArray<ADoorActor*> GeneratedDoors;
 
-	UPROPERTY(VisibleInstanceOnly, Category = "Mesh")
+	UPROPERTY(Replicated, VisibleInstanceOnly, Category = "Mesh")
 		AStaticMeshActor* RoomMesh;
+
+	UPROPERTY(VisibleInstanceOnly, Category = "Assets")
+		TArray<class AAssetTemplate*> RoomAssets;
 };

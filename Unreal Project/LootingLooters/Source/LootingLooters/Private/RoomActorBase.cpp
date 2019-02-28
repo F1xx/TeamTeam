@@ -17,6 +17,8 @@ ARoomActorBase::ARoomActorBase()
 	RoomOverlap->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	RoomOverlap->SetMobility(EComponentMobility::Static);
 	RoomOverlap->SetupAttachment(RootComponent);
+
+	SetReplicates(true);
 }
 
 void ARoomActorBase::SetRoomMesh(AStaticMeshActor* Mesh)
@@ -41,40 +43,59 @@ void ARoomActorBase::PopulateEmptySockets()
 	//get our game mode
 	ALootingLootersGameModeBase* GameMode = Cast<ALootingLootersGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
 
-	for (int i = 0; i < Meshes.Num(); i++)
+	//safety check in case a room mesh wasn't actually added for some reason
+	if (Meshes.Num() > 1)
 	{
-		//Get all socket names
-		TArray<FName> Socket_Names = Meshes[i]->GetAllSocketNames();
-
-		//Check each socket name and fill it appropriately
-		for (int a = 0; a < Socket_Names.Num(); a++)
+		//iterate through all meshes that make up the room and check their sockets for spawning objects.
+		for (int i = 0; i < Meshes.Num(); i++)
 		{
-			//string parsing
-			FString name = Socket_Names[a].ToString();
-			TArray<FString> name_parsed;
-			name.ParseIntoArray(name_parsed, TEXT("_"), true);
+			//Get all socket names
+			TArray<FName> Socket_Names = Meshes[i]->GetAllSocketNames();
 
-			//Spawning parameters
-			FActorSpawnParameters SpawnParams;
-			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-			FVector SpawnLocation = Meshes[i]->GetSocketLocation(Socket_Names[a]);
-			FRotator SpawnRotation = Meshes[i]->GetSocketRotation(Socket_Names[a]);
+			//Check each socket name and fill it appropriately
+			for (int a = 0; a < Socket_Names.Num(); a++)
+			{
+				//string parsing
+				FString name = Socket_Names[a].ToString();
+				TArray<FString> name_parsed;
+				name.ParseIntoArray(name_parsed, TEXT("_"), true);
 
-			if (name_parsed[0] == "Door")
-			{
-				ADoorActor* door = GetWorld()->SpawnActor<ADoorActor>(ADoorActor::StaticClass(), SpawnLocation, SpawnRotation, SpawnParams);
-				door->SetOwner(this);
-				GeneratedDoors.Add(door);
-			}
-			else
-				//spawn assets. for now we're just spawning using the first filter
-			{
-				TSubclassOf<AAssetTemplate> AssetMesh = GameMode->GetAssetOfType(name_parsed[0]);
-				AAssetTemplate* Asset = GetWorld()->SpawnActor<AAssetTemplate>(AssetMesh, SpawnLocation, SpawnRotation, SpawnParams);
+				//Spawning parameters
+				FActorSpawnParameters SpawnParams;
+				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+				FVector SpawnLocation = Meshes[i]->GetSocketLocation(Socket_Names[a]);
+				FRotator SpawnRotation = Meshes[i]->GetSocketRotation(Socket_Names[a]);
+
+				//spawn a door if the socket is a door
+				if (name_parsed[0] == "Door")
+				{
+					ADoorActor* door = GetWorld()->SpawnActor<ADoorActor>(ADoorActor::StaticClass(), SpawnLocation, SpawnRotation, SpawnParams);
+					door->SetOwner(this);
+					GeneratedDoors.Add(door);
+				}
+				//otherwise spawn assets. We can get as specific as we want when spawning items.
+				//for now we're using 2 type specifiers, location and size.
+				else
+				{
+					TArray<FString> Types;
+					Types.Add(name_parsed[0]);
+					Types.Add(name_parsed[1]);
+
+					//fetch a random mesh that fits our type specifiers
+					TSubclassOf<AAssetTemplate> AssetMesh = GameMode->GetRandomAssetOfTypes(Types);
+					if (AssetMesh != nullptr)
+					{
+						//create the asset
+						AAssetTemplate* Asset = GetWorld()->SpawnActor<AAssetTemplate>(AssetMesh, SpawnLocation, SpawnRotation, SpawnParams);
+						//populate its loot sockets
+						Asset->PopulateLootSockets();
+						//add it to the list
+						RoomAssets.Add(Asset);
+					}
+				}
 			}
 		}
 	}
-
 
 }
 
@@ -203,4 +224,5 @@ void ARoomActorBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ARoomActorBase, GeneratedDoors);
+	DOREPLIFETIME(ARoomActorBase, RoomMesh);
 }

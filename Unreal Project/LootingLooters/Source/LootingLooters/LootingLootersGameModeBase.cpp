@@ -20,7 +20,7 @@ ALootingLootersGameModeBase::ALootingLootersGameModeBase() : Super()
 	FString wildcard("*.uasset");
 
 	//find all asset blueprints and load into memory
-	FString AssetDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content"), TEXT("Blueprints"), TEXT("Furniture"), *wildcard));
+	FString AssetDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content/Blueprints/Furniture"), *wildcard));
 	manager.FindFiles(FileResults, *AssetDirectory, true, false);
 
 	//add all asset objects to the asset list
@@ -45,7 +45,7 @@ ALootingLootersGameModeBase::ALootingLootersGameModeBase() : Super()
 	FileResults.Empty();
 
 	//find all room blueprints and load them into memory
-	FString RoomDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content"), TEXT("Blueprints"), TEXT("Test_Rooms"), *wildcard));
+	FString RoomDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content/Blueprints/Test_Rooms"), *wildcard));
 	manager.FindFiles(FileResults, *RoomDirectory, true, false);
 
 	//add all room objects to the asset list
@@ -69,6 +69,7 @@ ALootingLootersGameModeBase::ALootingLootersGameModeBase() : Super()
 	}
 	FileResults.Empty();
 
+
 	manager.SetSandboxEnabled(false);
 }
 
@@ -86,14 +87,10 @@ void ALootingLootersGameModeBase::StartPlay()
 		//controller->bEnableMouseOverEvents = true;
 	}
 
-	if (HasAuthority())
-	{
-		GenerateRandomRoomLayout();
-		PopulateRoomSockets();
-		GenerateRandomRoomConnections();
-	}
-
-
+	GenerateRandomRoomLayout();
+	PopulateRoomSockets();
+	GenerateRandomRoomConnections();
+	GenerateLoot();
 }
 
 void ALootingLootersGameModeBase::GenerateRandomRoomLayout_Implementation()
@@ -126,7 +123,7 @@ void ALootingLootersGameModeBase::GenerateRandomRoomLayout_Implementation()
 
 bool ALootingLootersGameModeBase::GenerateRandomRoomLayout_Validate()
 {
-	return HasAuthority();
+	return true;
 }
 
 void ALootingLootersGameModeBase::GenerateRandomRoomConnections_Implementation()
@@ -137,7 +134,7 @@ void ALootingLootersGameModeBase::GenerateRandomRoomConnections_Implementation()
 
 bool ALootingLootersGameModeBase::GenerateRandomRoomConnections_Validate()
 {
-	return HasAuthority();
+	return true;
 }
 
 void ALootingLootersGameModeBase::PopulateRoomSockets_Implementation()
@@ -148,7 +145,18 @@ void ALootingLootersGameModeBase::PopulateRoomSockets_Implementation()
 
 bool ALootingLootersGameModeBase::PopulateRoomSockets_Validate()
 {
-	return HasAuthority();
+	return true;
+}
+
+void ALootingLootersGameModeBase::GenerateLoot_Implementation()
+{
+	for (int i = 0; i < Rooms.Num(); i++)
+		Rooms[i]->GenerateRandomLoot(-1);
+}
+
+bool ALootingLootersGameModeBase::GenerateLoot_Validate()
+{
+	return true;
 }
 
 void ALootingLootersGameModeBase::GetRoomArray(TArray<ARoomActorBase*>& RoomArray)
@@ -157,7 +165,7 @@ void ALootingLootersGameModeBase::GetRoomArray(TArray<ARoomActorBase*>& RoomArra
 }
 
 //returns nullptr if the actor can't be found in any room
-class ARoomActorBase* ALootingLootersGameModeBase::GetRoomActorIsIn(AActor* actor)
+ARoomActorBase* ALootingLootersGameModeBase::GetRoomActorIsIn(AActor* actor)
 {
 	//loop through all rooms and find which room the actor is in
 	for (int i = 0; i < Rooms.Num(); i++)
@@ -180,6 +188,7 @@ class ARoomActorBase* ALootingLootersGameModeBase::GetRoomActorIsIn(AActor* acto
 	return nullptr;
 }
 
+//returns an asset from the pool of meshes using a type delimiter
 TSubclassOf<AAssetTemplate> ALootingLootersGameModeBase::GetAssetOfType(FString type)
 {
 	TArray<TSubclassOf<AAssetTemplate>> ViableMeshes;
@@ -195,9 +204,42 @@ TSubclassOf<AAssetTemplate> ALootingLootersGameModeBase::GetAssetOfType(FString 
 	return ViableMeshes[FMath::RandRange(0, ViableMeshes.Num() - 1)];
 }
 
-//void ARoomActorBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-//{
-//	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-//
-//	DOREPLIFETIME(ALootingLootersGameModeBase, Rooms);
-//}
+
+TSubclassOf<class AAssetTemplate> ALootingLootersGameModeBase::GetRandomAssetOfTypes(TArray<FString> TypeSpecifiers)
+{
+	TArray<TSubclassOf<AAssetTemplate>> ViableMeshes;
+
+	//get all meshes that fit our type
+	for (int i = 0; i < Game_Assets.Num(); i++)
+	{
+		bool AssetFitsSpecifications = true;
+
+		for (int t = 0; t < TypeSpecifiers.Num(); t++)
+		{
+			//if it doesn't contain the search term flag it false and break out of the loop.
+			if (Game_Assets[i]->GetName().Contains(TypeSpecifiers[t]) == false)
+			{
+				AssetFitsSpecifications = false;
+				break;
+			}
+		}
+
+		//if it qualifies add it to the list of meshes
+		if (AssetFitsSpecifications)
+			ViableMeshes.Add(Game_Assets[i]);
+	}
+
+	//return a random one
+	if (ViableMeshes.Num() > 0)
+		return ViableMeshes[FMath::RandRange(0, ViableMeshes.Num() - 1)];
+
+	//if we didn't find a mesh return nullptr
+	return nullptr;
+}
+
+void ALootingLootersGameModeBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ALootingLootersGameModeBase, Rooms);
+}

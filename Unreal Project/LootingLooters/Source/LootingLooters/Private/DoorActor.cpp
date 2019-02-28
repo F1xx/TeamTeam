@@ -34,6 +34,8 @@ ADoorActor::ADoorActor()
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &ADoorActor::TeleportPawnToOtherDoor);
 
 	Tags.Add("Door");
+
+	SetReplicates(true);
 }
 
 bool ADoorActor::IsConnected()

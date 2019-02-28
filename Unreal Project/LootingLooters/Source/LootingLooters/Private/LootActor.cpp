@@ -5,6 +5,7 @@
 
 #include "UObject/ConstructorHelpers.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "LootingLootersGameModeBase.h"
 
 // Sets default values
 ALootActor::ALootActor()
@@ -40,8 +41,13 @@ ALootActor::ALootActor()
 void ALootActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	m_ParticleComponent->SetTemplate(m_ParticleSystem);
+
+	//likely a temporary solution. pulls the set loot particle system from the game mode
+	if (HasAuthority())
+	{
+		ALootingLootersGameModeBase* GM = Cast<ALootingLootersGameModeBase>(GetWorld()->GetAuthGameMode());
+		m_ParticleComponent->SetTemplate(GM->GetLootParticleSystem());
+	}
 }
 
 // Called every frame
