@@ -2,6 +2,7 @@
 
 #include "LootActor.h"
 #include "Components/SphereComponent.h"
+#include "Components/StaticMeshComponent.h"
 
 #include "UObject/ConstructorHelpers.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -22,6 +23,10 @@ ALootActor::ALootActor()
 	Sphere->SetCanEverAffectNavigation(false); //Loot should be completely ignorable by AI
 	
 	RootComponent = Sphere;
+
+	SphereMesh = CreateDefaultSubobject<UStaticMeshComponent>("Sphere Mesh");
+	SphereMesh->SetupAttachment(RootComponent);
+	SphereMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
 
 	//this is hardcoding the particle system
 	//leave commented for blueprint use
