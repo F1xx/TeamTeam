@@ -11,10 +11,9 @@ UInventoryComponent::UInventoryComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 
-	//add new trap types to this list
-	Traps.AddUnique(ABaseTrapActor::StaticClass());
-	Traps.AddUnique(ASlowTrapActor::StaticClass());
-	Traps.AddUnique(AStopTrapActor::StaticClass());
+	//Set the default inventory slot to be empty
+	//Extra traps are added through this component in the blueprint
+	Traps.Add(nullptr);
 
 	//set all slots to empty
 	Inventory.Init(Traps[0], MaxInventorySlots);
@@ -55,7 +54,7 @@ void UInventoryComponent::AddRandomTrap()
 	{
 		if (Inventory[i] == Traps[0]) //ie if the slot is empty
 		{
-			int traptype = FMath::RandRange(1, Traps.Num() - 1);
+			int traptype = FMath::RandRange(1, Traps.Num() - 1); //grab a random trap type starting in the second trap slot (the first is empty)
 
 			TrapCount++;
 			Inventory[i] = Traps[traptype];
@@ -69,10 +68,14 @@ void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	//Makeshift HUD
 	GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Inventory Slot: " + FString::FromInt(SelectedInventorySlot + 1)));
 
-	FString name = Inventory[SelectedInventorySlot]->GetName();
-	GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Equipped in slot: " + name));
+	if (Inventory[SelectedInventorySlot])
+	{
+		FString name = Inventory[SelectedInventorySlot]->GetName();
+		GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Equipped in slot: " + name));
+	}
 	GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Trap Count: " + FString::FromInt(TrapCount)));
 }
 
@@ -130,10 +133,8 @@ void UInventoryComponent::PlaceTrap(FVector location)
 		FActorSpawnParameters SpawnInfo;
 		SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-		//AActor* trap = GetWorld()->SpawnActor(test, &location, &Rotation, SpawnInfo);
 		AActor* trap = GetWorld()->SpawnActor(Inventory[SelectedInventorySlot], &location, &Rotation, SpawnInfo);
 
-		//ABaseTrapActor* trap = GetWorld()->SpawnActor<>(location, Rotation, SpawnInfo);
 		trap->SetOwner(GetOwner());
 
 		Inventory[SelectedInventorySlot] = Traps[0]; //set it back to empty

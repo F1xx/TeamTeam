@@ -4,11 +4,11 @@ PC:
 Movement: WASD, up, down
 Camera: Mouse, left, right
 Interact/Drop: E
-Zoom held object out: Z
-Zoom held object in: X
+Zoom held object in/out: Mousewheel up/down
 Enter Rotation Mode: Q
 Rotate objects (while in rotation mode): mouse
 Throw Object: F
+Place Trap: G
 
 GamePad:
 Movemtnt: Left Stick
@@ -19,3 +19,4 @@ Zoom held object in: Left Bumper
 Enter Rotation Mode: Right Trigger
 Rotate objects (while in rotation mode): Right Stick
 Throw Object: Right Face Button
+Place Trap: D-Pad Down

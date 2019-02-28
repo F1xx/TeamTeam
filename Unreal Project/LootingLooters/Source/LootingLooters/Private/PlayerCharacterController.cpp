@@ -39,7 +39,11 @@ void APlayerCharacterController::SetupInputComponent()
 		//rotation of held item
  		InputComponent->BindAxis("RotateObjectX", this, &APlayerCharacterController::RotateHeldObjectX);
  		InputComponent->BindAxis("RotateObjectY", this, &APlayerCharacterController::RotateHeldObjectY);
+		//For Gamepad
  		InputComponent->BindAxis("Zoom", this, &APlayerCharacterController::ZoomObject);
+		//For PC
+		InputComponent->BindAction("ZoomOut", IE_Pressed, this, &APlayerCharacterController::ZoomOut);
+		InputComponent->BindAction("ZoomIn", IE_Pressed, this, &APlayerCharacterController::ZoomIn);
 
 		//handle Actions
 		InputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacterController::Interact);
@@ -138,6 +142,20 @@ void APlayerCharacterController::NextInventory()
 	ABaseCharacter* owner = Cast<ABaseCharacter>(GetPawn());
 	if (owner)
 		owner->NextInventory();
+}
+
+void APlayerCharacterController::ZoomOut()
+{
+	ABaseCharacter* owner = Cast<ABaseCharacter>(GetPawn());
+	if (owner)
+		owner->ZoomOut();
+}
+
+void APlayerCharacterController::ZoomIn()
+{
+	ABaseCharacter* owner = Cast<ABaseCharacter>(GetPawn());
+	if (owner)
+		owner->ZoomIn();
 }
 
 void APlayerCharacterController::RotateHeldObjectX(float Value)

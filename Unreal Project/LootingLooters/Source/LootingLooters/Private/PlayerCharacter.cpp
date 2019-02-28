@@ -52,6 +52,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent * PlayerInputCo
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
+//A control to rotate whatever object we're interacting with via the Yaxis
 void APlayerCharacter::RotateHeldObjectY(float Value)
 {
 	if (bIsRotating)
@@ -63,6 +64,7 @@ void APlayerCharacter::RotateHeldObjectY(float Value)
 	}
 }
 
+//A control to rotate whatever object we're interacting with via the Xaxis
 void APlayerCharacter::RotateHeldObjectX(float Value)
 {
 	if (bIsRotating)
@@ -84,6 +86,8 @@ class APlayerState* APlayerCharacter::GetPlayerCharacterState()
 	return Cast<APlayerState>(PlayerState);
 }
 
+//Calls ABaseCharacter's Interact
+//If we are not interacting from that then we will check if its loot (this is here because other character types cannot loot)
 void APlayerCharacter::Interact()
 {
 	Super::Interact();
@@ -120,6 +124,7 @@ void APlayerCharacter::PlaceTrap()
 	}
 }
 
+//cycles through the inventory forwards
 void APlayerCharacter::NextInventory()
 {
 	m_Inventory->NextInventoryItem();

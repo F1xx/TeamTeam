@@ -24,11 +24,14 @@ protected:
 	float TimerBeforeDespawn = 5.0f;
 	bool bWasThrown = false;
 
+	UFUNCTION()
+		virtual void OnFracture(const FVector& HitPosition, const FVector& HitDirection);
+
 public:
 	virtual void Tick(float DeltaSeconds);
 
 	UFUNCTION()
-		void Pickup(class ABaseCharacter* acharacter);
+		AGrabbableStaticMeshActor* Pickup(class ABaseCharacter* acharacter);
 
 	UFUNCTION()
 		void Throw();

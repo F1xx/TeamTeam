@@ -17,9 +17,9 @@ ABaseCharacter::ABaseCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	// set our turn rates for input
-	BaseTurnRate = 45.f;
-	BaseLookUpRate = 45.f;
+	// set our turn rates for CONTROLLER input
+	BaseTurnRate = 80.f;
+	BaseLookUpRate = 80.f;
 
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
@@ -34,7 +34,8 @@ ABaseCharacter::ABaseCharacter()
 
 	GetCapsuleComponent()->SetSimulatePhysics(false);
 
-	PickupLoc = CreateDefaultSubobject<USceneComponent>("Puckup holding Location");
+	//when we interact and actually grab something it will look for this location to place itself
+	PickupLoc = CreateDefaultSubobject<USceneComponent>("Pickup holding Location");
 	PickupLoc->SetupAttachment(RootComponent);
 
 	HeldObject = nullptr;
@@ -58,6 +59,7 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
+//Alters the charactermovementcomponent MaxWalkSpeed value
 void ABaseCharacter::SetMaxSpeed(float speed)
 {
 	GetCharacterMovement()->MaxWalkSpeed = speed;
@@ -68,6 +70,7 @@ float ABaseCharacter::GetMaxSpeed()
 	return GetCharacterMovement()->MaxWalkSpeed;
 }
 
+//INPUT CONTROL HANDLING START
 void ABaseCharacter::MoveForward(float Value)
 {
 	if (Controller && Value)
@@ -123,7 +126,10 @@ void ABaseCharacter::LookUpAtRate(float Rate)
 		AddControllerPitchInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 	}
 }
+//INPUT CONTROL HANDLING END
 
+//Does a LineTraceSingleByProfile against the given TraceProfile name and returns the result.
+//Also fills OutHit with the FHitResult of the cast
 bool ABaseCharacter::PerformRayCast(FName TraceProfile, FHitResult &OutHit)
 {
 	FVector campos;
@@ -138,22 +144,23 @@ bool ABaseCharacter::PerformRayCast(FName TraceProfile, FHitResult &OutHit)
 
 	bool result = GetWorld()->LineTraceSingleByProfile(OutHit, campos, end, TraceProfile, Params);
 
-#ifdef UE_BUILD_DEBUG
-	if (result)
-	{
-		if (OutHit.GetActor())
-		{
-			DrawDebugLine(GetWorld(), campos, OutHit.ImpactPoint, FColor::Red, false, 3.0f, 0, 3.0f);
-		}
-	}
-	else
-		DrawDebugLine(GetWorld(), campos, end, FColor::Blue, false, 3.0f, 0, 5.0f);
-#endif
+//#ifdef UE_BUILD_DEBUG
+//	if (result)
+//	{//debug Lines so we can confirm
+//		if (OutHit.GetActor())
+//		{
+//			DrawDebugLine(GetWorld(), campos, OutHit.ImpactPoint, FColor::Red, false, 3.0f, 0, 3.0f);
+//		}
+//	}
+//	else
+//		DrawDebugLine(GetWorld(), campos, end, FColor::Blue, false, 3.0f, 0, 5.0f);
+//#endif
 
 	return result;
 }
 
-//to interact perform a raycast to see if they can interact with what they're looking at
+//Performs a raycast to see if we're looking at something we can interact with
+//if we are already interacting, stop, otherwise try to start
 void ABaseCharacter::Interact()
 {
 	//if already interacting stop
@@ -177,6 +184,9 @@ void ABaseCharacter::Interact()
 	}
 }
 
+//Called from interact if it succeeded
+//Attempts to change the hit actor into one we can interact with. If it succeeds, interact
+//Such as picking up GrabbableStaticMeshActors
 void ABaseCharacter::Grab(FHitResult Hit)
 {
 	//Making sure what we hit was an actor
@@ -184,11 +194,15 @@ void ABaseCharacter::Grab(FHitResult Hit)
 	{
 		if (Hit.GetActor()->ActorHasTag("Grabbable")) //pick it up if it can be grabbed
 		{
-			HeldObject = Cast<AGrabbableStaticMeshActor>(Hit.GetActor());
-			if (HeldObject)
+			AGrabbableStaticMeshActor* grabbable = Cast<AGrabbableStaticMeshActor>(Hit.GetActor());
+			if (grabbable)
 			{
-				bIsInteracting = true;
-				HeldObject->Pickup(this);
+				HeldObject = grabbable->Pickup(this);
+
+				if (HeldObject)
+				{
+					bIsInteracting = true;
+				}
 			}
 		}
 		else if (Hit.GetActor()->ActorHasTag("Trap")) //Disarm traps?
@@ -201,6 +215,7 @@ void ABaseCharacter::Grab(FHitResult Hit)
 #endif
 }
 
+//If we are holding an object let go of it while providing force in our forward direction
 void ABaseCharacter::ThrowObject()
 {
 	if (HeldObject)
@@ -211,21 +226,47 @@ void ABaseCharacter::ThrowObject()
 	}
 }
 
-//place a trap. This is more for the AI and will place a trap at the character's feet
+//place a trap. This is more for the AI and will place a trap at the character's
 void ABaseCharacter::PlaceTrap()
 {
-
+	//nothing right now though
 }
 
+//While held down Toggles between rotate mode and normal mode. If we're holding an object allow us to enter rotate mode so we can move it around
 void ABaseCharacter::RotateMode()
 {
-	bIsRotating = !bIsRotating;
+	if (HeldObject)
+	{
+		bIsRotating = !bIsRotating;
+	}
 }
 
+//if we are holding something this zooms it in/out based on Value
+//USED FOR CONTROLLER
 void ABaseCharacter::ZoomObject(float Value)
 {
 	if (HeldObject)
 	{
-		HeldObject->Zoom(Value);
+		HeldObject->Zoom(Value * 5.0f);
+	}
+}
+
+//if we are holding something this zooms it out
+//USED FOR PC
+void ABaseCharacter::ZoomOut()
+{
+	if (HeldObject)
+	{
+		HeldObject->Zoom(15.0f);
+	}
+}
+
+//if we are holding something this zooms it in
+//USED FOR PC
+void ABaseCharacter::ZoomIn()
+{
+	if (HeldObject)
+	{
+		HeldObject->Zoom(-15.0f);
 	}
 }

@@ -22,8 +22,6 @@ AGrabbableStaticMeshActor::AGrabbableStaticMeshActor()
 	GetDestructibleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	GetDestructibleComponent()->SetNotifyRigidBodyCollision(true);
 
-	GetDestructibleComponent()->SetCanEverAffectNavigation(true); //make sure the navmesh makes the AI try to avoid these
-
 	Tags.Add("Grabbable");
 }
 
@@ -34,8 +32,18 @@ void AGrabbableStaticMeshActor::BeginPlay()
 	m_Character = nullptr;
 	m_CamForward = FVector::ZeroVector;
 	m_Rotation = GetActorRotation();
+	GetDestructibleComponent()->SetCanEverAffectNavigation(true); //make sure the navmesh makes the AI try to avoid these
 
+	//register for onhit so we can fracture ourselves potentially
 	GetDestructibleComponent()->OnComponentHit.AddDynamic(this, &AGrabbableStaticMeshActor::OnHit);
+	//Setup our function to be called when the mesh breaks
+	GetDestructibleComponent()->OnComponentFracture.AddDynamic(this, &AGrabbableStaticMeshActor::OnFracture);
+}
+
+// We want to turn off the ability to grab this actor after its been exploded
+void AGrabbableStaticMeshActor::OnFracture(const FVector& HitPosition, const FVector& HitDirection)
+{
+	GetDestructibleComponent()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 }
 
 //Updates the object
@@ -58,7 +66,7 @@ void AGrabbableStaticMeshActor::Tick(float DeltaSeconds)
 
 //Pickup this object if not already
 //if already holding it, throw it instead
-void AGrabbableStaticMeshActor::Pickup(ABaseCharacter* acharacter)
+AGrabbableStaticMeshActor* AGrabbableStaticMeshActor::Pickup(ABaseCharacter* acharacter)
 {
 	if (acharacter)
 	{
@@ -77,8 +85,12 @@ void AGrabbableStaticMeshActor::Pickup(ABaseCharacter* acharacter)
 			//its not held anymore so forget who was holding us
 			m_Character = nullptr;
 			m_CamForward = FVector::ZeroVector;
+			return nullptr;
 		}
+
+		return this;
 	}
+	return nullptr;
 }
 
 void AGrabbableStaticMeshActor::Throw()

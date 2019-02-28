@@ -32,6 +32,7 @@ protected:
 
 	//Holds a list of all trap types
 	//The first element is the base class and counts as empty
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Config", meta = (AllowPrivateAccess = "true"))
 	TArray<TSubclassOf<class ABaseTrapActor>> Traps;
 
 	//The player's inventory

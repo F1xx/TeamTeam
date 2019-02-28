@@ -48,6 +48,9 @@ protected:
 	void PlaceTrap();
 	void NextInventory();
 
+	void ZoomOut();
+	void ZoomIn();
+
 	void RotateHeldObjectX(float Value);
 	void RotateHeldObjectY(float Value);
 

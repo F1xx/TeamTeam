@@ -89,6 +89,8 @@ public:
 	virtual void RotateHeldObjectY(float Value) {};
 
 	virtual void ZoomObject(float Value);
+	virtual void ZoomOut();
+	virtual void ZoomIn();
 
 	virtual void SetLastDoorAccessed(ADoorActor* actor) { LastDoorAccessed = actor; }
 	virtual ADoorActor* GetLastDoorAccessed() { return LastDoorAccessed; }
