@@ -18,8 +18,10 @@ class LOOTINGLOOTERS_API AAssetTemplate : public AStaticMeshActor
 
 public:
 	
+	//Asset iterates through all sockets and spawns LootActors on every "loot" socket
 	void PopulateLootSockets();
 
+	//All loot spawned by the Asset
 	UPROPERTY(VisibleInstanceOnly, Category = "Loot")
 		TArray<class ALootActor*> Loot;
 

@@ -19,8 +19,10 @@ ADoorActor::ADoorActor()
 	GetStaticMeshComponent()->SetSimulatePhysics(false);
 	GetStaticMeshComponent()->SetEnableGravity(false);
 
+	//Hardcoded. I think we only ever use 1 door. If not this will change.
 	GetStaticMeshComponent()->SetStaticMesh(ConstructorHelpers::FObjectFinder<UStaticMesh>(TEXT("/Game/Assets/BuildingStructure/Door/ProperDoor")).Object);
 
+	//Arrow for controlling the spawn facing
 	ArrowComponent = CreateDefaultSubobject<UArrowComponent>("Arrow");
 	ArrowComponent->SetupAttachment(RootComponent);
 
@@ -49,6 +51,7 @@ void ADoorActor::ApplyConnection(ADoorActor* OtherDoor)
 
 	Connector = OtherDoor;
 
+	//Make the door visible now that it's connected
 	GetStaticMeshComponent()->SetVisibility(true);
 	Sphere->SetHiddenInGame(false, true);
 	Sphere->SetCollisionProfileName("OverlapOnlyPawn");
@@ -62,6 +65,7 @@ void ADoorActor::PostInitializeComponents()
 	//if the door lacks a connection it should be invisible and unheard of until it receives one.
 	if (IsConnected() == false)
 	{
+		//While not connected make the door invisible
 		GetStaticMeshComponent()->SetVisibility(false);
 		Sphere->SetHiddenInGame(true, true);
 		Sphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
