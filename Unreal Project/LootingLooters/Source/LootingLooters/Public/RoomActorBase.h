@@ -19,6 +19,7 @@ public:
 
 	ARoomActorBase();
 
+	//Sets the room Mesh to the supplied actor and adjusts the bounding box to fit the actor.
 	void SetRoomMesh(class AStaticMeshActor* Mesh);
 
 	//Iterates through all sockets that the room mesh has and fills them with assets.
