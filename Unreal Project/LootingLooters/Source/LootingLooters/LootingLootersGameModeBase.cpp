@@ -237,7 +237,7 @@ TSubclassOf<AAssetTemplate> ALootingLootersGameModeBase::GetAssetOfType(FString 
 }
 
 
-TSubclassOf<class AAssetTemplate> ALootingLootersGameModeBase::GetRandomAssetOfTypes(TArray<FString> TypeSpecifiers)
+TSubclassOf<AAssetTemplate> ALootingLootersGameModeBase::GetRandomAssetOfTypes(TArray<FString> TypeSpecifiers)
 {
 	TArray<TSubclassOf<AAssetTemplate>> ViableMeshes;
 
