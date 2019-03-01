@@ -7,8 +7,6 @@ AStopTrapActor::AStopTrapActor() : Super()
 {
 	TrapDebuff = EDebuffs::DE_Stop;
 	DebuffLength = 5.0f;
-
-	//Uses the default Meshes so nothing to add
 }
 
 //completely stops the character that stepped on it (sets its speed to 0)

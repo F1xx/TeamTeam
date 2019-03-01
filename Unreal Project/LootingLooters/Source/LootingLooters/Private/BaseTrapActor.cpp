@@ -15,27 +15,6 @@ ABaseTrapActor::ABaseTrapActor() : Super()
 
 	GetStaticMeshComponent()->OnComponentBeginOverlap.AddDynamic(this, &ABaseTrapActor::HandleOverlap);
 
-// 	FString LootFilePath;
-// #ifdef UE_BUILD_RELEASE
-// 	LootFilePath += "Blueprint'";
-// #endif
-// 	FString NameTag = "TRAP_Bear_Open";
-// 	FString NameTagTwo = "TRAP_Bear_Closed";
-// 	LootFilePath += "/Game/Assets/TrapMeshes/";
-// 
-// 	FString BearFile = LootFilePath + NameTag;
-// 	FString OtherBearFile = LootFilePath + NameTagTwo;
-// 
-// #ifdef UE_BUILD_RELEASE
-// 	BearFile += "." + NameTag + "'";
-// 	OtherBearFile += "." + NameTagTwo + "'";
-// #endif
-
-	//DefaultMesh = ConstructorHelpers::FObjectFinder<UStaticMesh>(*BearFile).Object;
-	//ActivatedMesh = ConstructorHelpers::FObjectFinder<UStaticMesh>(*OtherBearFile).Object;
-
-	//GetStaticMeshComponent()->SetStaticMesh(DefaultMesh);
-
 	TrapDebuff = EDebuffs::DE_Nothing;
 	Tags.Add("Trap");
 }

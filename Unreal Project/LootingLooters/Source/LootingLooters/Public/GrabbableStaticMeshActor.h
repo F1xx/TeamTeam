@@ -21,7 +21,7 @@ protected:
 	virtual void BeginPlay();
 
 	FTimerHandle DespawnTimer;
-	float TimerBeforeDespawn = 5.0f;
+	float TimeBeforeDespawn = 5.0f;
 	bool bWasThrown = false;
 
 	UFUNCTION()

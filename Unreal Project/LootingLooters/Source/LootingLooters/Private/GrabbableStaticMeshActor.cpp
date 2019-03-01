@@ -109,7 +109,7 @@ void AGrabbableStaticMeshActor::Throw()
 
 		if (player) //if its a player throw with the camera
 		{
-			m_CamForward = player->GetCamera()->GetForwardVector();
+			m_CamForward = player->GetFollowCamera()->GetForwardVector();
 			GetDestructibleComponent()->AddForce(m_CamForward * 200000 * GetDestructibleComponent()->GetMass());
 			bWasThrown = true;
 		}
@@ -168,7 +168,7 @@ void AGrabbableStaticMeshActor::OnHit(UPrimitiveComponent* HitComponent, AActor*
 		{
 			GetDestructibleComponent()->ApplyDamage(5000.0f, GetActorLocation(), -Hit.Normal, 0.0f);
 
-			GetWorldTimerManager().SetTimer(DespawnTimer, this, &AGrabbableStaticMeshActor::Die, TimerBeforeDespawn, false);
+			GetWorldTimerManager().SetTimer(DespawnTimer, this, &AGrabbableStaticMeshActor::Die, TimeBeforeDespawn, false);
 		}
 	}
 

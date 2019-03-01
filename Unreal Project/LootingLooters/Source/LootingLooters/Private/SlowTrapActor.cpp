@@ -8,11 +8,6 @@ ASlowTrapActor::ASlowTrapActor() : Super()
 {
 	TrapDebuff = EDebuffs::DE_Slow;
 	DebuffLength = 10.0f;
-
-	//DefaultMesh = ConstructorHelpers::FObjectFinder<UStaticMesh>(TEXT("/Game/Assets/TrapMeshes/TRAP_Slow")).Object;
-	//ActivatedMesh = nullptr; //Doesn't have an activated Mesh
-
-	//GetStaticMeshComponent()->SetStaticMesh(DefaultMesh);
 }
 
 //applies the slow debuff (lowering max walk speed) of the character that stepped on it

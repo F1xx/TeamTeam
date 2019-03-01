@@ -75,12 +75,7 @@ void APlayerCharacter::RotateHeldObjectX(float Value)
 	}
 }
 
-UCameraComponent* APlayerCharacter::GetCamera() const
-{
-	return Camera;
-}
-
-class APlayerState* APlayerCharacter::GetPlayerCharacterState()
+class APlayerState* APlayerCharacter::GetPlayerState()
 {
 	return Cast<APlayerState>(PlayerState);
 }

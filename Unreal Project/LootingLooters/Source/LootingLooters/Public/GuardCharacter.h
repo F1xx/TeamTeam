@@ -93,5 +93,5 @@ private:
 
 	class ALootingLootersGameModeBase* m_GameMode;
 
-	const FString EnumToString(const TCHAR* Enum, int32 EnumValue);
+	//const FString EnumToString(const TCHAR* Enum, int32 EnumValue);
 };

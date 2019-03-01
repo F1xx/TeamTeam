@@ -31,10 +31,8 @@ protected:
 
 public:
 
-	virtual UCameraComponent* GetCamera() const;
-
 	UFUNCTION()
-		class APlayerState* GetPlayerCharacterState();
+		class APlayerState* GetPlayerState();
 
 	virtual void Die() override;
 

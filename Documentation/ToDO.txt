@@ -1,7 +1,0 @@
-Finalize UML
-TDD
-
-3-4 UI Designs (All aspects of the Game are designed and well thought out)
-GDD
-
-Tracability Matrices

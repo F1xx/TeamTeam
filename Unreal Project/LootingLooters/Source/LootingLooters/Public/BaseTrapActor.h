@@ -40,10 +40,6 @@ public:
 		UPROPERTY(EditAnywhere)
 			UStaticMesh* ActivatedMesh;
 
-		//Mesh for when the trap is waiting
-		UPROPERTY(EditAnywhere)
-			UStaticMesh* DefaultMesh;
-
 protected:
 	virtual void Die();
 	virtual void SetTarget(class ABaseCharacter* character);
