@@ -6,10 +6,12 @@
 #include "Perception/PawnSensingComponent.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Components/CapsuleComponent.h"
 
 #include "LootingLootersGameModeBase.h"
 #include "DoorActor.h"
 #include "RoomActorBase.h"
+#include "PlayerCharacter.h"
 
 AGuardCharacter::AGuardCharacter() : Super()
 {
@@ -35,6 +37,8 @@ void AGuardCharacter::BeginPlay()
 
 	OriginalRotator = GetActorRotation();
 	MoveToNextPatrolPoint();
+
+	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AGuardCharacter::OnComponentHit);
 }
 
 //if we see a player, attack them
@@ -273,6 +277,15 @@ class ARoomActorBase* AGuardCharacter::GetCurrentRoom()
 	}
 
 	return nullptr;
+}
+
+void AGuardCharacter::OnComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
+{
+	APlayerCharacter* player = Cast<APlayerCharacter>(OtherActor);
+
+	if (player)
+	{
+	}
 }
 
 void AGuardCharacter::Tick(float DeltaTime)

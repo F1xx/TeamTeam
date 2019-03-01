@@ -19,9 +19,6 @@ ABaseTrapActor::ABaseTrapActor() : Super()
 	ActivatedMesh = ConstructorHelpers::FObjectFinder<UStaticMesh>(TEXT("/Game/Assets/TrapMeshes/TRAP_Bear_Closed")).Object;
 	GetStaticMeshComponent()->SetStaticMesh(DefaultMesh);
 
-	//Required or the mesh can't be changed
-	GetStaticMeshComponent()->SetMobility(EComponentMobility::Movable);
-
 	TrapDebuff = EDebuffs::DE_Nothing;
 	Tags.Add("Trap");
 }
@@ -47,7 +44,10 @@ void ABaseTrapActor::HandleOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
 				//Not all Traps have one
 				if (ActivatedMesh)
 				{
+					//Required or the mesh can't be changed
+					GetStaticMeshComponent()->SetMobility(EComponentMobility::Movable);
 					GetStaticMeshComponent()->SetStaticMesh(ActivatedMesh);
+					GetStaticMeshComponent()->SetMobility(EComponentMobility::Static);
 				}
 				SetTarget(dummy);
 				ApplyDebuff();
