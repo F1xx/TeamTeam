@@ -43,7 +43,6 @@ public:
 	//Event trigger to teleport pawns to connected doors.
 	UFUNCTION()
 		void TeleportPawnToOtherDoor(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult);
-
 private:
 
 	//a small offset to make sure teleporting isnt an infinite loop.

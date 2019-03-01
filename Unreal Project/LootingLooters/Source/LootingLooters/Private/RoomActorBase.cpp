@@ -69,7 +69,8 @@ void ARoomActorBase::PopulateEmptySockets()
 				//spawn a door if the socket is a door
 				if (name_parsed[0] == "Door")
 				{
-					ADoorActor* door = GetWorld()->SpawnActor<ADoorActor>(ADoorActor::StaticClass(), SpawnLocation, SpawnRotation, SpawnParams);
+					//ADoorActor* door = GetWorld()->SpawnActor<ADoorActor>(ADoorActor::StaticClass(), SpawnLocation, SpawnRotation, SpawnParams);
+					ADoorActor* door = GetWorld()->SpawnActor<ADoorActor>(GameMode->GetDoorBlueprint(), SpawnLocation, SpawnRotation, SpawnParams);
 					door->SetOwner(this);
 					GeneratedDoors.Add(door);
 				}

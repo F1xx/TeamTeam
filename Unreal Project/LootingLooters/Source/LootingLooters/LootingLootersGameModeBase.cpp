@@ -12,91 +12,116 @@
 #include "AssetTemplate.h"
 
 ALootingLootersGameModeBase::ALootingLootersGameModeBase() : Super()
-{
-	//fetch all static mesh files and load them up
-	TArray<FString> FileResults;
-	IFileManager& manager = IFileManager::Get();
-	manager.SetSandboxEnabled(true);
-	FString wildcard("*.uasset");
-
-	//find all asset blueprints and load into memory
-	FString AssetDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content/Blueprints/Furniture"), *wildcard));
-	manager.FindFiles(FileResults, *AssetDirectory, true, false);
-
-	//add all asset objects to the asset list
-	FString ConstructorPath("/Game/Blueprints/Furniture/");
-	for (int i = 0; i < FileResults.Num(); i++)
-	{
-		//raw filepath
-		FString AssetFilePath = ConstructorPath + FileResults[i];
-
-		//trim file ending
-		AssetFilePath.RemoveFromEnd(".uasset");
-
-		//find our blueprint and add it
-		ConstructorHelpers::FObjectFinder<UBlueprint> AssetBlueprint(*AssetFilePath);
-
-		//if the file was found add it to the list
-		if (AssetBlueprint.Succeeded())
-		{
-			Game_Assets.Add( (UClass*) AssetBlueprint.Object->GeneratedClass);
-		}
-	}
-	FileResults.Empty();
-
-	//find all room blueprints and load them into memory
-	FString RoomDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content/Blueprints/Test_Rooms"), *wildcard));
-	manager.FindFiles(FileResults, *RoomDirectory, true, false);
-
-	//add all room objects to the asset list
-	ConstructorPath = "/Game/Blueprints/Test_Rooms/";
-	for (int i = 0; i < FileResults.Num(); i++)
-	{
-		//raw filepath
-		FString RoomFilePath = ConstructorPath + FileResults[i];
-
-		//trim file ending
-		RoomFilePath.RemoveFromEnd(".uasset");
-
-		//find our blueprint and add it
-		ConstructorHelpers::FObjectFinder<UBlueprint> RoomBlueprint(*RoomFilePath);
-
-		//if the file was found add it to the list
-		if (RoomBlueprint.Succeeded())
-		{
-			Room_Assets.Add((UClass*)RoomBlueprint.Object->GeneratedClass);
-		}
-	}
-	FileResults.Empty();
-
-
-	//find all loot blueprints and load them into memory
-	FString LootDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content/Blueprints/Loot/"), *wildcard));
-	manager.FindFiles(FileResults, *LootDirectory, true, false);
-
-	//add all Loot objects to the asset list
-	ConstructorPath = "/Game/Blueprints/Loot/";
-	for (int i = 0; i < FileResults.Num(); i++)
-	{
-		//raw filepath
-		FString LootFilePath = ConstructorPath + FileResults[i];
-
-		//trim file ending
-		LootFilePath.RemoveFromEnd(".uasset");
-
-		//find our blueprint and add it
-		ConstructorHelpers::FObjectFinder<UBlueprint> LootBlueprint(*LootFilePath);
-
-		//if the file was found add it to the list
-		if (LootBlueprint.Succeeded())
-		{
-			Loot_Assets.Add((UClass*)LootBlueprint.Object->GeneratedClass);
-		}
-	}
-	FileResults.Empty();
-
-
-	manager.SetSandboxEnabled(false);
+ {
+// 	//fetch all static mesh files and load them up
+// 	TArray<FString> FileResults;
+// 	IFileManager& manager = IFileManager::Get();
+// 	manager.SetSandboxEnabled(true);
+// 	FString wildcard("*.uasset");
+// 
+// 	//find all asset blueprints and load into memory
+// 	FString AssetDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content/Blueprints/Furniture"), *wildcard));
+// 	manager.FindFiles(FileResults, *AssetDirectory, true, false);
+// 
+// 	//add all asset objects to the asset list
+// 	FString ConstructorPath("/Game/Blueprints/Furniture/");
+// 	for (int i = 0; i < FileResults.Num(); i++)
+// 	{
+// 		//trim file ending
+// 		FileResults[i].RemoveFromEnd(".uasset");
+// 
+// 		//raw filepath
+// 		FString AssetFilePath;
+// #ifdef UE_BUILD_RELEASE
+// 		AssetFilePath += "Blueprint'";
+// #endif
+// 		AssetFilePath += ConstructorPath + FileResults[i];
+// 
+// #ifdef UE_BUILD_RELEASE
+// 		AssetFilePath += "." + FileResults[i] + "'";
+// #endif
+// 
+// 		//find our blueprint and add it
+// 		ConstructorHelpers::FObjectFinder<UBlueprint> AssetBlueprint(*AssetFilePath);
+// 
+// 		//if the file was found add it to the list
+// 		if (AssetBlueprint.Succeeded())
+// 		{
+// 			Game_Assets.Add( (UClass*) AssetBlueprint.Object->GeneratedClass);
+// 		}
+// 	}
+// 	FileResults.Empty();
+// 
+// 	//find all room blueprints and load them into memory
+// 	FString RoomDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content/Blueprints/Test_Rooms"), *wildcard));
+// 	manager.FindFiles(FileResults, *RoomDirectory, true, false);
+// 
+// 	//add all room objects to the asset list
+// 	ConstructorPath = "/Game/Blueprints/Test_Rooms/";
+// 	for (int i = 0; i < FileResults.Num(); i++)
+// 	{
+// 		//trim file ending
+// 		FileResults[i].RemoveFromEnd(".uasset");
+// 
+// 
+// 		//raw filepath
+// 		FString RoomFilePath;
+// #ifdef UE_BUILD_RELEASE
+// 		RoomFilePath += "Blueprint'";
+// #endif
+// 		RoomFilePath += ConstructorPath + FileResults[i];
+// 
+// #ifdef UE_BUILD_RELEASE
+// 		RoomFilePath += "." + FileResults[i] + "'";
+// #endif
+// 
+// 		//find our blueprint and add it
+// 		ConstructorHelpers::FObjectFinder<UBlueprint> RoomBlueprint(*RoomFilePath);
+// 
+// 		//if the file was found add it to the list
+// 		if (RoomBlueprint.Succeeded())
+// 		{
+// 			Room_Assets.Add((UClass*)RoomBlueprint.Object->GeneratedClass);
+// 		}
+// 	}
+// 	FileResults.Empty();
+// 
+// 
+// 	//find all loot blueprints and load them into memory
+// 	FString LootDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content/Blueprints/Loot/"), *wildcard));
+// 	manager.FindFiles(FileResults, *LootDirectory, true, false);
+// 
+// 	//add all Loot objects to the asset list
+// 	ConstructorPath = "/Game/Blueprints/Loot/";
+// 	for (int i = 0; i < FileResults.Num(); i++)
+// 	{
+// 		//trim file ending
+// 		FileResults[i].RemoveFromEnd(".uasset");
+// 
+// 		//raw filepath
+// 		FString LootFilePath;
+// #ifdef UE_BUILD_RELEASE
+// 		LootFilePath += "Blueprint'";
+// #endif
+// 		LootFilePath += ConstructorPath + FileResults[i];
+// 
+// #ifdef UE_BUILD_RELEASE
+// 		LootFilePath += "." + FileResults[i] + "'";
+// #endif
+// 
+// 		//find our blueprint and add it
+// 		ConstructorHelpers::FObjectFinder<UBlueprint> LootBlueprint(*LootFilePath);
+// 
+// 		//if the file was found add it to the list
+// 		if (LootBlueprint.Succeeded())
+// 		{
+// 			Loot_Assets.Add((UClass*)LootBlueprint.Object->GeneratedClass);
+// 		}
+// 	}
+// 	FileResults.Empty();
+// 
+// 
+// 	manager.SetSandboxEnabled(false);
 }
 
 void ALootingLootersGameModeBase::StartPlay()

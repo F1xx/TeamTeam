@@ -1,7 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PlayerCharacter.h"
-#include "HeadMountedDisplayFunctionLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
@@ -84,6 +83,24 @@ UCameraComponent* APlayerCharacter::GetCamera() const
 class APlayerState* APlayerCharacter::GetPlayerCharacterState()
 {
 	return Cast<APlayerState>(PlayerState);
+}
+
+//if we die remove input and go ragdoll
+void APlayerCharacter::Die()
+{
+	APlayerController* cont = Cast<APlayerController>(GetController());
+
+	if (cont)
+	{
+		cont->DisableInput(cont);
+		GetCapsuleComponent()->SetCollisionProfileName("NoCollision");
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+		GetMesh()->SetSimulatePhysics(true);
+
+		GEngine->AddOnScreenDebugMessage(-1, 50.0f, FColor::Red, "YOU WERE KILLED BY THE GUARD");
+	}
 }
 
 //Calls ABaseCharacter's Interact

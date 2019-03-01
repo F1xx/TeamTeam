@@ -52,6 +52,8 @@ public:
 	//Pulls a random Loot blueprint from the list of loaded blueprints. Will return nullptr if no Loot assets exist
 	TSubclassOf <class ALootActor> GetARandomLootAsset();
 
+	TSubclassOf< class AStaticMeshActor> GetDoorBlueprint() { return DoorMesh; }
+
 
 
 protected:
@@ -65,15 +67,19 @@ protected:
 		int Total_Rooms_To_Generate = 10;
 
 	//All room blueprint templates
-	UPROPERTY(VisibleAnywhere, Category = "Assets")
-		TArray<TSubclassOf<class AStaticMeshActor>> Room_Assets;
+	UPROPERTY(EditAnywhere, Category = "Assets")
+		TArray<TSubclassOf<AStaticMeshActor>> Room_Assets;
 
 	//All asset blueprint templates
-	UPROPERTY(VisibleAnywhere, Category = "Assets")
+	UPROPERTY(EditAnywhere, Category = "Assets")
 		TArray<TSubclassOf< AAssetTemplate>> Game_Assets;
 
 	//All loot blueprint templates
-	UPROPERTY(VisibleAnywhere, Category = "Assets")
+	UPROPERTY(EditAnywhere, Category = "Assets")
 		TArray<TSubclassOf< ALootActor>> Loot_Assets;
+
+	//The Door mesh
+	UPROPERTY(EditAnywhere, Category = "Assets")
+		TSubclassOf<AStaticMeshActor> DoorMesh;
 	
 };

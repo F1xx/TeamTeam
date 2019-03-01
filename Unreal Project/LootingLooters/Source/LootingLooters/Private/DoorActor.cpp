@@ -20,7 +20,20 @@ ADoorActor::ADoorActor()
 	GetStaticMeshComponent()->SetEnableGravity(false);
 
 	//Hardcoded. I think we only ever use 1 door. If not this will change.
-	GetStaticMeshComponent()->SetStaticMesh(ConstructorHelpers::FObjectFinder<UStaticMesh>(TEXT("/Game/Assets/BuildingStructure/Door/ProperDoor")).Object);
+
+// 	FString FilePath;
+// #ifdef UE_BUILD_RELEASE
+// 	FilePath += "Blueprint'";
+// #endif
+// 	FString NameTag = "ProperDoor";
+// 	FilePath += "/Game/Assets/BuildingStructure/Door/";
+// 
+// 	FString DoorFile = FilePath + NameTag;
+// 
+// #ifdef UE_BUILD_RELEASE
+// 	DoorFile += "." + NameTag + "'";
+// #endif
+	//GetStaticMeshComponent()->SetStaticMesh(ConstructorHelpers::FObjectFinder<UStaticMesh>(*DoorFile).Object);
 
 	//Arrow for controlling the spawn facing
 	ArrowComponent = CreateDefaultSubobject<UArrowComponent>("Arrow");
@@ -88,8 +101,8 @@ void ADoorActor::TeleportPawnToOtherDoor(UPrimitiveComponent* OverlappedComponen
 		OtherActor->SetActorLocation((Direction.Vector() * TELEPORT_DISTANCE_FROM_DOOR) + NewLocation);
 		OtherActor->SetActorRotation(Direction);
 
-		//Adjust player variables if its a player
-		APlayerCharacter* character = Cast<APlayerCharacter>(OtherActor);
+		//Adjust character variables if its a character
+		ABaseCharacter* character = Cast<ABaseCharacter>(OtherActor);
 		if (character)
 		{
 

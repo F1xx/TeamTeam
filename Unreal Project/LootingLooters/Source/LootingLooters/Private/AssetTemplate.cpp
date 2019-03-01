@@ -14,6 +14,7 @@ AAssetTemplate::AAssetTemplate()
 	SetReplicates(true);
 }
 
+//spawns loot in the open loot sockets of this actor
 void AAssetTemplate::PopulateLootSockets()
 {
 	//Get all static meshes

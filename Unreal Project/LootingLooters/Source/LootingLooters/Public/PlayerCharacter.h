@@ -36,6 +36,8 @@ public:
 	UFUNCTION()
 		class APlayerState* GetPlayerCharacterState();
 
+	virtual void Die() override;
+
 	virtual void Interact() override;
 	virtual void PlaceTrap() override;
 	virtual void NextInventory() override;

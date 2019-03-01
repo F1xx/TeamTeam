@@ -59,6 +59,11 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
+void ABaseCharacter::Die()
+{
+	Destroy();
+}
+
 //Alters the charactermovementcomponent MaxWalkSpeed value
 void ABaseCharacter::SetMaxSpeed(float speed)
 {

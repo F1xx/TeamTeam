@@ -72,6 +72,7 @@ void ALootActor::PostInitializeComponents()
 	}
 }
 
+//Either actually destroys the actor or "turns it off" depending on if it can respawn
 void ALootActor::Die()
 {
 	if (RespawnDelay > 0)
@@ -88,6 +89,7 @@ void ALootActor::Die()
 		Destroy();
 }
 
+//set its variables back to what they should be to exist in the world
 void ALootActor::Respawn()
 {
 	m_ParticleComponent->SetActive(true);

@@ -15,9 +15,26 @@ ABaseTrapActor::ABaseTrapActor() : Super()
 
 	GetStaticMeshComponent()->OnComponentBeginOverlap.AddDynamic(this, &ABaseTrapActor::HandleOverlap);
 
-	DefaultMesh = ConstructorHelpers::FObjectFinder<UStaticMesh>(TEXT("/Game/Assets/TrapMeshes/TRAP_Bear_Open")).Object;
-	ActivatedMesh = ConstructorHelpers::FObjectFinder<UStaticMesh>(TEXT("/Game/Assets/TrapMeshes/TRAP_Bear_Closed")).Object;
-	GetStaticMeshComponent()->SetStaticMesh(DefaultMesh);
+// 	FString LootFilePath;
+// #ifdef UE_BUILD_RELEASE
+// 	LootFilePath += "Blueprint'";
+// #endif
+// 	FString NameTag = "TRAP_Bear_Open";
+// 	FString NameTagTwo = "TRAP_Bear_Closed";
+// 	LootFilePath += "/Game/Assets/TrapMeshes/";
+// 
+// 	FString BearFile = LootFilePath + NameTag;
+// 	FString OtherBearFile = LootFilePath + NameTagTwo;
+// 
+// #ifdef UE_BUILD_RELEASE
+// 	BearFile += "." + NameTag + "'";
+// 	OtherBearFile += "." + NameTagTwo + "'";
+// #endif
+
+	//DefaultMesh = ConstructorHelpers::FObjectFinder<UStaticMesh>(*BearFile).Object;
+	//ActivatedMesh = ConstructorHelpers::FObjectFinder<UStaticMesh>(*OtherBearFile).Object;
+
+	//GetStaticMeshComponent()->SetStaticMesh(DefaultMesh);
 
 	TrapDebuff = EDebuffs::DE_Nothing;
 	Tags.Add("Trap");
@@ -33,11 +50,12 @@ void ABaseTrapActor::HandleOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
 	//only do anything if the trap hasn't been triggered
 	if (!bIsTriggered)
 	{
+		//don't hit ourselves or our owner
 		if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && (OtherActor != GetOwner()))
 		{
-			//do trap thing
 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Emerald, FString("Someone Stepped on a TRAP!!!!!!!!!"));//do something later
 
+			//cast to the actor as a basecharacter as those are all we can hit
 			ABaseCharacter* dummy = Cast<ABaseCharacter>(OtherActor);
 			if (dummy)
 			{
@@ -56,23 +74,23 @@ void ABaseTrapActor::HandleOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
 		}
 
 		//REMOVE this entire if so we can't hit our own trap
-		if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && (OtherActor == GetOwner()))
-		{
-			//Nothing actually should happen here. This is just so we know it knows it's owner
-			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Emerald, FString("My Owner Stepped on their own TRAP!!!!!!!!"));//do something later
-			ABaseCharacter* dummy = Cast<ABaseCharacter>(OtherActor);
-			if (dummy)
-			{
-				//Not all Traps have one
-				if (ActivatedMesh)
-				{
-					GetStaticMeshComponent()->SetStaticMesh(ActivatedMesh);
-				}
-				SetTarget(dummy);
-				ApplyDebuff();
-				bIsTriggered = true;
-			}
-		}
+		//if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && (OtherActor == GetOwner()))
+		//{
+		//	//Nothing actually should happen here. This is just so we know it knows it's owner
+		//	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Emerald, FString("My Owner Stepped on their own TRAP!!!!!!!!"));//do something later
+		//	ABaseCharacter* dummy = Cast<ABaseCharacter>(OtherActor);
+		//	if (dummy)
+		//	{
+		//		//Not all Traps have one
+		//		if (ActivatedMesh)
+		//		{
+		//			GetStaticMeshComponent()->SetStaticMesh(ActivatedMesh);
+		//		}
+		//		SetTarget(dummy);
+		//		ApplyDebuff();
+		//		bIsTriggered = true;
+		//	}
+		//}
 	}
 }
 

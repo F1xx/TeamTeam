@@ -11,6 +11,7 @@ AStopTrapActor::AStopTrapActor() : Super()
 	//Uses the default Meshes so nothing to add
 }
 
+//completely stops the character that stepped on it (sets its speed to 0)
 void AStopTrapActor::ApplyDebuff()
 {
 	FTimerDelegate del;
@@ -21,6 +22,7 @@ void AStopTrapActor::ApplyDebuff()
 	GetWorld()->GetTimerManager().SetTimer(DebuffTime, del, DebuffLength, false);
 }
 
+//removes the target's debuf and then destroys itself
 void AStopTrapActor::RemoveDebuff()
 {
 	m_Target->SetMaxSpeed(TargetOriginalSpeed);

@@ -89,7 +89,7 @@ private:
 	FVector SearchLocation;
 
 	bool bSearchedLastPlayerLocation;
-	AActor* LastDoorUsed;
+	AActor* LastDoorPlayerUsed;
 
 	class ALootingLootersGameModeBase* m_GameMode;
 

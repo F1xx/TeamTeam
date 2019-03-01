@@ -33,6 +33,8 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	virtual void Die();
+
 	//This component should only be here until we have a socket or something
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction")
 		class USceneComponent* PickupLoc;

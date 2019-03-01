@@ -93,6 +93,8 @@ AGrabbableStaticMeshActor* AGrabbableStaticMeshActor::Pickup(ABaseCharacter* ach
 	return nullptr;
 }
 
+//Apply a force to this object using the character's forward vector to simulate a throw
+//The result of throwing can result in this actor fracturing
 void AGrabbableStaticMeshActor::Throw()
 {
 	bIsHeld = false;
@@ -122,7 +124,7 @@ void AGrabbableStaticMeshActor::Throw()
 	m_CamForward = FVector::ZeroVector;
 }
 
-//Rotate the held object
+//Rotate the held object on yaw
 void AGrabbableStaticMeshActor::RotateX(float Value)
 {
 	if (m_Character)
@@ -131,6 +133,7 @@ void AGrabbableStaticMeshActor::RotateX(float Value)
 	}
 }
 
+//Rotate the held object on Roll
 void AGrabbableStaticMeshActor::RotateY(float Value)
 {
 	if (m_Character)
@@ -139,6 +142,7 @@ void AGrabbableStaticMeshActor::RotateY(float Value)
 	}
 }
 
+//Zoom the object in/out
 void AGrabbableStaticMeshActor::Zoom(float Value)
 {
 	m_Distance += Value;
@@ -148,11 +152,14 @@ void AGrabbableStaticMeshActor::Zoom(float Value)
 	GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Zooming: " + FString::SanitizeFloat(m_Distance)));
 }
 
+//destroy the object
 void AGrabbableStaticMeshActor::Die()
 {
 	Destroy();
 }
 
+//Function called when this actor's collision component is hit
+//if it was thrown fracture it
 void AGrabbableStaticMeshActor::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (OtherActor != m_Character)

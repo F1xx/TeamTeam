@@ -122,7 +122,7 @@ void AGuardCharacter::SetGuardState(EAIState NewState)
 		SetMaxSpeed(PatrolSpeed);
 
 		//get the last door used by the player (if there is one).
-		LastDoorUsed = Cast<ABaseCharacter>(TargetActor)->GetLastDoorAccessed();
+		LastDoorPlayerUsed = Cast<ABaseCharacter>(TargetActor)->GetLastDoorAccessed();
 
 		//Reset search timer
 		GetWorldTimerManager().ClearTimer(TimerHandle_ResetState);
@@ -180,8 +180,8 @@ void AGuardCharacter::HandleAI()
 		if (Controller != nullptr && bSearchedLastPlayerLocation == true)
 		{
 			//if that door exists, move towards it
-			if (LastDoorUsed)
-				UAIBlueprintHelperLibrary::SimpleMoveToActor(GetController(), LastDoorUsed);
+			if (LastDoorPlayerUsed)
+				UAIBlueprintHelperLibrary::SimpleMoveToActor(GetController(), LastDoorPlayerUsed);
 		}
 
 		//Make the guard give up after 3 seconds of searching
@@ -205,27 +205,6 @@ void AGuardCharacter::HandleAI()
 
 		break;
 	}
-
-	//outputs debug so we know the search info
-
-	if (GuardState == EAIState::ESearch)
-	{
-		float x = TargetActor->GetActorLocation().X;
-		float y = TargetActor->GetActorLocation().Y;
-		float z = TargetActor->GetActorLocation().Z;
-
-		FString loc = FString::SanitizeFloat(x) + ", " + FString::SanitizeFloat(y) + ", " + FString::SanitizeFloat(z);
-
-		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Black, "TargetActor Location: " + loc);
-
-		x = SearchLocation.X;
-		y = SearchLocation.Y;
-		z = SearchLocation.Z;
-
-		loc = FString::SanitizeFloat(x) + ", " + FString::SanitizeFloat(y) + ", " + FString::SanitizeFloat(z);
-
-		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, "Search Location: " + loc);
-	}
 }
 
 //use this function to find the door in the room that the guard will go to
@@ -244,9 +223,23 @@ void AGuardCharacter::FindNewPatrolPoint()
 		TArray<ADoorActor*> Doors;
 		GetCurrentRoom()->GetDoorArray(Doors);
 
-		int r = FMath::RandRange(0, Doors.Num() - 1);
+		//Array to be filled with the guard's actual possibilities
+		TArray<ADoorActor*> ViableDoors;
 
-		CurrentPatrolPoint = Doors[r];
+		//cycle through all doors in the room
+		for (int i = 0; i < Doors.Num(); i++)
+		{
+			//if its the door we came from ignore it also if its not connected
+			if (Doors[i] != LastDoorAccessed && Doors[i]->IsConnected())
+			{
+				ViableDoors.Add(Doors[i]);
+			}
+		}
+
+		int r = FMath::RandRange(0, ViableDoors.Num() - 1);
+
+		//LastDoorAccessed = ViableDoors[r]->Connector;
+		CurrentPatrolPoint = ViableDoors[r];
 	}
 }
 
@@ -285,6 +278,7 @@ void AGuardCharacter::OnComponentHit(UPrimitiveComponent* HitComponent, AActor* 
 
 	if (player)
 	{
+		player->Die();
 	}
 }
 
@@ -295,26 +289,18 @@ void AGuardCharacter::Tick(float DeltaTime)
 	DetermineGuardState();
 	HandleAI();
 
-	GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, "Guard State: " + EnumToString(TEXT("EAIState"), static_cast<uint8>(GuardState)));
-
-	float x = GetActorLocation().X;
-	float y = GetActorLocation().Y;
-	float z = GetActorLocation().Z;
-
-	FString loc = FString::SanitizeFloat(x) + ", " + FString::SanitizeFloat(y) + ", " + FString::SanitizeFloat(z);
-
-	GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, "Guard Location: " + loc);
+	//GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, "Guard State: " + EnumToString(TEXT("EAIState"), static_cast<uint8>(GuardState)));
 }
 
-const FString AGuardCharacter::EnumToString(const TCHAR* Enum, int32 EnumValue)
-{
-	const UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, Enum, true);
-	if (!EnumPtr)
-		return NSLOCTEXT("Invalid", "Invalid", "Invalid").ToString();
-
-#if WITH_EDITOR
-	return EnumPtr->GetDisplayNameTextByIndex(EnumValue).ToString();
-#else
-	return EnumPtr->GetEnumName(EnumValue);
-#endif
-}
+//const FString AGuardCharacter::EnumToString(const TCHAR* Enum, int32 EnumValue)
+//{
+//	const UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, Enum, true);
+//	if (!EnumPtr)
+//		return NSLOCTEXT("Invalid", "Invalid", "Invalid").ToString();
+//
+//#if WITH_EDITOR
+//	return EnumPtr->GetDisplayNameTextByIndex(EnumValue).ToString();
+//#else
+//	return EnumPtr->GetEnumName(EnumValue);
+//#endif
+//}
