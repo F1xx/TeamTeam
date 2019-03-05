@@ -26,14 +26,14 @@ class LOOTINGLOOTERS_API ALootingLootersGameModeBase : public AGameModeBase
 	// 3. Constructor directory
 	// --------------------------------------------------------------------
 	template<typename TemplateClass>
-	void LoadAssetArray(TArray<TSubclassOf<TemplateClass>> &ArrayToLoad, FString Directory, FString ConstructorPath)
+	void LoadAssetArray(TArray<TSubclassOf<TemplateClass>> &ArrayToLoad, FString FileDirectory, FString ConstructorDirectory)
 	{
 		//create filemanager and parsing array
 		IFileManager& manager = IFileManager::Get();
 		TArray<FString> FileResults;
 
 		//fetch our files
-		manager.FindFiles(FileResults, *Directory, true, false);
+		manager.FindFiles(FileResults, *FileDirectory, true, false);
 
 		//add all objects to the asset list
 		for (int i = 0; i < FileResults.Num(); i++)
@@ -42,7 +42,7 @@ class LOOTINGLOOTERS_API ALootingLootersGameModeBase : public AGameModeBase
 			FileResults[i].RemoveFromEnd(".uasset");
 
 			//raw filepath
-			FString AssetFilePath = "Class'" + ConstructorPath + FileResults[i] + "." + FileResults[i] + "_C'";
+			FString AssetFilePath = "Class'" + ConstructorDirectory + FileResults[i] + "." + FileResults[i] + "_C'";
 
 			//find our blueprint and add it
 			ConstructorHelpers::FObjectFinder<UClass> AssetBlueprint(*AssetFilePath);
@@ -92,10 +92,10 @@ public:
 	class ARoomActorBase* GetRoomActorIsIn(AActor* actor);
 
 	//DEPERECATED returns an asset from the pool of meshes using a type delimiter DEPRECATED
-	TSubclassOf<class AAssetTemplate> GetAssetOfType(FString type);
+	TSubclassOf<AActor> GetAssetOfType(FString type);
 
 	//returns an asset from the pool of meshes using all type specifiers. Will return nullptr if nothing fit the criteria
-	TSubclassOf<class AAssetTemplate> GetRandomAssetOfTypes(TArray<FString> TypeSpecifiers);
+	TSubclassOf<AActor> GetRandomAssetOfTypes(TArray<FString> TypeSpecifiers);
 
 	//Pulls a random Loot blueprint from the list of loaded blueprints. Will return nullptr if no Loot assets exist
 	TSubclassOf <class ALootActor> GetARandomLootAsset();
@@ -119,7 +119,7 @@ protected:
 
 	//All asset blueprint templates
 	UPROPERTY(VisibleAnywhere, Category = "Assets")
-		TArray<TSubclassOf< AAssetTemplate>> Game_Assets;
+		TArray<TSubclassOf< AActor>> Game_Assets;
 
 	//All loot blueprint templates
 	UPROPERTY(VisibleAnywhere, Category = "Assets")

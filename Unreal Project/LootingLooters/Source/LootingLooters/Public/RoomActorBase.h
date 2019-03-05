@@ -59,7 +59,12 @@ protected:
 	UPROPERTY(Replicated, VisibleInstanceOnly, Category = "Mesh")
 		AStaticMeshActor* RoomMesh;
 
-	//All Assets spawned by the room
+	//All Static Assets spawned by the room
 	UPROPERTY(VisibleInstanceOnly, Category = "Assets")
-		TArray<class AAssetTemplate*> RoomAssets;
+		TArray<class AAssetTemplate*> StaticRoomAssets;
+
+	//All Grabbable Assets spawned by the room
+	UPROPERTY(VisibleInstanceOnly, Category = "Assets")
+		TArray<class AGrabbableStaticMeshActor*> GrabbableRoomAssets;
+
 };

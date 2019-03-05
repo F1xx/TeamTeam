@@ -9,6 +9,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/BoxComponent.h"
 #include "AssetTemplate.h"
+#include "GrabbableStaticMeshActor.h"
 
 ARoomActorBase::ARoomActorBase()
 {
@@ -17,6 +18,7 @@ ARoomActorBase::ARoomActorBase()
 	RoomOverlap->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	RoomOverlap->SetMobility(EComponentMobility::Static);
 	RoomOverlap->SetupAttachment(RootComponent);
+	RootComponent = RoomOverlap;
 
 	SetReplicates(true);
 }
@@ -56,9 +58,9 @@ void ARoomActorBase::PopulateEmptySockets()
 			for (int a = 0; a < Socket_Names.Num(); a++)
 			{
 				//string parsing
-				FString name = Socket_Names[a].ToString();
-				TArray<FString> name_parsed;
-				name.ParseIntoArray(name_parsed, TEXT("_"), true);
+				FString Raw_Socket_Name = Socket_Names[a].ToString();
+				TArray<FString> Type_Names;
+				Raw_Socket_Name.ParseIntoArray(Type_Names, TEXT("_"), true);
 
 				//Spawning parameters
 				FActorSpawnParameters SpawnParams;
@@ -67,7 +69,7 @@ void ARoomActorBase::PopulateEmptySockets()
 				FRotator SpawnRotation = Meshes[i]->GetSocketRotation(Socket_Names[a]);
 
 				//spawn a door if the socket is a door
-				if (name_parsed[0] == "Door")
+				if (Type_Names[0] == "Door")
 				{
 					//ADoorActor* door = GetWorld()->SpawnActor<ADoorActor>(ADoorActor::StaticClass(), SpawnLocation, SpawnRotation, SpawnParams);
 					ADoorActor* door = GetWorld()->SpawnActor<ADoorActor>(GameMode->GetDoorBlueprint(), SpawnLocation, SpawnRotation, SpawnParams);
@@ -78,23 +80,38 @@ void ARoomActorBase::PopulateEmptySockets()
 				//Type 1 - Location (floor, wall, ceiling)
 				//Type 2 - Size (small, medium, large etc)
 				//Type 3 - Asset type (object, light etc)
+				// etc etc.
 				else
 				{
-					TArray<FString> Types;
-					Types.Add(name_parsed[0]);
-					Types.Add(name_parsed[1]);
-					Types.Add(name_parsed[2]);
-
 					//fetch a random mesh that fits our type specifiers
-					TSubclassOf<AAssetTemplate> AssetMesh = GameMode->GetRandomAssetOfTypes(Types);
+					TSubclassOf<AActor> AssetMesh = GameMode->GetRandomAssetOfTypes(Type_Names);
+
 					if (AssetMesh != nullptr)
 					{
 						//create the asset
-						AAssetTemplate* Asset = GetWorld()->SpawnActor<AAssetTemplate>(AssetMesh, SpawnLocation, SpawnRotation, SpawnParams);
-						//populate its loot sockets
-						Asset->PopulateLootSockets();
-						//add it to the list
-						RoomAssets.Add(Asset);
+						AActor* Asset = GetWorld()->SpawnActor<AActor>(*AssetMesh, SpawnLocation, SpawnRotation, SpawnParams);
+
+						//check to see which array to push the asset into
+						if (Asset->ActorHasTag("Grabbable") == false)
+						{
+							AAssetTemplate* StaticMeshObject = Cast<AAssetTemplate>(Asset);
+
+							//add our static object and populate loot sockets
+							if (StaticMeshObject)
+							{
+								StaticMeshObject->PopulateLootSockets();
+								StaticRoomAssets.Add(StaticMeshObject);
+							}
+						}
+						else
+						{
+							AGrabbableStaticMeshActor* GrabbableMeshObject = Cast<AGrabbableStaticMeshActor>(Asset);
+
+							//add our grabbable mesh
+							if (GrabbableMeshObject)
+								GrabbableRoomAssets.Add(GrabbableMeshObject);
+						}
+
 					}
 				}
 			}
