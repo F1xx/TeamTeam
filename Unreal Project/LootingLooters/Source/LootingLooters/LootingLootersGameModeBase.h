@@ -16,6 +16,54 @@ class LOOTINGLOOTERS_API ALootingLootersGameModeBase : public AGameModeBase
 
 	ALootingLootersGameModeBase();
 
+
+	// --------------------------------------------------------------------
+	//     - Template function to load a TArray with blueprinted data. -
+	//                             PARAMETERS
+	// --------------------------------------------------------------------
+	// 1. Array to load
+	// 2. Folder directory
+	// 3. Constructor directory
+	// --------------------------------------------------------------------
+	template<typename TemplateClass>
+	void LoadAssetArray(TArray<TSubclassOf<TemplateClass>> &ArrayToLoad, FString Directory, FString ConstructorPath)
+	{
+		//create filemanager and parsing array
+		IFileManager& manager = IFileManager::Get();
+		TArray<FString> FileResults;
+
+		//fetch our files
+		manager.FindFiles(FileResults, *Directory, true, false);
+
+		//add all objects to the asset list
+		for (int i = 0; i < FileResults.Num(); i++)
+		{
+			//trim file ending
+			FileResults[i].RemoveFromEnd(".uasset");
+
+			//raw filepath
+			FString AssetFilePath = "Class'" + ConstructorPath + FileResults[i] + "." + FileResults[i] + "_C'";
+
+			//find our blueprint and add it
+			ConstructorHelpers::FObjectFinder<UClass> AssetBlueprint(*AssetFilePath);
+
+			//if the file was found add it to the list
+			if (AssetBlueprint.Succeeded())
+			{
+				//create a blueprint template
+				UClass* bpClass = AssetBlueprint.Object;
+				TSubclassOf<TemplateClass> subclass = bpClass;
+
+				//add it
+				ArrayToLoad.Add(subclass);
+			}
+		}
+
+		//remove changes
+		FileResults.Empty();
+		manager.SetSandboxEnabled(false);
+	}
+
 	virtual void StartPlay() override;
 
 	//NETCODE WIP: Spawns rooms in a grid pattern using random room templates.
@@ -52,8 +100,7 @@ public:
 	//Pulls a random Loot blueprint from the list of loaded blueprints. Will return nullptr if no Loot assets exist
 	TSubclassOf <class ALootActor> GetARandomLootAsset();
 
-	TSubclassOf< class AStaticMeshActor> GetDoorBlueprint() { return DoorMesh; }
-
+	TSubclassOf<class AStaticMeshActor> GetDoorBlueprint() { return Door_Assets[0]; }
 
 
 protected:
@@ -67,19 +114,19 @@ protected:
 		int Total_Rooms_To_Generate = 10;
 
 	//All room blueprint templates
-	UPROPERTY(EditAnywhere, Category = "Assets")
+	UPROPERTY(VisibleAnywhere, Category = "Assets")
 		TArray<TSubclassOf<AStaticMeshActor>> Room_Assets;
 
 	//All asset blueprint templates
-	UPROPERTY(EditAnywhere, Category = "Assets")
+	UPROPERTY(VisibleAnywhere, Category = "Assets")
 		TArray<TSubclassOf< AAssetTemplate>> Game_Assets;
 
 	//All loot blueprint templates
-	UPROPERTY(EditAnywhere, Category = "Assets")
+	UPROPERTY(VisibleAnywhere, Category = "Assets")
 		TArray<TSubclassOf< ALootActor>> Loot_Assets;
 
-	//The Door mesh
-	UPROPERTY(EditAnywhere, Category = "Assets")
-		TSubclassOf<AStaticMeshActor> DoorMesh;
+	//All door asset templates
+	UPROPERTY(VisibleAnywhere, Category = "Assets")
+		TArray<TSubclassOf<AStaticMeshActor>> Door_Assets;
 	
 };
