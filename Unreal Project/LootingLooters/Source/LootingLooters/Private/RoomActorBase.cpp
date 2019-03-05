@@ -62,6 +62,9 @@ void ARoomActorBase::PopulateEmptySockets()
 				TArray<FString> Type_Names;
 				Raw_Socket_Name.ParseIntoArray(Type_Names, TEXT("_"), true);
 
+				//remove the last element (this is a socket naming number and isn't needed)
+				Type_Names.RemoveAt(Type_Names.Num() - 1, 1, true);
+
 				//Spawning parameters
 				FActorSpawnParameters SpawnParams;
 				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -71,7 +74,6 @@ void ARoomActorBase::PopulateEmptySockets()
 				//spawn a door if the socket is a door
 				if (Type_Names[0] == "Door")
 				{
-					//ADoorActor* door = GetWorld()->SpawnActor<ADoorActor>(ADoorActor::StaticClass(), SpawnLocation, SpawnRotation, SpawnParams);
 					ADoorActor* door = GetWorld()->SpawnActor<ADoorActor>(GameMode->GetDoorBlueprint(), SpawnLocation, SpawnRotation, SpawnParams);
 					door->SetOwner(this);
 					GeneratedDoors.Add(door);
