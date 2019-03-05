@@ -18,12 +18,12 @@ ALootingLootersGameModeBase::ALootingLootersGameModeBase() : Super()
  
  	//find all blueprints and load into memory
 	{
-		FString AssetDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content/Blueprints/Assets/Static/"), *wildcard));
-		FString ConstructorPath("/Game/Blueprints/Assets/Static/");
+		FString AssetDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content/Blueprints/BlueprintedAssets/Static/"), *wildcard));
+		FString ConstructorPath("/Game/Blueprints/BlueprintedAssets/Static/");
 		LoadAssetArray<AActor>(Game_Assets, AssetDirectory, ConstructorPath);
 
-		FString GrabbableAssetDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content/Blueprints/Assets/Grabbable"), *wildcard));
-		ConstructorPath = "/Game/Blueprints/Assets/Grabbable/";
+		FString GrabbableAssetDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content/Blueprints/BlueprintedAssets/Grabbable"), *wildcard));
+		ConstructorPath = "/Game/Blueprints/BlueprintedAssets/Grabbable/";
 		LoadAssetArray<AActor>(Game_Assets, GrabbableAssetDirectory, ConstructorPath);
 
 		FString RoomDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content/Blueprints/Test_Rooms"), *wildcard));

@@ -21,6 +21,7 @@ AGrabbableStaticMeshActor::AGrabbableStaticMeshActor()
 	GetDestructibleComponent()->SetSimulatePhysics(true);
 	GetDestructibleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	GetDestructibleComponent()->SetNotifyRigidBodyCollision(true);
+	GetDestructibleComponent()->SetEnableGravity(false);
 
 	Tags.Add("Grabbable");
 }
@@ -162,6 +163,8 @@ void AGrabbableStaticMeshActor::Die()
 //if it was thrown fracture it
 void AGrabbableStaticMeshActor::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
+	GetDestructibleComponent()->SetEnableGravity(true);
+
 	if (OtherActor != m_Character)
 	{
 		if (bWasThrown)
