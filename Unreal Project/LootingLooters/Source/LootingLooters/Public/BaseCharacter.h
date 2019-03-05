@@ -19,7 +19,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UPROPERTY(Replicated)
 	class AGrabbableStaticMeshActor* HeldObject;
+
 	bool bIsInteracting = false;
 	bool bIsRotating = false;
 
@@ -32,8 +34,6 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	virtual void Die();
 
 	//This component should only be here until we have a socket or something
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction")
@@ -79,10 +79,21 @@ public:
 	//returns true if it hit the given channel
 	bool PerformRayCast(FName TraceProfile, FHitResult &OutHit);
 
+	UFUNCTION(Server, Reliable, WithValidation)
 	virtual void Interact();	
+
+	UFUNCTION(Server, Reliable, WithValidation)
 	virtual void Grab(FHitResult Hit);
+
+	UFUNCTION(Server, Reliable, WithValidation)
 	virtual void ThrowObject();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		virtual void Die();
+
+	UFUNCTION(Server, Reliable, WithValidation)
 	virtual void PlaceTrap();
+
 	virtual void NextInventory(){};
 
 	virtual void RotateMode();

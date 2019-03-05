@@ -23,10 +23,10 @@ protected:
 	virtual void BeginPlay() override;
 
 	//Camera
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class UCameraComponent* Camera;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
 		class UInventoryComponent* m_Inventory;
 
 public:
@@ -34,10 +34,10 @@ public:
 	UFUNCTION()
 		class APlayerState* GetPlayerState();
 
-	virtual void Die() override;
+	virtual void Die_Implementation() override;
+	virtual void Interact_Implementation() override;
+	virtual void PlaceTrap_Implementation() override;
 
-	virtual void Interact() override;
-	virtual void PlaceTrap() override;
 	virtual void NextInventory() override;
 
 	// Called every frame

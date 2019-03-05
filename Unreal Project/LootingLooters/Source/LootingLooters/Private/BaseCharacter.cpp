@@ -11,6 +11,8 @@
 #include "PlayerCharacterController.h"
 #include "GrabbableStaticMeshActor.h"
 
+#include "Net/UnrealNetwork.h"
+
 // Sets default values
 ABaseCharacter::ABaseCharacter()
 {
@@ -39,6 +41,9 @@ ABaseCharacter::ABaseCharacter()
 	PickupLoc->SetupAttachment(RootComponent);
 
 	HeldObject = nullptr;
+
+	SetReplicateMovement(true);
+	SetReplicates(true);
 }
 
 // Called when the game starts or when spawned
@@ -59,9 +64,14 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
-void ABaseCharacter::Die()
+void ABaseCharacter::Die_Implementation()
 {
 	Destroy();
+}
+
+bool ABaseCharacter::Die_Validate()
+{
+	return true;
 }
 
 //Alters the charactermovementcomponent MaxWalkSpeed value
@@ -166,7 +176,7 @@ bool ABaseCharacter::PerformRayCast(FName TraceProfile, FHitResult &OutHit)
 
 //Performs a raycast to see if we're looking at something we can interact with
 //if we are already interacting, stop, otherwise try to start
-void ABaseCharacter::Interact()
+void ABaseCharacter::Interact_Implementation()
 {
 	//if already interacting stop
 	if (bIsInteracting)
@@ -189,10 +199,15 @@ void ABaseCharacter::Interact()
 	}
 }
 
+bool ABaseCharacter::Interact_Validate()
+{
+	return true;
+}
+
 //Called from interact if it succeeded
 //Attempts to change the hit actor into one we can interact with. If it succeeds, interact
 //Such as picking up GrabbableStaticMeshActors
-void ABaseCharacter::Grab(FHitResult Hit)
+void ABaseCharacter::Grab_Implementation(FHitResult Hit)
 {
 	//Making sure what we hit was an actor
 	if (Hit.GetActor())
@@ -220,8 +235,13 @@ void ABaseCharacter::Grab(FHitResult Hit)
 #endif
 }
 
+bool ABaseCharacter::Grab_Validate(FHitResult Hit)
+{
+	return true;
+}
+
 //If we are holding an object let go of it while providing force in our forward direction
-void ABaseCharacter::ThrowObject()
+void ABaseCharacter::ThrowObject_Implementation()
 {
 	if (HeldObject)
 	{
@@ -231,10 +251,20 @@ void ABaseCharacter::ThrowObject()
 	}
 }
 
+bool ABaseCharacter::ThrowObject_Validate()
+{
+	return true;
+}
+
 //place a trap. This is more for the AI and will place a trap at the character's
-void ABaseCharacter::PlaceTrap()
+void ABaseCharacter::PlaceTrap_Implementation()
 {
 	//nothing right now though
+}
+
+bool ABaseCharacter::PlaceTrap_Validate()
+{
+	return true;
 }
 
 //While held down Toggles between rotate mode and normal mode. If we're holding an object allow us to enter rotate mode so we can move it around
@@ -274,4 +304,11 @@ void ABaseCharacter::ZoomIn()
 	{
 		HeldObject->Zoom(-15.0f);
 	}
+}
+
+void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ABaseCharacter, HeldObject);
 }

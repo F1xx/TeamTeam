@@ -17,6 +17,7 @@
 
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 
 APlayerCharacter::APlayerCharacter() : Super()
 {
@@ -33,6 +34,9 @@ APlayerCharacter::APlayerCharacter() : Super()
 
 	//Make it so we can't see our own mesh but others can
 	GetMesh()->SetOwnerNoSee(true);
+
+	SetReplicates(true);
+	SetReplicateMovement(true);
 
 	Tags.Add("Player");
 }
@@ -81,7 +85,7 @@ class APlayerState* APlayerCharacter::GetPlayerState()
 }
 
 //if we die remove input and go ragdoll
-void APlayerCharacter::Die()
+void APlayerCharacter::Die_Implementation()
 {
 	APlayerController* cont = Cast<APlayerController>(GetController());
 
@@ -100,9 +104,9 @@ void APlayerCharacter::Die()
 
 //Calls ABaseCharacter's Interact
 //If we are not interacting from that then we will check if its loot (this is here because other character types cannot loot)
-void APlayerCharacter::Interact()
+void APlayerCharacter::Interact_Implementation()
 {
-	Super::Interact();
+	Super::Interact_Implementation();
 
 	//if after super we're still not interacting with anything check if we can grab some loot
 	if (!bIsInteracting)
@@ -122,7 +126,7 @@ void APlayerCharacter::Interact()
 }
 
 //place a trap. This is for the player and will place it where they're aiming
-void APlayerCharacter::PlaceTrap()
+void APlayerCharacter::PlaceTrap_Implementation()
 {
 	//if we have traps
 	if (m_Inventory->GetTrapCount() > 0)
@@ -146,4 +150,12 @@ void APlayerCharacter::TickActor(float DeltaTime, enum ELevelTick TickType, FAct
 {
 	Super::TickActor(DeltaTime, TickType, ThisTickFunction);
 	//GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Magenta, FString("Score: " + FString::SanitizeFloat(PlayerState->Score)));
+}
+
+void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(APlayerCharacter, Camera);
+	DOREPLIFETIME(APlayerCharacter, m_Inventory);
 }

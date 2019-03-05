@@ -34,6 +34,9 @@ public:
 		AGrabbableStaticMeshActor* Pickup(class ABaseCharacter* acharacter);
 
 	UFUNCTION()
+		virtual void BreakMesh(const FHitResult& Hit);
+
+	UFUNCTION()
 		void Throw();
 
 	UFUNCTION()
@@ -56,6 +59,6 @@ public:
 	virtual void Die();
 
 private:
-	UFUNCTION()
+	UFUNCTION(Server, Reliable, WithValidation)
 		void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
 };
