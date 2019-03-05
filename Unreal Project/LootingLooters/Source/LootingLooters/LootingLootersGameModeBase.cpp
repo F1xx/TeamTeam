@@ -18,9 +18,13 @@ ALootingLootersGameModeBase::ALootingLootersGameModeBase() : Super()
  
  	//find all blueprints and load into memory
 	{
-		FString AssetDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content/Blueprints/Furniture"), *wildcard));
-		FString ConstructorPath("/Game/Blueprints/Furniture/");
-		LoadAssetArray<AAssetTemplate>(Game_Assets, AssetDirectory, ConstructorPath);
+		FString AssetDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content/Blueprints/Assets/Static/"), *wildcard));
+		FString ConstructorPath("/Game/Blueprints/Assets/Static/");
+		LoadAssetArray<AActor>(Game_Assets, AssetDirectory, ConstructorPath);
+
+		FString GrabbableAssetDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content/Blueprints/Assets/Grabbable"), *wildcard));
+		ConstructorPath = "/Game/Blueprints/Assets/Grabbable/";
+		LoadAssetArray<AActor>(Game_Assets, GrabbableAssetDirectory, ConstructorPath);
 
 		FString RoomDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content/Blueprints/Test_Rooms"), *wildcard));
 		ConstructorPath = "/Game/Blueprints/Test_Rooms/";
@@ -158,9 +162,9 @@ ARoomActorBase* ALootingLootersGameModeBase::GetRoomActorIsIn(AActor* actor)
 }
 
 //DEPERECATED returns an asset from the pool of meshes using a type delimiter DEPRECATED
-TSubclassOf<AAssetTemplate> ALootingLootersGameModeBase::GetAssetOfType(FString type)
+TSubclassOf<AActor> ALootingLootersGameModeBase::GetAssetOfType(FString type)
 {
-	TArray<TSubclassOf<AAssetTemplate>> ViableMeshes;
+	TArray<TSubclassOf<AActor>> ViableMeshes;
 
 	//get all meshes that fit our type
 	for (int i = 0; i < Game_Assets.Num(); i++)
@@ -174,9 +178,9 @@ TSubclassOf<AAssetTemplate> ALootingLootersGameModeBase::GetAssetOfType(FString 
 }
 
 
-TSubclassOf<AAssetTemplate> ALootingLootersGameModeBase::GetRandomAssetOfTypes(TArray<FString> TypeSpecifiers)
+TSubclassOf<AActor> ALootingLootersGameModeBase::GetRandomAssetOfTypes(TArray<FString> TypeSpecifiers)
 {
-	TArray<TSubclassOf<AAssetTemplate>> ViableMeshes;
+	TArray<TSubclassOf<AActor>> ViableMeshes;
 
 	//get all meshes that fit our type
 	for (int i = 0; i < Game_Assets.Num(); i++)
