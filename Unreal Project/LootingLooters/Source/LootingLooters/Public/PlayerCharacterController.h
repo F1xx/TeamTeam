@@ -55,4 +55,7 @@ protected:
 	void RotateHeldObjectY(float Value);
 
 	void ZoomObject(float Value);
+
+
+	void Shutdown();
 };

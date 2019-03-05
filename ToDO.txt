@@ -1,0 +1,14 @@
+March 4:
+
+Raff:
+HUD
+Fix Room walls
+Add room ceiling
+
+Travis:
+Network fuckin everything
+Work on spectation
+
+Dayton:
+Get file loading to work with exe
+Spawn Room
