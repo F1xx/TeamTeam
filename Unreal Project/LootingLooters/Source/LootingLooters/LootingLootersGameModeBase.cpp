@@ -43,6 +43,7 @@ ALootingLootersGameModeBase::ALootingLootersGameModeBase() : Super()
 // 
 // 		//find our blueprint and add it
 // 		ConstructorHelpers::FObjectFinder<UBlueprint> AssetBlueprint(*AssetFilePath);
+	//ConstructorHelpers::FClassFinder<UBlueprint> AssetBlueprint(*AssetFilePath);
 // 
 // 		//if the file was found add it to the list
 // 		if (AssetBlueprint.Succeeded())
