@@ -129,7 +129,7 @@ void APlayerCharacterController::ThrowObject()
 {
 	ABaseCharacter* owner = Cast<ABaseCharacter>(GetPawn());
 	if (owner)
-		owner->ThrowObject();
+		owner->ServerThrowObject();
 }
 
 void APlayerCharacterController::PlaceTrap()

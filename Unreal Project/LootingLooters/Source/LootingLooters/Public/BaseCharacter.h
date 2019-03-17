@@ -20,12 +20,14 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(Replicated)
-	class AGrabbableStaticMeshActor* HeldObject;
+		class AGrabbableStaticMeshActor* HeldObject;
 
-	bool bIsInteracting = false;
-	bool bIsRotating = false;
+	UPROPERTY(Replicated)
+		bool bIsInteracting = false;
+	UPROPERTY(Replicated)
+		bool bIsRotating = false;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Last Door Used")
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Last Door Used")
 		class ADoorActor* LastDoorAccessed;
 
 public:	
@@ -86,13 +88,23 @@ public:
 	virtual void Grab(FHitResult Hit);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	virtual void ThrowObject();
+		void ServerDropItem();
 
 	UFUNCTION(Server, Reliable, WithValidation)
+	virtual void ServerThrowObject();
+
+	virtual void ThrowObject();
+
+	UFUNCTION()
 		virtual void Die();
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+		void NetMulticastOnDeath();
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	virtual void PlaceTrap();
+
+	void PickupObject();
 
 	virtual void NextInventory(){};
 

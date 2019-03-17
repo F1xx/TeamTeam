@@ -27,11 +27,17 @@ protected:
 	UFUNCTION()
 		virtual void OnFracture(const FVector& HitPosition, const FVector& HitDirection);
 
+	UFUNCTION()
+		virtual void PostInitializeComponents() override;
+
 public:
 	virtual void Tick(float DeltaSeconds);
 
 	UFUNCTION()
-		AGrabbableStaticMeshActor* Pickup(class ABaseCharacter* acharacter);
+		void Pickup(class ABaseCharacter* acharacter);
+
+	UFUNCTION()
+		void Drop();
 
 	UFUNCTION()
 		virtual void BreakMesh(const FHitResult& Hit);
@@ -59,6 +65,8 @@ public:
 	virtual void Die();
 
 private:
-	UFUNCTION(Server, Reliable, WithValidation)
+	class UDestructibleComponent* DestructibleMesh;
+
+	UFUNCTION()
 		void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
 };

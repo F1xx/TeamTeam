@@ -34,9 +34,10 @@ public:
 	UFUNCTION()
 		class APlayerState* GetPlayerState();
 
-	virtual void Die_Implementation() override;
-	virtual void Interact_Implementation() override;
-	virtual void PlaceTrap_Implementation() override;
+	virtual void Die() override;
+
+	virtual void Interact() override;
+	virtual void PlaceTrap() override;
 
 	virtual void NextInventory() override;
 

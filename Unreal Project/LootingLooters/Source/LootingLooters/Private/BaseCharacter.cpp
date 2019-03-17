@@ -43,6 +43,7 @@ ABaseCharacter::ABaseCharacter()
 	HeldObject = nullptr;
 
 	SetReplicateMovement(true);
+	GetCharacterMovement()->SetIsReplicated(true);
 	SetReplicates(true);
 }
 
@@ -64,14 +65,17 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
-void ABaseCharacter::Die_Implementation()
+void ABaseCharacter::Die()
 {
-	Destroy();
-}
+	PrimaryActorTick.bCanEverTick = false;
+	ServerDropItem();
 
-bool ABaseCharacter::Die_Validate()
-{
-	return true;
+	NetMulticastOnDeath();
+
+	if (Role == ROLE_Authority)
+	{
+		//respawning or whatever here
+	}
 }
 
 //Alters the charactermovementcomponent MaxWalkSpeed value
@@ -157,36 +161,34 @@ bool ABaseCharacter::PerformRayCast(FName TraceProfile, FHitResult &OutHit)
 	Params.AddIgnoredActor(this); //required or they'll only see themself
 	Params.bTraceComplex = true;
 
-	bool result = GetWorld()->LineTraceSingleByProfile(OutHit, campos, end, TraceProfile, Params);
+	return GetWorld()->LineTraceSingleByProfile(OutHit, campos, end, TraceProfile, Params);
+}
 
-//#ifdef UE_BUILD_DEBUG
-//	if (result)
-//	{//debug Lines so we can confirm
-//		if (OutHit.GetActor())
-//		{
-//			DrawDebugLine(GetWorld(), campos, OutHit.ImpactPoint, FColor::Red, false, 3.0f, 0, 3.0f);
-//		}
-//	}
-//	else
-//		DrawDebugLine(GetWorld(), campos, end, FColor::Blue, false, 3.0f, 0, 5.0f);
-//#endif
-
-	return result;
+bool ABaseCharacter::ServerDropItem_Validate()
+{
+	return true;
+}
+//NET CODE 1 NET PICKUP
+//TODO: DropWeapon Implementation Function
+void ABaseCharacter::ServerDropItem_Implementation()
+{
+	//if already interacting stop
+	if (HeldObject)
+	{
+		HeldObject->Drop();
+		HeldObject = nullptr;
+		bIsInteracting = false;
+	}
 }
 
 //Performs a raycast to see if we're looking at something we can interact with
 //if we are already interacting, stop, otherwise try to start
 void ABaseCharacter::Interact_Implementation()
 {
-	//if already interacting stop
-	if (bIsInteracting)
-	{
-		//Pickup will drop the object if its already held
-		HeldObject->Pickup(this);
-		HeldObject = nullptr;
-		bIsInteracting = false;
-	}
-	else //otherwise try to interact with what we're looking at
+	ServerDropItem();
+
+	//try to interact with what we're looking at
+	if (HeldObject == nullptr)
 	{
 		//A struct that the trace will populate with the results of the hit
 		FHitResult Hit(ForceInit);
@@ -209,25 +211,23 @@ bool ABaseCharacter::Interact_Validate()
 //Such as picking up GrabbableStaticMeshActors
 void ABaseCharacter::Grab_Implementation(FHitResult Hit)
 {
-	//Making sure what we hit was an actor
-	if (Hit.GetActor())
-	{
-		if (Hit.GetActor()->ActorHasTag("Grabbable")) //pick it up if it can be grabbed
-		{
-			AGrabbableStaticMeshActor* grabbable = Cast<AGrabbableStaticMeshActor>(Hit.GetActor());
-			if (grabbable)
-			{
-				HeldObject = grabbable->Pickup(this);
+	check(Hit.GetActor() != nullptr && "Passed a null weapon!");
 
-				if (HeldObject)
-				{
-					bIsInteracting = true;
-				}
-			}
-		}
-		else if (Hit.GetActor()->ActorHasTag("Trap")) //Disarm traps?
+	ServerDropItem();
+
+	//Making sure what we hit was an actor
+	if (HeldObject == nullptr)
+	{
+		AGrabbableStaticMeshActor* grabbable = Cast<AGrabbableStaticMeshActor>(Hit.GetActor());
+		if (grabbable)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Emerald, FString("ITS A TRAP"));//do something later
+			if (Role == ROLE_Authority)
+			{
+				//SET/ASSIGN CurrentWeapon to Weapon
+				HeldObject = grabbable;
+				//CALL AttachCurrentWeapon
+				PickupObject();
+			}
 		}
 	}
 #ifdef UE_BUILD_DEBUG
@@ -241,17 +241,18 @@ bool ABaseCharacter::Grab_Validate(FHitResult Hit)
 }
 
 //If we are holding an object let go of it while providing force in our forward direction
-void ABaseCharacter::ThrowObject_Implementation()
+void ABaseCharacter::ServerThrowObject_Implementation()
 {
 	if (HeldObject)
 	{
-		HeldObject->Throw();
-		HeldObject = nullptr;
-		bIsInteracting = false;
+		if (Role == ROLE_Authority)
+		{
+			ThrowObject();
+		}
 	}
 }
 
-bool ABaseCharacter::ThrowObject_Validate()
+bool ABaseCharacter::ServerThrowObject_Validate()
 {
 	return true;
 }
@@ -265,6 +266,38 @@ void ABaseCharacter::PlaceTrap_Implementation()
 bool ABaseCharacter::PlaceTrap_Validate()
 {
 	return true;
+}
+
+void ABaseCharacter::ThrowObject()
+{
+	if (HeldObject)
+	{
+		HeldObject->Throw();
+		HeldObject = nullptr;
+		bIsInteracting = false;
+	}
+}
+
+void ABaseCharacter::NetMulticastOnDeath_Implementation()
+{
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	//ragdoll
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetMesh()->SetSimulatePhysics(true);
+}
+
+bool ABaseCharacter::NetMulticastOnDeath_Validate()
+{
+	return true;
+}
+
+void ABaseCharacter::PickupObject()
+{
+	if (HeldObject)
+	{
+		HeldObject->Pickup(this);
+		bIsInteracting = true;
+	}
 }
 
 //While held down Toggles between rotate mode and normal mode. If we're holding an object allow us to enter rotate mode so we can move it around
@@ -311,4 +344,7 @@ void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ABaseCharacter, HeldObject);
+	DOREPLIFETIME(ABaseCharacter, bIsInteracting);
+	DOREPLIFETIME(ABaseCharacter, bIsRotating);
+	DOREPLIFETIME(ABaseCharacter, LastDoorAccessed);
 }
