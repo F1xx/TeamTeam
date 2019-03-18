@@ -37,6 +37,7 @@ APlayerCharacter::APlayerCharacter() : Super()
 
 	SetReplicates(true);
 	SetReplicateMovement(true);
+	Camera->SetIsReplicated(true);
 
 	Tags.Add("Player");
 }

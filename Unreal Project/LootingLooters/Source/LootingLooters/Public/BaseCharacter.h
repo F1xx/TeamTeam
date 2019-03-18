@@ -37,10 +37,6 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	//This component should only be here until we have a socket or something
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction")
-		class USceneComponent* PickupLoc;
-
 	//CONTROLS
 	// 
 	 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */

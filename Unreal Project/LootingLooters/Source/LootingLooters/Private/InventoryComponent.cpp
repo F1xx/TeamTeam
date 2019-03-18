@@ -68,15 +68,18 @@ void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	//Makeshift HUD
-	GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Inventory Slot: " + FString::FromInt(SelectedInventorySlot + 1)));
-
-	if (Inventory[SelectedInventorySlot])
+	//Makeshift HUD only show for the player themselves
+	if (GetOwner()->Role == ROLE_AutonomousProxy)
 	{
-		FString name = Inventory[SelectedInventorySlot]->GetName();
-		GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Equipped in slot: " + name));
+		GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Inventory Slot: " + FString::FromInt(SelectedInventorySlot + 1)));
+
+		if (Inventory[SelectedInventorySlot])
+		{
+			FString name = Inventory[SelectedInventorySlot]->GetName();
+			GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Equipped in slot: " + name));
+		}
+		GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Trap Count: " + FString::FromInt(TrapCount)));
 	}
-	GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Trap Count: " + FString::FromInt(TrapCount)));
 }
 
 //increments score for grabbing the loot and does a random check which if passed gives a Trap as well

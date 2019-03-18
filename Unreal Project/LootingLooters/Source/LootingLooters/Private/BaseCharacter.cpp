@@ -36,15 +36,14 @@ ABaseCharacter::ABaseCharacter()
 
 	GetCapsuleComponent()->SetSimulatePhysics(false);
 
-	//when we interact and actually grab something it will look for this location to place itself
-	PickupLoc = CreateDefaultSubobject<USceneComponent>("Pickup holding Location");
-	PickupLoc->SetupAttachment(RootComponent);
-
 	HeldObject = nullptr;
 
 	SetReplicateMovement(true);
 	GetCharacterMovement()->SetIsReplicated(true);
 	SetReplicates(true);
+	bAlwaysRelevant = true;
+	GetCharacterMovement()->SetIsReplicated(true);
+	GetCharacterMovement()->SetNetAddressable();
 }
 
 // Called when the game starts or when spawned
@@ -185,10 +184,12 @@ void ABaseCharacter::ServerDropItem_Implementation()
 //if we are already interacting, stop, otherwise try to start
 void ABaseCharacter::Interact_Implementation()
 {
-	ServerDropItem();
-
-	//try to interact with what we're looking at
-	if (HeldObject == nullptr)
+	if (HeldObject)
+	{
+		ServerDropItem();
+		return;
+	}
+	else
 	{
 		//A struct that the trace will populate with the results of the hit
 		FHitResult Hit(ForceInit);
@@ -212,8 +213,6 @@ bool ABaseCharacter::Interact_Validate()
 void ABaseCharacter::Grab_Implementation(FHitResult Hit)
 {
 	check(Hit.GetActor() != nullptr && "Passed a null weapon!");
-
-	ServerDropItem();
 
 	//Making sure what we hit was an actor
 	if (HeldObject == nullptr)
