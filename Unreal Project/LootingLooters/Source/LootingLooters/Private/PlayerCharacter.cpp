@@ -118,10 +118,7 @@ void APlayerCharacter::Interact()
 			//Making sure what we hit was Loot
 			if (Hit.GetActor()->ActorHasTag("Loot"))
 			{
-				if (Role == ROLE_Authority)
-				{
-					PlayerState->Score += (float)m_Inventory->CollectLoot(Hit.GetActor());
-				}
+				m_Inventory->ServerCollectLoot(Hit.GetActor());
 			}
 		}
 	}
