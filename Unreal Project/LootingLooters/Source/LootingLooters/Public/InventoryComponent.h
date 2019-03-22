@@ -31,7 +31,8 @@ protected:
 	UPROPERTY(Replicated)
 		int SelectedInventorySlot = 0;
 
-	const int MaxInventorySlots = 6;
+	UPROPERTY(BlueprintCallable)
+		const int MaxInventorySlots = 6;
 
 	//Holds a list of all trap types
 	//The first element is the base class and counts as empty
@@ -57,6 +58,9 @@ public:
 	void PrevInventoryItem();
 
 	short GetTrapCount() { return TrapCount; }
+
+	UFUNCTION(BlueprintCallable)
+		TArray<TSubclassOf<class ABaseTrapActor>> GetInventory() { return Inventory; }
 
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerPlaceTrap(FVector location);

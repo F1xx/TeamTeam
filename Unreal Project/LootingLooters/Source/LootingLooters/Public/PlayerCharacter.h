@@ -34,6 +34,9 @@ public:
 	UFUNCTION()
 		class APlayerState* GetPlayerState();
 
+	UFUNCTION(BlueprintCallable)
+		UInventoryComponent* GetInventoryComponent() { return m_Inventory; }
+
 	virtual void Die() override;
 
 	virtual void Interact() override;
