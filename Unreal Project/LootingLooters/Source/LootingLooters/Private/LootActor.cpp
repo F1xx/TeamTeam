@@ -24,11 +24,14 @@ ALootActor::ALootActor()
 
 	Sphere->SetCanEverAffectNavigation(false); //Loot should be completely ignorable by AI
 	
+
+
 	RootComponent = Sphere;
 
-	SphereMesh = CreateDefaultSubobject<UStaticMeshComponent>("Sphere Mesh");
-	SphereMesh->SetupAttachment(RootComponent);
-	SphereMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+
+    
+    
+
 
 	m_ParticleComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("MyPSC"));
 	m_ParticleComponent->SetupAttachment(RootComponent);
@@ -108,5 +111,5 @@ void ALootActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	DOREPLIFETIME(ALootActor, RespawnTimer);
 	DOREPLIFETIME(ALootActor, m_ParticleSystem);
 	DOREPLIFETIME(ALootActor, m_ParticleComponent);
-	DOREPLIFETIME(ALootActor, SphereMesh);
+
 }

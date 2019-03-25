@@ -28,9 +28,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, Replicated)
 		class UParticleSystemComponent* m_ParticleComponent;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Effects", Replicated)
-		class UStaticMeshComponent* SphereMesh;
-
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

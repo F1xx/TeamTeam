@@ -31,8 +31,8 @@ protected:
 	UPROPERTY(Replicated)
 		int SelectedInventorySlot = 0;
 
-	UPROPERTY(BlueprintCallable)
-		const int MaxInventorySlots = 6;
+	UPROPERTY(VisibleAnywhere, Category = "Inventory")
+		/*const*/ int MaxInventorySlots = 6;
 
 	//Holds a list of all trap types
 	//The first element is the base class and counts as empty
