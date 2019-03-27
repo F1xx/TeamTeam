@@ -17,6 +17,20 @@ UInventoryComponent::UInventoryComponent()
 
 	//set all slots to empty
 	Inventory.Init(Traps[0], MaxInventorySlots);
+
+	Slot1 = 0;
+	Slot2 = 0;
+	Slot3 = 0;
+	Slot4 = 0;
+	Slot5 = 0;
+	Slot6 = 0;
+
+	Slots[0] = &Slot1;
+	Slots[1] = &Slot2;
+	Slots[2] = &Slot3;
+	Slots[3] = &Slot4;
+	Slots[4] = &Slot5;
+	Slots[5] = &Slot6;
 }
 
 // Called when the game starts
@@ -58,6 +72,7 @@ void UInventoryComponent::AddRandomTrap()
 
 			TrapCount++;
 			Inventory[i] = Traps[traptype];
+			*Slots[i] = (unsigned char)traptype;
 			break; //exit the for loop
 		}
 	}
@@ -138,6 +153,7 @@ void UInventoryComponent::PlaceTrap(FVector location)
 		trap->SetOwner(GetOwner());
 
 		Inventory[SelectedInventorySlot] = Traps[0]; //set it back to empty
+		*Slots[SelectedInventorySlot] = 0;
 		TrapCount--;
 	}
 }

@@ -40,6 +40,26 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 		TArray<TSubclassOf<class ABaseTrapActor>> Inventory;
 
+	UPROPERTY(VisibleAnywhere)
+		unsigned char Slot1;
+
+	UPROPERTY(VisibleAnywhere)
+		unsigned char Slot2;
+
+	UPROPERTY(VisibleAnywhere)
+		unsigned char Slot3;
+
+	UPROPERTY(VisibleAnywhere)
+		unsigned char Slot4;
+
+	UPROPERTY(VisibleAnywhere)
+		unsigned char Slot5;
+
+	UPROPERTY(VisibleAnywhere)
+		unsigned char Slot6;
+
+	unsigned char* Slots[6];
+
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
