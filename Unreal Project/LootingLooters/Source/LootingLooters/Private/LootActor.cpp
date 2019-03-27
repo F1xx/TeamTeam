@@ -8,6 +8,8 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "LootingLootersGameModeBase.h"
 
+#include "Net/UnrealNetwork.h"
+
 // Sets default values
 ALootActor::ALootActor()
 {
@@ -22,22 +24,19 @@ ALootActor::ALootActor()
 
 	Sphere->SetCanEverAffectNavigation(false); //Loot should be completely ignorable by AI
 	
+
+
 	RootComponent = Sphere;
 
-	SphereMesh = CreateDefaultSubobject<UStaticMeshComponent>("Sphere Mesh");
-	SphereMesh->SetupAttachment(RootComponent);
-	SphereMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
 
-	//this is hardcoding the particle system
-	//leave commented for blueprint use
-// 	static ConstructorHelpers::FObjectFinder<UParticleSystem> PS(TEXT("ParticleSystem'/Game/StarterContent/Particles/P_Fire'"));
-// 	if (PS.Succeeded())
-// 	{
-// 		m_ParticleSystem = PS.Object;
-// 	}
+    
+    
+
 
 	m_ParticleComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("MyPSC"));
 	m_ParticleComponent->SetupAttachment(RootComponent);
+
+	SetReplicates(true);
 
 	Tags.Add("Loot");
 }
@@ -72,6 +71,11 @@ void ALootActor::PostInitializeComponents()
 	}
 }
 
+void ALootActor::MulticastDie_Implementation()
+{
+	Die();
+}
+
 //Either actually destroys the actor or "turns it off" depending on if it can respawn
 void ALootActor::Die()
 {
@@ -98,4 +102,14 @@ void ALootActor::Respawn()
 	Sphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 	PrimaryActorTick.bCanEverTick = true;
+}
+
+void ALootActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ALootActor, RespawnTimer);
+	DOREPLIFETIME(ALootActor, m_ParticleSystem);
+	DOREPLIFETIME(ALootActor, m_ParticleComponent);
+
 }

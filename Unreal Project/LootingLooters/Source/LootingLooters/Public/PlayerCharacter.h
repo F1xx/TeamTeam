@@ -34,9 +34,13 @@ public:
 	UFUNCTION()
 		class APlayerState* GetPlayerState();
 
-	virtual void Die_Implementation() override;
-	virtual void Interact_Implementation() override;
-	virtual void PlaceTrap_Implementation() override;
+	UFUNCTION(BlueprintCallable)
+		UInventoryComponent* GetInventoryComponent() { return m_Inventory; }
+
+	virtual void Die() override;
+
+	virtual void Interact() override;
+	virtual void PlaceTrap() override;
 
 	virtual void NextInventory() override;
 

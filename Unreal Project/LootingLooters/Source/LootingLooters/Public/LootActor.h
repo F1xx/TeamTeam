@@ -19,16 +19,14 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	FTimerHandle RespawnTimer;
+	UPROPERTY(Replicated)
+		FTimerHandle RespawnTimer;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Effects")
+	UPROPERTY(EditDefaultsOnly, Category = "Effects", Replicated)
 		class UParticleSystem* m_ParticleSystem;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Replicated)
 		class UParticleSystemComponent* m_ParticleComponent;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Effects")
-		class UStaticMeshComponent* SphereMesh;
 
 public:	
 	// Called every frame
@@ -38,6 +36,9 @@ public:
 
 	//remove the loot without actually deleting it.
 	//unless bCanRespawn is false in which case it is Destroyed
+	UFUNCTION(NetMulticast, Reliable)
+		virtual void MulticastDie();
+
 	virtual void Die();
 
 	//return the loot to the field

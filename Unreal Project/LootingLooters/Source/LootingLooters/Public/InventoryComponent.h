@@ -25,10 +25,14 @@ protected:
 
 	//variables
 protected:
-	short TrapCount = 0;
-	short SelectedInventorySlot = 0;
+	UPROPERTY(Replicated)
+		int TrapCount = 0;
 
-	const short MaxInventorySlots = 6;
+	UPROPERTY(Replicated)
+		int SelectedInventorySlot = 0;
+
+	UPROPERTY(VisibleAnywhere, Category = "Inventory")
+		/*const*/ int MaxInventorySlots = 6;
 
 	//Holds a list of all trap types
 	//The first element is the base class and counts as empty
@@ -37,7 +41,7 @@ protected:
 
 	//The player's inventory
 	//Holds all traps they have up to MaxInventory Slots
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Replicated)
 		TArray<TSubclassOf<class ABaseTrapActor>> Inventory;
 
 	UPROPERTY(VisibleAnywhere)
@@ -64,14 +68,27 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	//returns the score value from the loot
 	//Has a chance to also award a trap if the player has space for one.
-	int CollectLoot(AActor* lootedObject);
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerCollectLoot(AActor* lootedObject);
+
+	void CollectLoot(AActor* lootedObject);
 
 	void NextInventoryItem();
 	void PrevInventoryItem();
 
 	short GetTrapCount() { return TrapCount; }
-	void PlaceTrap(FVector location);
+
+	UFUNCTION(BlueprintCallable)
+		TArray<TSubclassOf<class ABaseTrapActor>> GetInventory() { return Inventory; }
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerPlaceTrap(FVector location);
+
+	UFUNCTION(NetMulticast, Reliable)
+		void NetMulticastPlaceTrap(FVector location);
+
+		void PlaceTrap(FVector location);
+		void SpawnTrap(FVector location);
 	
 };

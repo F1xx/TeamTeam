@@ -9,21 +9,20 @@
 #include "Camera/CameraComponent.h"
 #include "PlayerCharacter.h"
 #include "Engine/StaticMeshActor.h"
+#include "HealthComponent.h"
 
 #include "Net/UnrealNetwork.h"
 
 AGrabbableStaticMeshActor::AGrabbableStaticMeshActor()
+	: DestructibleMesh(nullptr)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	//By default the static mesh will physically block everything.
-	GetDestructibleComponent()->SetCollisionProfileName(FName("GrabbableTrace"));
-	GetDestructibleComponent()->SetSimulatePhysics(true);
-	GetDestructibleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	GetDestructibleComponent()->SetNotifyRigidBodyCollision(true);
-	GetDestructibleComponent()->SetEnableGravity(true);
-
 	SetReplicates(true);
+	SetReplicateMovement(true);
+	bAlwaysRelevant = true;
+
+	Health = CreateDefaultSubobject<UHealthComponent>("Health Component");
 
 	Tags.Add("Grabbable");
 }
@@ -38,17 +37,37 @@ void AGrabbableStaticMeshActor::BeginPlay()
 	GetDestructibleComponent()->SetCanEverAffectNavigation(true); //make sure the navmesh makes the AI try to avoid these
 
 	//register for onhit so we can fracture ourselves potentially
-	GetDestructibleComponent()->OnComponentHit.AddDynamic(this, &AGrabbableStaticMeshActor::OnHit);
+	DestructibleMesh->OnComponentHit.AddDynamic(this, &AGrabbableStaticMeshActor::OnHit);
+
 	//Setup our function to be called when the mesh breaks
-	GetDestructibleComponent()->OnComponentFracture.AddDynamic(this, &AGrabbableStaticMeshActor::OnFracture);
+	DestructibleMesh->OnComponentFracture.AddDynamic(this, &AGrabbableStaticMeshActor::OnFracture);
 }
 
 // We want to turn off the ability to grab this actor after its been exploded
 void AGrabbableStaticMeshActor::OnFracture(const FVector& HitPosition, const FVector& HitDirection)
 {
-	GetDestructibleComponent()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	DestructibleMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 
 	//Spawn loot, preferably through game mode
+}
+
+void AGrabbableStaticMeshActor::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	DestructibleMesh = GetDestructibleComponent();
+
+	//By default the static mesh will physically block everything.
+	DestructibleMesh->SetSimulatePhysics(true);
+	DestructibleMesh->SetCollisionProfileName(FName("GrabbableTrace"));
+	DestructibleMesh ->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+	DestructibleMesh->SetNotifyRigidBodyCollision(true);
+
+	DestructibleMesh->SetEnableGravity(true);
+	DestructibleMesh->SetIsReplicated(true);
+
+	Health->OnDeath.AddDynamic(this, &AGrabbableStaticMeshActor::BreakMesh);
 }
 
 //Updates the object
@@ -57,7 +76,7 @@ void AGrabbableStaticMeshActor::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	if (bIsHeld && m_Character)
+	if (m_Character)
 	{
 		//Set the interaction point to be in front of the camera
 		FVector campos;
@@ -71,69 +90,77 @@ void AGrabbableStaticMeshActor::Tick(float DeltaSeconds)
 
 //Pickup this object if not already
 //if already holding it, throw it instead
-AGrabbableStaticMeshActor* AGrabbableStaticMeshActor::Pickup(ABaseCharacter* acharacter)
+void AGrabbableStaticMeshActor::Pickup(ABaseCharacter* acharacter)
 {
-	if (acharacter)
+	verify(acharacter != nullptr && "Weapon's attach function called with null character!");
+
+	m_Character = acharacter;
+
+	if (Role == ROLE_Authority)
 	{
-		m_Character = acharacter;
-
-		bIsHeld = !bIsHeld;
-		bIsGravityOn = !bIsGravityOn;
-		GetDestructibleComponent()->SetEnableGravity(bIsGravityOn);
-		GetDestructibleComponent()->SetSimulatePhysics(!bIsHeld);
-
-		//this line may be a problem, we'll see
-		GetDestructibleComponent()->SetCollisionEnabled(bIsHeld ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryAndPhysics);
-
-		if (bIsHeld == false) //Drop
-		{
-			//its not held anymore so forget who was holding us
-			m_Character = nullptr;
-			m_CamForward = FVector::ZeroVector;
-			return nullptr;
-		}
-
-		return this;
+		DestructibleMesh->SetSimulatePhysics(false);
+		SetActorEnableCollision(false);
+		DestructibleMesh->SetEnableGravity(false);
 	}
-	return nullptr;
 }
 
-void AGrabbableStaticMeshActor::BreakMesh(const FHitResult& Hit)
+void AGrabbableStaticMeshActor::Drop()
 {
-	GetDestructibleComponent()->ApplyDamage(500.0f, GetActorLocation(), -Hit.Normal, 0.0f);
-	GetDestructibleComponent()->SetEnableGravity(true);
-	GetWorldTimerManager().SetTimer(DespawnTimer, this, &AGrabbableStaticMeshActor::Die, TimeBeforeDespawn, false);
+	m_Character = nullptr;
+	m_CamForward = FVector::ZeroVector;
+
+	if (Role == ROLE_Authority)
+	{
+		DestructibleMesh->SetSimulatePhysics(true);
+		SetActorEnableCollision(true);
+		DestructibleMesh->SetEnableGravity(true);
+	}
+}
+
+void AGrabbableStaticMeshActor::BreakMesh(AActor* actor)
+{
+	if (actor)
+	{
+		if (Role == ROLE_Authority)
+		{
+			FVector direction = actor->GetActorLocation() - GetActorLocation();
+
+			DestructibleMesh->ApplyDamage(500.0f, GetActorLocation(), direction.GetSafeNormal(), 0.0f);
+			DestructibleMesh->SetEnableGravity(true);
+			GetWorldTimerManager().SetTimer(DespawnTimer, this, &AGrabbableStaticMeshActor::Die, TimeBeforeDespawn, false);
+		}
+	}
 }
 
 //Apply a force to this object using the character's forward vector to simulate a throw
 //The result of throwing can result in this actor fracturing
 void AGrabbableStaticMeshActor::Throw()
 {
-	bIsHeld = false;
-	bIsGravityOn = true;
-	GetDestructibleComponent()->SetEnableGravity(bIsGravityOn);
-	GetDestructibleComponent()->SetSimulatePhysics(true);
-	GetDestructibleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-
-	if (m_Character)
+	if (Role == ROLE_Authority)
 	{
-		APlayerCharacter* player = Cast<APlayerCharacter>(m_Character);
+		DestructibleMesh->SetSimulatePhysics(true);
+		SetActorEnableCollision(true);
+		DestructibleMesh->SetEnableGravity(true);
 
-		if (player) //if its a player throw with the camera
+		if (m_Character)
 		{
-			m_CamForward = player->GetFollowCamera()->GetForwardVector();
-			GetDestructibleComponent()->AddForce(m_CamForward * 40000 * GetDestructibleComponent()->GetMass());
-			bWasThrown = true;
-		}
-		else // if its a guard just throw forward
-		{
-			m_CamForward = m_Character->GetActorForwardVector();
-			GetDestructibleComponent()->AddForce(m_CamForward * 40000 * GetDestructibleComponent()->GetMass());
+			APlayerCharacter* player = Cast<APlayerCharacter>(m_Character);
+
+			if (player) //if its a player throw with the camera
+			{
+				m_CamForward = player->GetControlRotation().Vector(); //unit vector and required to be like this for replication
+				DestructibleMesh->AddForce(m_CamForward * 40000 * DestructibleMesh->GetMass());
+				bWasThrown = true;
+			}
+			else // if its a guard just throw forward
+			{
+				m_CamForward = m_Character->GetActorForwardVector();
+				DestructibleMesh->AddForce(m_CamForward * 40000 * DestructibleMesh->GetMass());
+				bWasThrown = true;
+			}
 		}
 	}
-	//its not held anymore so forget who was holding us
-	//m_Character = nullptr;
-	m_CamForward = FVector::ZeroVector;
+	Drop();
 }
 
 //Rotate the held object on yaw
@@ -172,34 +199,22 @@ void AGrabbableStaticMeshActor::Die()
 
 //Function called when this actor's collision component is hit
 //if it was thrown fracture it
-void AGrabbableStaticMeshActor::OnHit_Implementation(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
+void AGrabbableStaticMeshActor::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (OtherActor != m_Character)
+	if (Role == ROLE_Authority)
 	{
 		if (bWasThrown)
 		{
-			BreakMesh(Hit);
-
-			AGrabbableStaticMeshActor* acto = Cast<AGrabbableStaticMeshActor>(OtherActor);
-
-			if (acto)
-			{
-				acto->BreakMesh(Hit);
-			}
+			TakeDamage(50.0f, FDamageEvent(), nullptr, OtherActor);
+			OtherActor->TakeDamage(50.0f, FDamageEvent(), nullptr, OtherActor);
 		}
+		bWasThrown = false; //it will be thrown and take damage from 1 hit
 	}
-
-	m_Character = nullptr;
 }
 
-bool AGrabbableStaticMeshActor::OnHit_Validate(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
+void AGrabbableStaticMeshActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	return true;
-}
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-//void AGrabbableStaticMeshActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-//{
-//	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-//
-//	DOREPLIFETIME(AGrabbableStaticMeshActor, GetDestructibleComponent());
-//}
+	DOREPLIFETIME(AGrabbableStaticMeshActor, DestructibleMesh);
+}

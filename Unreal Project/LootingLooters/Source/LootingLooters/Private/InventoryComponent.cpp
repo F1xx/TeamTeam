@@ -5,6 +5,10 @@
 #include "BaseTrapActor.h"
 #include "StopTrapActor.h"
 #include "SlowTrapActor.h"
+#include "PlayerCharacterState.h"
+
+#include "Net/UnrealNetwork.h"
+#include "PlayerCharacter.h"
 
 // Sets default values for this component's properties
 UInventoryComponent::UInventoryComponent()
@@ -83,22 +87,37 @@ void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	//Makeshift HUD
-	GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Inventory Slot: " + FString::FromInt(SelectedInventorySlot + 1)));
-
-	if (Inventory[SelectedInventorySlot])
+	//Makeshift HUD only show for the player themselves
+	if (GetOwner()->Role == ROLE_AutonomousProxy)
 	{
-		FString name = Inventory[SelectedInventorySlot]->GetName();
-		GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Equipped in slot: " + name));
+		GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Inventory Slot: " + FString::FromInt(SelectedInventorySlot + 1)));
+
+		if (Inventory[SelectedInventorySlot])
+		{
+			FString name = Inventory[SelectedInventorySlot]->GetName();
+			GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Equipped in slot: " + name));
+		}
+		GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Trap Count: " + FString::FromInt(TrapCount)));
 	}
-	GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Trap Count: " + FString::FromInt(TrapCount)));
+}
+
+void UInventoryComponent::ServerCollectLoot_Implementation(AActor* lootedObject)
+{
+	if (ROLE_Authority)
+	{
+		CollectLoot(lootedObject);
+	}
+}
+
+bool UInventoryComponent::ServerCollectLoot_Validate(AActor* lootedObject)
+{
+	return true;
 }
 
 //increments score for grabbing the loot and does a random check which if passed gives a Trap as well
-int UInventoryComponent::CollectLoot(AActor* lootedObject)
+void UInventoryComponent::CollectLoot(AActor* lootedObject)
 {
 	ALootActor* loot = Cast<ALootActor>(lootedObject);
-
 	if (loot)
 	{
 		if (DidFindTrap(loot) && HasOpenSlot())
@@ -108,11 +127,13 @@ int UInventoryComponent::CollectLoot(AActor* lootedObject)
 		//return a score for the loot
 
 		loot->Die();
-		return FMath::RandRange(20, 60);
-	}
 
-	//it wasn't loot, return nothing
-	return 0;
+		APlayerCharacter* player = Cast< APlayerCharacter>(GetOwner());
+		if (player)
+		{
+			player->GetPlayerState()->Score += FMath::RandRange(20, 60);
+		}
+	}
 }
 
 //Cycles through the inventory forward
@@ -137,8 +158,36 @@ void UInventoryComponent::PrevInventoryItem()
 	}
 }
 
+void UInventoryComponent::ServerPlaceTrap_Implementation(FVector location)
+{
+	if (GetNetMode() == ENetMode::NM_DedicatedServer)
+		NetMulticastPlaceTrap(location);
+
+	if (GetNetMode() != ENetMode::NM_DedicatedServer)
+		SpawnTrap(location);
+}
+
+bool UInventoryComponent::ServerPlaceTrap_Validate(FVector location)
+{
+	return true;
+}
+
+void UInventoryComponent::NetMulticastPlaceTrap_Implementation(FVector location)
+{
+	if (GetOwner()->Role < ROLE_Authority)
+	{
+		//CALL SpawnProjectile()
+		SpawnTrap(location);
+	}
+}
+
 //actually spawns the trap in the world at the given location
 void UInventoryComponent::PlaceTrap(FVector location)
+{
+	ServerPlaceTrap(location);
+}
+
+void UInventoryComponent::SpawnTrap(FVector location)
 {
 	//if we actually have a trap selected
 	if (Inventory[SelectedInventorySlot] != Traps[0] && TrapCount > 0)
@@ -156,4 +205,13 @@ void UInventoryComponent::PlaceTrap(FVector location)
 		*Slots[SelectedInventorySlot] = 0;
 		TrapCount--;
 	}
+}
+
+void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UInventoryComponent, Inventory);
+	DOREPLIFETIME(UInventoryComponent, TrapCount);
+	DOREPLIFETIME(UInventoryComponent, SelectedInventorySlot);
 }

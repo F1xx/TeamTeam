@@ -37,6 +37,7 @@ APlayerCharacter::APlayerCharacter() : Super()
 
 	SetReplicates(true);
 	SetReplicateMovement(true);
+	Camera->SetIsReplicated(true);
 
 	Tags.Add("Player");
 }
@@ -85,28 +86,27 @@ class APlayerState* APlayerCharacter::GetPlayerState()
 }
 
 //if we die remove input and go ragdoll
-void APlayerCharacter::Die_Implementation()
+void APlayerCharacter::Die()
 {
+	Super::Die();
+
 	APlayerController* cont = Cast<APlayerController>(GetController());
 
 	if (cont)
 	{
-		cont->DisableInput(cont);
-		GetCapsuleComponent()->SetCollisionProfileName("NoCollision");
-		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-		GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-		GetMesh()->SetSimulatePhysics(true);
-
-		GEngine->AddOnScreenDebugMessage(-1, 50.0f, FColor::Red, "YOU WERE KILLED BY THE GUARD");
+		if (Role == ROLE_Authority)
+		{
+			cont->DisableInput(cont);
+			GEngine->AddOnScreenDebugMessage(-1, 50.0f, FColor::Red, "YOU WERE KILLED BY THE GUARD");
+		}
 	}
 }
 
 //Calls ABaseCharacter's Interact
 //If we are not interacting from that then we will check if its loot (this is here because other character types cannot loot)
-void APlayerCharacter::Interact_Implementation()
+void APlayerCharacter::Interact()
 {
-	Super::Interact_Implementation();
+	Super::Interact();
 
 	//if after super we're still not interacting with anything check if we can grab some loot
 	if (!bIsInteracting)
@@ -118,15 +118,14 @@ void APlayerCharacter::Interact_Implementation()
 			//Making sure what we hit was Loot
 			if (Hit.GetActor()->ActorHasTag("Loot"))
 			{
-				//Hit.GetActor()->Destroy(); //change for respawning loot?
-				PlayerState->Score += (float)m_Inventory->CollectLoot(Hit.GetActor());
+				m_Inventory->ServerCollectLoot(Hit.GetActor());
 			}
 		}
 	}
 }
 
 //place a trap. This is for the player and will place it where they're aiming
-void APlayerCharacter::PlaceTrap_Implementation()
+void APlayerCharacter::PlaceTrap()
 {
 	//if we have traps
 	if (m_Inventory->GetTrapCount() > 0)
@@ -135,7 +134,10 @@ void APlayerCharacter::PlaceTrap_Implementation()
 
 		if (PerformRayCast(FName("GrabbableTrace"), Hit))
 		{
-			m_Inventory->PlaceTrap(Hit.ImpactPoint);
+			if (Role == ROLE_Authority)
+			{
+				m_Inventory->PlaceTrap(Hit.ImpactPoint);
+			}
 		}
 	}
 }
@@ -149,7 +151,6 @@ void APlayerCharacter::NextInventory()
 void APlayerCharacter::TickActor(float DeltaTime, enum ELevelTick TickType, FActorTickFunction& ThisTickFunction)
 {
 	Super::TickActor(DeltaTime, TickType, ThisTickFunction);
-	//GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Magenta, FString("Score: " + FString::SanitizeFloat(PlayerState->Score)));
 }
 
 void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

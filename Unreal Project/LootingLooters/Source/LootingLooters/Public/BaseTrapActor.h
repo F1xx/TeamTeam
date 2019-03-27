@@ -40,6 +40,8 @@ public:
 		UPROPERTY(EditAnywhere)
 			UStaticMesh* ActivatedMesh;
 
+        UFUNCTION()
+            TEnumAsByte<enum EDebuffs> GetType() { return TrapDebuff; }
 protected:
 	virtual void Die();
 	virtual void SetTarget(class ABaseCharacter* character);

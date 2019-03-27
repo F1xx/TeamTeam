@@ -23,18 +23,25 @@ protected:
 	FTimerHandle DespawnTimer;
 	float TimeBeforeDespawn = 5.0f;
 	bool bWasThrown = false;
+	class UHealthComponent* Health;
 
 	UFUNCTION()
 		virtual void OnFracture(const FVector& HitPosition, const FVector& HitDirection);
+
+	UFUNCTION()
+		virtual void PostInitializeComponents() override;
 
 public:
 	virtual void Tick(float DeltaSeconds);
 
 	UFUNCTION()
-		AGrabbableStaticMeshActor* Pickup(class ABaseCharacter* acharacter);
+		void Pickup(class ABaseCharacter* acharacter);
 
 	UFUNCTION()
-		virtual void BreakMesh(const FHitResult& Hit);
+		void Drop();
+
+	UFUNCTION()
+		virtual void BreakMesh(AActor* actor);
 
 	UFUNCTION()
 		void Throw();
@@ -45,9 +52,6 @@ public:
 
 	UFUNCTION()
 		void Zoom(float Value);
-
-	bool bIsHeld = false;
-	bool bIsGravityOn = true;
 	
 	class ABaseCharacter* m_Character;
 	FVector m_CamForward;
@@ -59,6 +63,9 @@ public:
 	virtual void Die();
 
 private:
-	UFUNCTION(Server, Reliable, WithValidation)
+	UPROPERTY(Replicated)
+		class UDestructibleComponent* DestructibleMesh;
+
+	UFUNCTION()
 		void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
 };
