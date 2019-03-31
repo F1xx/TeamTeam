@@ -11,6 +11,16 @@ AMyPlayerState::AMyPlayerState() :Super()
 
 }
 
+void AMyPlayerState::AddScore(int value)
+{
+	if (value < 0)
+	{
+		value = 0;
+	}
+
+	Score += value;
+}
+
 void AMyPlayerState::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

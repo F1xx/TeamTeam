@@ -47,6 +47,12 @@ void AGuardCharacter::OnPawnSeen(APawn * SeenPawn)
 	if (SeenPawn == nullptr)
 		return;
 
+	APlayerCharacter* player = Cast<APlayerCharacter>(SeenPawn);
+
+	if (player)
+		if (player->bIsDead)
+			return;
+
 	if (TargetActor && TargetActor != SeenPawn) //if we already have a target only switch if the new one is closer
 	{
 		FVector MyLoc = GetActorLocation();
@@ -279,6 +285,7 @@ void AGuardCharacter::OnComponentHit(UPrimitiveComponent* HitComponent, AActor* 
 	if (player)
 	{
 		player->Die();
+		TargetActor = nullptr;
 	}
 }
 

@@ -20,10 +20,16 @@ class LOOTINGLOOTERS_API AGrabbableStaticMeshActor : public ADestructibleActor
 protected:
 	virtual void BeginPlay();
 
-	FTimerHandle DespawnTimer;
+	UPROPERTY(Replicated)
+		FTimerHandle DespawnTimer;
+
 	float TimeBeforeDespawn = 5.0f;
-	bool bWasThrown = false;
-	class UHealthComponent* Health;
+
+	UPROPERTY(Replicated)
+		bool bWasThrown = false;
+
+	UPROPERTY(Replicated)
+		class UHealthComponent* Health;
 
 	UFUNCTION()
 		virtual void OnFracture(const FVector& HitPosition, const FVector& HitDirection);
@@ -43,6 +49,9 @@ public:
 	UFUNCTION()
 		virtual void BreakMesh(AActor* actor);
 
+	UFUNCTION(NetMulticast, Reliable)
+		virtual void MulticastBreakMesh(AActor* actor);
+
 	UFUNCTION()
 		void Throw();
 
@@ -53,7 +62,9 @@ public:
 	UFUNCTION()
 		void Zoom(float Value);
 	
-	class ABaseCharacter* m_Character;
+	UPROPERTY(Replicated)
+		class ABaseCharacter* m_Character;
+
 	FVector m_CamForward;
 	FRotator m_Rotation;
 

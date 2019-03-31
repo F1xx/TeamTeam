@@ -31,6 +31,9 @@ protected:
 		class ADoorActor* LastDoorAccessed;
 
 public:	
+	UPROPERTY(Replicated)
+		bool bIsDead = false;
+
 	// Called every frame
 	virtual void TickActor(float DeltaTime, enum ELevelTick TickType, FActorTickFunction& ThisTickFunction) override;
 

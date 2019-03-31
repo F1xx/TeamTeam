@@ -57,7 +57,7 @@ bool UInventoryComponent::HasOpenSlot()
 //finds an open slot and adds a random type of trap into it
 void UInventoryComponent::AddRandomTrap()
 {
-	if (GetOwner()->Role == ROLE_Authority)
+	if (GetOwnerRole() == ROLE_Authority)
 	{
 		for (int i = 0; i < MaxInventorySlots; i++)
 		{
@@ -82,7 +82,7 @@ void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 void UInventoryComponent::ServerCollectLoot_Implementation(AActor* lootedObject)
 {
-	if (GetOwner()->Role == ROLE_Authority)
+	if (GetOwnerRole() == ROLE_Authority)
 	{
 		CollectLoot(lootedObject);
 	}
@@ -191,7 +191,7 @@ void UInventoryComponent::PlaceTrap(FVector location)
 
 void UInventoryComponent::SpawnTrap(FVector location)
 {
-	if (GetOwner()->Role == ROLE_Authority)
+	if (GetOwnerRole() == ROLE_Authority)
 	{
 		//if we actually have a trap selected
 		if (Inventory[GetOwningPlayer()->GetPlayerState()->SelectedInventorySlot] != Traps[0] && GetOwningPlayer()->GetPlayerState()->TrapCount > 0)

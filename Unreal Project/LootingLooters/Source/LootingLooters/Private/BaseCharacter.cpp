@@ -66,15 +66,25 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 void ABaseCharacter::Die()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	SetActorTickEnabled(false);
+
 	ServerDropItem();
 
 	NetMulticastOnDeath();
+}
 
-	if (Role == ROLE_Authority)
-	{
-		//respawning or whatever here
-	}
+void ABaseCharacter::NetMulticastOnDeath_Implementation()
+{
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	bIsDead = true;
+	//ragdoll
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetMesh()->SetSimulatePhysics(true);
+}
+
+bool ABaseCharacter::NetMulticastOnDeath_Validate()
+{
+	return true;
 }
 
 //Alters the charactermovementcomponent MaxWalkSpeed value
@@ -277,19 +287,6 @@ void ABaseCharacter::ThrowObject()
 	}
 }
 
-void ABaseCharacter::NetMulticastOnDeath_Implementation()
-{
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	//ragdoll
-	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	GetMesh()->SetSimulatePhysics(true);
-}
-
-bool ABaseCharacter::NetMulticastOnDeath_Validate()
-{
-	return true;
-}
-
 void ABaseCharacter::PickupObject()
 {
 	if (HeldObject)
@@ -346,4 +343,5 @@ void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(ABaseCharacter, bIsInteracting);
 	DOREPLIFETIME(ABaseCharacter, bIsRotating);
 	DOREPLIFETIME(ABaseCharacter, LastDoorAccessed);
+	DOREPLIFETIME(ABaseCharacter, bIsDead);
 }

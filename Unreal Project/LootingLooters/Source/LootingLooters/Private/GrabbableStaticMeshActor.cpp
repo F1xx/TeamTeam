@@ -43,14 +43,6 @@ void AGrabbableStaticMeshActor::BeginPlay()
 	DestructibleMesh->OnComponentFracture.AddDynamic(this, &AGrabbableStaticMeshActor::OnFracture);
 }
 
-// We want to turn off the ability to grab this actor after its been exploded
-void AGrabbableStaticMeshActor::OnFracture(const FVector& HitPosition, const FVector& HitDirection)
-{
-	DestructibleMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-
-	//Spawn loot, preferably through game mode
-}
-
 void AGrabbableStaticMeshActor::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
@@ -67,7 +59,7 @@ void AGrabbableStaticMeshActor::PostInitializeComponents()
 	DestructibleMesh->SetEnableGravity(true);
 	DestructibleMesh->SetIsReplicated(true);
 
-	Health->OnDeath.AddDynamic(this, &AGrabbableStaticMeshActor::BreakMesh);
+	Health->OnDeath.AddDynamic(this, &AGrabbableStaticMeshActor::MulticastBreakMesh);
 }
 
 //Updates the object
@@ -117,21 +109,6 @@ void AGrabbableStaticMeshActor::Drop()
 	}
 }
 
-void AGrabbableStaticMeshActor::BreakMesh(AActor* actor)
-{
-	if (actor)
-	{
-		if (Role == ROLE_Authority)
-		{
-			FVector direction = actor->GetActorLocation() - GetActorLocation();
-
-			DestructibleMesh->ApplyDamage(500.0f, GetActorLocation(), direction.GetSafeNormal(), 0.0f);
-			DestructibleMesh->SetEnableGravity(true);
-			GetWorldTimerManager().SetTimer(DespawnTimer, this, &AGrabbableStaticMeshActor::Die, TimeBeforeDespawn, false);
-		}
-	}
-}
-
 //Apply a force to this object using the character's forward vector to simulate a throw
 //The result of throwing can result in this actor fracturing
 void AGrabbableStaticMeshActor::Throw()
@@ -141,6 +118,7 @@ void AGrabbableStaticMeshActor::Throw()
 		DestructibleMesh->SetSimulatePhysics(true);
 		SetActorEnableCollision(true);
 		DestructibleMesh->SetEnableGravity(true);
+		bWasThrown = true;
 
 		if (m_Character)
 		{
@@ -150,13 +128,11 @@ void AGrabbableStaticMeshActor::Throw()
 			{
 				m_CamForward = player->GetControlRotation().Vector(); //unit vector and required to be like this for replication
 				DestructibleMesh->AddForce(m_CamForward * 40000 * DestructibleMesh->GetMass());
-				bWasThrown = true;
 			}
 			else // if its a guard just throw forward
 			{
 				m_CamForward = m_Character->GetActorForwardVector();
 				DestructibleMesh->AddForce(m_CamForward * 40000 * DestructibleMesh->GetMass());
-				bWasThrown = true;
 			}
 		}
 	}
@@ -212,9 +188,44 @@ void AGrabbableStaticMeshActor::OnHit(UPrimitiveComponent* HitComponent, AActor*
 	}
 }
 
+// We want to turn off the ability to grab this actor after its been exploded
+void AGrabbableStaticMeshActor::OnFracture(const FVector& HitPosition, const FVector& HitDirection)
+{
+	DestructibleMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+
+	//Spawn loot, preferably through game mode
+}
+
+void AGrabbableStaticMeshActor::BreakMesh(AActor* actor)
+{
+	if (actor)
+	{
+		if (Role == ROLE_Authority)
+		{
+			FVector direction = actor->GetActorLocation() - GetActorLocation();
+
+			DestructibleMesh->ApplyDamage(500.0f, GetActorLocation(), direction.GetSafeNormal(), 0.0f);
+			DestructibleMesh->SetEnableGravity(true);
+			GetWorldTimerManager().SetTimer(DespawnTimer, this, &AGrabbableStaticMeshActor::Die, TimeBeforeDespawn, false);
+		}
+	}
+}
+
+void AGrabbableStaticMeshActor::MulticastBreakMesh_Implementation(AActor* actor)
+{
+	if (Role == ROLE_Authority)
+	{
+		BreakMesh(actor);
+	}
+}
+
 void AGrabbableStaticMeshActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AGrabbableStaticMeshActor, DestructibleMesh);
+	DOREPLIFETIME(AGrabbableStaticMeshActor, m_Character);
+	DOREPLIFETIME(AGrabbableStaticMeshActor, Health);
+	DOREPLIFETIME(AGrabbableStaticMeshActor, DespawnTimer);
+	DOREPLIFETIME(AGrabbableStaticMeshActor, bWasThrown);
 }

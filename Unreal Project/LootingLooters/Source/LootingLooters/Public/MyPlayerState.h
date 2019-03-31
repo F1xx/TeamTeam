@@ -18,8 +18,9 @@ public:
 
 	AMyPlayerState();
 
+	//Adds the value to the score variable. Cannot pass negatives.
 	UFUNCTION(BlueprintCallable)
-		void AddScore(int value) { Score += value; }
+		void AddScore(int value);
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = Inventory)
 		uint8 TrapCount = 0;

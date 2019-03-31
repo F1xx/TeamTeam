@@ -94,11 +94,8 @@ void APlayerCharacter::Die()
 
 	if (cont)
 	{
-		if (Role == ROLE_Authority)
-		{
-			cont->DisableInput(cont);
-			GEngine->AddOnScreenDebugMessage(-1, 50.0f, FColor::Red, "YOU WERE KILLED BY THE GUARD");
-		}
+		cont->DisableInput(cont);
+		GEngine->AddOnScreenDebugMessage(-1, 50.0f, FColor::Red, "YOU WERE KILLED BY THE GUARD");
 	}
 }
 
