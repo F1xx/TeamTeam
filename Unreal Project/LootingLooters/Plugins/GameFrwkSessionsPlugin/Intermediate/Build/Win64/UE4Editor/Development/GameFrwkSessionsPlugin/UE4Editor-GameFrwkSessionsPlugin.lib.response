@@ -1,0 +1,13 @@
+/NOLOGO
+/errorReport:prompt
+/MACHINE:x64
+/SUBSYSTEM:WINDOWS
+/DEF
+/NAME:"UE4Editor-GameFrwkSessionsPlugin.dll"
+/IGNORE:4221
+/NODEFAULTLIB
+"Z:\User Folders\Downloads\New folder\TeamTeam\Unreal Project\LootingLooters\Intermediate\Build\Win64\LootingLootersEditor\Development\Engine\SharedPCH.Engine.h.obj"
+"Z:\User Folders\Downloads\New folder\TeamTeam\Unreal Project\LootingLooters\Plugins\GameFrwkSessionsPlugin\Intermediate\Build\Win64\UE4Editor\Development\GameFrwkSessionsPlugin\Module.GameFrwkSessionsPlugin.cpp.obj"
+"Z:\User Folders\Downloads\New folder\TeamTeam\Unreal Project\LootingLooters\Plugins\GameFrwkSessionsPlugin\Intermediate\Build\Win64\UE4Editor\Development\GameFrwkSessionsPlugin\Module.GameFrwkSessionsPlugin.gen.cpp.obj"
+"Z:\User Folders\Downloads\New folder\TeamTeam\Unreal Project\LootingLooters\Plugins\GameFrwkSessionsPlugin\Intermediate\Build\Win64\UE4Editor\Development\GameFrwkSessionsPlugin\PCLaunch.rc.res"
+/OUT:"Z:\User Folders\Downloads\New folder\TeamTeam\Unreal Project\LootingLooters\Plugins\GameFrwkSessionsPlugin\Intermediate\Build\Win64\UE4Editor\Development\GameFrwkSessionsPlugin\UE4Editor-GameFrwkSessionsPlugin.lib"

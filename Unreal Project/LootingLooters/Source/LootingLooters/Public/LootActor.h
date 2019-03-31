@@ -44,7 +44,7 @@ public:
 	//return the loot to the field
 	virtual void Respawn();
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Collision", Replicated)
 		class USphereComponent* Sphere;
 
 	//a % chance. Setting above 100 will set it to 100
@@ -55,4 +55,7 @@ public:
 	//Setting this to or lower than zero will cause the item to never respawn
 	UPROPERTY(EditAnywhere)
 		float RespawnDelay = 60;
+
+	UPROPERTY(Replicated)
+		bool isDead = false;
 };

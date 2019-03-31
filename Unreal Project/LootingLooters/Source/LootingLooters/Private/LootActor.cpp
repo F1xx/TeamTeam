@@ -23,15 +23,8 @@ ALootActor::ALootActor()
 	Sphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 
 	Sphere->SetCanEverAffectNavigation(false); //Loot should be completely ignorable by AI
-	
-
 
 	RootComponent = Sphere;
-
-
-    
-    
-
 
 	m_ParticleComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("MyPSC"));
 	m_ParticleComponent->SetupAttachment(RootComponent);
@@ -79,29 +72,32 @@ void ALootActor::MulticastDie_Implementation()
 //Either actually destroys the actor or "turns it off" depending on if it can respawn
 void ALootActor::Die()
 {
-	if (RespawnDelay > 0)
+	if (Role == ROLE_Authority)
 	{
-		m_ParticleComponent->SetActive(false);
-		GetWorld()->GetTimerManager().SetTimer(RespawnTimer, this, &ALootActor::Respawn, RespawnDelay, false);
+		if (RespawnDelay > 0)
+		{
+			SetActorHiddenInGame(true);
+			SetActorEnableCollision(false);
+			SetActorTickEnabled(false);
 
-		Sphere->SetHiddenInGame(true, true);
-		Sphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-		PrimaryActorTick.bCanEverTick = false;
+			GetWorld()->GetTimerManager().SetTimer(RespawnTimer, this, &ALootActor::Respawn, RespawnDelay, false);
+			isDead = true;
+		}
+		else
+			Destroy();
 	}
-	else
-		Destroy();
 }
 
 //set its variables back to what they should be to exist in the world
 void ALootActor::Respawn()
 {
-	m_ParticleComponent->SetActive(true);
-
-	Sphere->SetHiddenInGame(false, true);
-	Sphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-
-	PrimaryActorTick.bCanEverTick = true;
+	if (Role == ROLE_Authority)
+	{
+		SetActorHiddenInGame(false);
+		SetActorEnableCollision(true);
+		SetActorTickEnabled(true);
+		isDead = false;
+	}
 }
 
 void ALootActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -111,5 +107,7 @@ void ALootActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	DOREPLIFETIME(ALootActor, RespawnTimer);
 	DOREPLIFETIME(ALootActor, m_ParticleSystem);
 	DOREPLIFETIME(ALootActor, m_ParticleComponent);
+	DOREPLIFETIME(ALootActor, Sphere);
+	DOREPLIFETIME(ALootActor, isDead);
 
 }

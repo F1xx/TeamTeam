@@ -30,9 +30,8 @@ protected:
 		class UInventoryComponent* m_Inventory;
 
 public:
-
 	UFUNCTION()
-		class APlayerState* GetPlayerState();
+		class AMyPlayerState* GetPlayerState();
 
 	UFUNCTION(BlueprintCallable)
 		UInventoryComponent* GetInventoryComponent() { return m_Inventory; }

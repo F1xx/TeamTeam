@@ -8,6 +8,8 @@ ASlowTrapActor::ASlowTrapActor() : Super()
 {
 	TrapDebuff = EDebuffs::DE_Slow;
 	DebuffLength = 10.0f;
+
+	SetReplicates(true);
 }
 
 //applies the slow debuff (lowering max walk speed) of the character that stepped on it

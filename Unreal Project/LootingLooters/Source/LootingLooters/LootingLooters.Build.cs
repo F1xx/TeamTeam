@@ -8,7 +8,7 @@ public class LootingLooters : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "ApexDestruction", "UMG", "AIModule" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "ApexDestruction", "UMG", "AIModule", "GameFrwkSessionsPlugin" });
 
 
         PrivateDependencyModuleNames.AddRange(new string[] {  });

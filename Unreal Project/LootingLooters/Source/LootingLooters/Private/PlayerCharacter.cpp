@@ -11,9 +11,9 @@
 #include "Engine/World.h"
 #include "GrabbableStaticMeshActor.h"
 #include "Camera/PlayerCameraManager.h"
-#include "PlayerCharacterState.h"
 #include "InventoryComponent.h"
 #include "PlayerCharacterController.h"
+#include "MyPlayerState.h"
 
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
@@ -30,14 +30,14 @@ APlayerCharacter::APlayerCharacter() : Super()
 	Camera->bUsePawnControlRotation = true;
 	Camera->SetRelativeLocation(FVector(0.0f, 0.0f, BaseEyeHeight));
 
-	m_Inventory = CreateDefaultSubobject<UInventoryComponent>("Inventory");
-
 	//Make it so we can't see our own mesh but others can
 	GetMesh()->SetOwnerNoSee(true);
 
 	SetReplicates(true);
 	SetReplicateMovement(true);
 	Camera->SetIsReplicated(true);
+
+	m_Inventory = CreateDefaultSubobject<UInventoryComponent>("Inventory");
 
 	Tags.Add("Player");
 }
@@ -80,9 +80,9 @@ void APlayerCharacter::RotateHeldObjectX(float Value)
 	}
 }
 
-class APlayerState* APlayerCharacter::GetPlayerState()
+class AMyPlayerState* APlayerCharacter::GetPlayerState()
 {
-	return Cast<APlayerState>(PlayerState);
+	return Cast<AMyPlayerState>(Controller->PlayerState);
 }
 
 //if we die remove input and go ragdoll
@@ -108,36 +108,38 @@ void APlayerCharacter::Interact()
 {
 	Super::Interact();
 
-	//if after super we're still not interacting with anything check if we can grab some loot
-	if (!bIsInteracting)
-	{
-		FHitResult Hit(ForceInit);
+	GetPlayerState();
 
-		if (PerformRayCast(FName("GrabbableTrace"), Hit))
+// 	if (Role == ROLE_Authority)
+// 		{
+		//if after super we're still not interacting with anything check if we can grab some loot
+		if (!bIsInteracting)
 		{
-			//Making sure what we hit was Loot
-			if (Hit.GetActor()->ActorHasTag("Loot"))
+			FHitResult Hit(ForceInit);
+
+			if (PerformRayCast(FName("GrabbableTrace"), Hit))
 			{
-				m_Inventory->ServerCollectLoot(Hit.GetActor());
+				//Making sure what we hit was Loot
+				if (Hit.GetActor()->ActorHasTag("Loot"))
+				{
+					m_Inventory->ServerCollectLoot(Hit.GetActor());
+				}
 			}
 		}
-	}
+	//}
 }
 
 //place a trap. This is for the player and will place it where they're aiming
 void APlayerCharacter::PlaceTrap()
 {
 	//if we have traps
-	if (m_Inventory->GetTrapCount() > 0)
+	if (GetPlayerState()->TrapCount > 0)
 	{
 		FHitResult Hit(ForceInit);
 
 		if (PerformRayCast(FName("GrabbableTrace"), Hit))
 		{
-			if (Role == ROLE_Authority)
-			{
-				m_Inventory->PlaceTrap(Hit.ImpactPoint);
-			}
+			m_Inventory->PlaceTrap(Hit.ImpactPoint);
 		}
 	}
 }

@@ -5,29 +5,24 @@
 #include "BaseTrapActor.h"
 #include "StopTrapActor.h"
 #include "SlowTrapActor.h"
-#include "PlayerCharacterState.h"
 
 #include "Net/UnrealNetwork.h"
 #include "PlayerCharacter.h"
+#include "MyPlayerState.h"
 
 // Sets default values for this component's properties
 UInventoryComponent::UInventoryComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+}
 
-	//Set the default inventory slot to be empty
-	//Extra traps are added through this component in the blueprint
-	Traps.Add(nullptr);
+// Called when the game starts
+void UInventoryComponent::BeginPlay()
+{
+	Super::BeginPlay();
 
 	//set all slots to empty
-	Inventory.Init(Traps[0], MaxInventorySlots);
-
-	Slot1 = 0;
-	Slot2 = 0;
-	Slot3 = 0;
-	Slot4 = 0;
-	Slot5 = 0;
-	Slot6 = 0;
+	Inventory.Init(nullptr, MaxInventorySlots);
 
 	Slots[0] = &Slot1;
 	Slots[1] = &Slot2;
@@ -35,12 +30,6 @@ UInventoryComponent::UInventoryComponent()
 	Slots[3] = &Slot4;
 	Slots[4] = &Slot5;
 	Slots[5] = &Slot6;
-}
-
-// Called when the game starts
-void UInventoryComponent::BeginPlay()
-{
-	Super::BeginPlay();
 }
 
 
@@ -59,7 +48,7 @@ bool UInventoryComponent::DidFindTrap(class ALootActor* loot)
 //checks if there are any inventory slots without a trap already in them
 bool UInventoryComponent::HasOpenSlot()
 {
-	if (TrapCount < MaxInventorySlots)
+	if (GetOwningPlayer()->GetPlayerState()->TrapCount < MaxInventorySlots)
 		return true;
 
 	return false;
@@ -68,16 +57,19 @@ bool UInventoryComponent::HasOpenSlot()
 //finds an open slot and adds a random type of trap into it
 void UInventoryComponent::AddRandomTrap()
 {
-	for (int i = 0; i < MaxInventorySlots; i++)
+	if (GetOwner()->Role == ROLE_Authority)
 	{
-		if (Inventory[i] == Traps[0]) //ie if the slot is empty
+		for (int i = 0; i < MaxInventorySlots; i++)
 		{
-			int traptype = FMath::RandRange(1, Traps.Num() - 1); //grab a random trap type starting in the second trap slot (the first is empty)
+			if (Inventory[i] == Traps[0]) //ie if the slot is empty
+			{
+				int traptype = FMath::RandRange(1, Traps.Num() - 1); //grab a random trap type starting in the second trap slot (the first is empty)
 
-			TrapCount++;
-			Inventory[i] = Traps[traptype];
-			*Slots[i] = (unsigned char)traptype;
-			break; //exit the for loop
+				GetOwningPlayer()->GetPlayerState()->TrapCount++;
+				Inventory[i] = Traps[traptype];
+				*Slots[i] = (uint8)traptype;
+				break; //exit the for loop
+			}
 		}
 	}
 }
@@ -86,24 +78,11 @@ void UInventoryComponent::AddRandomTrap()
 void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	//Makeshift HUD only show for the player themselves
-	if (GetOwner()->Role == ROLE_AutonomousProxy)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Inventory Slot: " + FString::FromInt(SelectedInventorySlot + 1)));
-
-		if (Inventory[SelectedInventorySlot])
-		{
-			FString name = Inventory[SelectedInventorySlot]->GetName();
-			GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Equipped in slot: " + name));
-		}
-		GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Trap Count: " + FString::FromInt(TrapCount)));
-	}
 }
 
 void UInventoryComponent::ServerCollectLoot_Implementation(AActor* lootedObject)
 {
-	if (ROLE_Authority)
+	if (GetOwner()->Role == ROLE_Authority)
 	{
 		CollectLoot(lootedObject);
 	}
@@ -120,18 +99,16 @@ void UInventoryComponent::CollectLoot(AActor* lootedObject)
 	ALootActor* loot = Cast<ALootActor>(lootedObject);
 	if (loot)
 	{
-		if (DidFindTrap(loot) && HasOpenSlot())
+		if (!loot->isDead)
 		{
-			AddRandomTrap();
-		}
-		//return a score for the loot
+			if (DidFindTrap(loot) && HasOpenSlot())
+			{
+				AddRandomTrap();
+			}
 
-		loot->Die();
+			loot->MulticastDie();
 
-		APlayerCharacter* player = Cast< APlayerCharacter>(GetOwner());
-		if (player)
-		{
-			player->GetPlayerState()->Score += FMath::RandRange(20, 60);
+			GetOwningPlayer()->GetPlayerState()->AddScore(FMath::RandRange(20, 60));
 		}
 	}
 }
@@ -139,23 +116,49 @@ void UInventoryComponent::CollectLoot(AActor* lootedObject)
 //Cycles through the inventory forward
 void UInventoryComponent::NextInventoryItem()
 {
-	SelectedInventorySlot++;
-
-	if (SelectedInventorySlot >= MaxInventorySlots)
-	{
-		SelectedInventorySlot = 0;
-	}
+	ServerNextInventoryItem();
 }
 
 //Cycles through the inventory backward
 void UInventoryComponent::PrevInventoryItem()
 {
-	SelectedInventorySlot--;
+	ServerPrevInventoryItem();
+}
 
-	if (SelectedInventorySlot <= 0)
+void UInventoryComponent::ServerPrevInventoryItem_Implementation()
+{
+	if (GetOwnerRole() == ROLE_Authority)
 	{
-		SelectedInventorySlot = MaxInventorySlots - 1;
+		GetOwningPlayer()->GetPlayerState()->SelectedInventorySlot--;
+
+		if (GetOwningPlayer()->GetPlayerState()->SelectedInventorySlot <= 0)
+		{
+			GetOwningPlayer()->GetPlayerState()->SelectedInventorySlot = MaxInventorySlots - 1;
+		}
 	}
+}
+
+bool UInventoryComponent::ServerPrevInventoryItem_Validate()
+{
+	return true;
+}
+
+void UInventoryComponent::ServerNextInventoryItem_Implementation()
+{
+	if (GetOwnerRole() == ROLE_Authority)
+	{
+		GetOwningPlayer()->GetPlayerState()->SelectedInventorySlot++;
+
+		if (GetOwningPlayer()->GetPlayerState()->SelectedInventorySlot >= MaxInventorySlots)
+		{
+			GetOwningPlayer()->GetPlayerState()->SelectedInventorySlot = 0;
+		}
+	}
+}
+
+bool UInventoryComponent::ServerNextInventoryItem_Validate()
+{
+	return true;
 }
 
 void UInventoryComponent::ServerPlaceTrap_Implementation(FVector location)
@@ -174,9 +177,8 @@ bool UInventoryComponent::ServerPlaceTrap_Validate(FVector location)
 
 void UInventoryComponent::NetMulticastPlaceTrap_Implementation(FVector location)
 {
-	if (GetOwner()->Role < ROLE_Authority)
+	if (GetOwner()->Role == ROLE_Authority)
 	{
-		//CALL SpawnProjectile()
 		SpawnTrap(location);
 	}
 }
@@ -189,21 +191,24 @@ void UInventoryComponent::PlaceTrap(FVector location)
 
 void UInventoryComponent::SpawnTrap(FVector location)
 {
-	//if we actually have a trap selected
-	if (Inventory[SelectedInventorySlot] != Traps[0] && TrapCount > 0)
+	if (GetOwner()->Role == ROLE_Authority)
 	{
-		//Spawn the trap in-world
-		FRotator Rotation(0.0f, 0.0f, 0.0f);
-		FActorSpawnParameters SpawnInfo;
-		SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		//if we actually have a trap selected
+		if (Inventory[GetOwningPlayer()->GetPlayerState()->SelectedInventorySlot] != Traps[0] && GetOwningPlayer()->GetPlayerState()->TrapCount > 0)
+		{
+			//Spawn the trap in-world
+			FRotator Rotation(0.0f, 0.0f, 0.0f);
+			FActorSpawnParameters SpawnInfo;
+			SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-		AActor* trap = GetWorld()->SpawnActor(Inventory[SelectedInventorySlot], &location, &Rotation, SpawnInfo);
+			AActor* trap = GetWorld()->SpawnActor(Inventory[GetOwningPlayer()->GetPlayerState()->SelectedInventorySlot], &location, &Rotation, SpawnInfo);
 
-		trap->SetOwner(GetOwner());
+			trap->SetOwner(GetOwner());
 
-		Inventory[SelectedInventorySlot] = Traps[0]; //set it back to empty
-		*Slots[SelectedInventorySlot] = 0;
-		TrapCount--;
+			Inventory[GetOwningPlayer()->GetPlayerState()->SelectedInventorySlot] = Traps[0]; //set it back to empty
+			*Slots[GetOwningPlayer()->GetPlayerState()->SelectedInventorySlot] = 0;
+			GetOwningPlayer()->GetPlayerState()->TrapCount--;
+		}
 	}
 }
 
@@ -212,6 +217,11 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UInventoryComponent, Inventory);
-	DOREPLIFETIME(UInventoryComponent, TrapCount);
-	DOREPLIFETIME(UInventoryComponent, SelectedInventorySlot);
+	DOREPLIFETIME(UInventoryComponent, Slot1);
+	DOREPLIFETIME(UInventoryComponent, Slot2);
+	DOREPLIFETIME(UInventoryComponent, Slot3);
+	DOREPLIFETIME(UInventoryComponent, Slot4);
+	DOREPLIFETIME(UInventoryComponent, Slot5);
+	DOREPLIFETIME(UInventoryComponent, Slot6);
+	DOREPLIFETIME(UInventoryComponent, MaxInventorySlots);
 }

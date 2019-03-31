@@ -17,7 +17,7 @@ enum  EDebuffs
 /**
  * 
  */
-UCLASS()
+UCLASS(BlueprintType)
 class LOOTINGLOOTERS_API ABaseTrapActor : public AStaticMeshActor
 {
 	GENERATED_BODY()

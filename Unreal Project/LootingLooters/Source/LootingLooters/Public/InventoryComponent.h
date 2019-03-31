@@ -4,9 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "PlayerCharacter.h"
 #include "InventoryComponent.generated.h"
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), BlueprintType)
 class LOOTINGLOOTERS_API UInventoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -15,24 +16,17 @@ public:
 	// Sets default values for this component's properties
 	UInventoryComponent();
 
-	//functions
+	class APlayerCharacter* GetOwningPlayer() { return Cast<APlayerCharacter>(GetOwner()); }
 protected:
-	// Called when the game starts
+
 	virtual void BeginPlay() override;
 	bool DidFindTrap(class ALootActor* loot);
 	bool HasOpenSlot();
 	void AddRandomTrap();
+public:
 
-	//variables
-protected:
-	UPROPERTY(Replicated)
-		int TrapCount = 0;
-
-	UPROPERTY(Replicated)
-		int SelectedInventorySlot = 0;
-
-	UPROPERTY(VisibleAnywhere, Category = "Inventory")
-		/*const*/ int MaxInventorySlots = 6;
+	UPROPERTY(VisibleAnywhere, Category = "Inventory", Replicated)
+		/*const*/ uint8 MaxInventorySlots = 6;
 
 	//Holds a list of all trap types
 	//The first element is the base class and counts as empty
@@ -44,27 +38,26 @@ protected:
 	UPROPERTY(VisibleAnywhere, Replicated)
 		TArray<TSubclassOf<class ABaseTrapActor>> Inventory;
 
-	UPROPERTY(VisibleAnywhere)
-		unsigned char Slot1;
+	UPROPERTY(VisibleAnywhere, Replicated)
+		uint8 Slot1;
 
-	UPROPERTY(VisibleAnywhere)
-		unsigned char Slot2;
+	UPROPERTY(VisibleAnywhere, Replicated)
+		uint8 Slot2;
 
-	UPROPERTY(VisibleAnywhere)
-		unsigned char Slot3;
+	UPROPERTY(VisibleAnywhere, Replicated)
+		uint8 Slot3;
 
-	UPROPERTY(VisibleAnywhere)
-		unsigned char Slot4;
+	UPROPERTY(VisibleAnywhere, Replicated)
+		uint8 Slot4;
 
-	UPROPERTY(VisibleAnywhere)
-		unsigned char Slot5;
+	UPROPERTY(VisibleAnywhere, Replicated)
+		uint8 Slot5;
 
-	UPROPERTY(VisibleAnywhere)
-		unsigned char Slot6;
+	UPROPERTY(VisibleAnywhere, Replicated)
+		uint8 Slot6;
 
-	unsigned char* Slots[6];
+	uint8* Slots[6];
 
-public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -72,15 +65,20 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerCollectLoot(AActor* lootedObject);
 
-	void CollectLoot(AActor* lootedObject);
-
 	void NextInventoryItem();
 	void PrevInventoryItem();
 
-	short GetTrapCount() { return TrapCount; }
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerNextInventoryItem();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerPrevInventoryItem();
 
 	UFUNCTION(BlueprintCallable)
-		TArray<TSubclassOf<class ABaseTrapActor>> GetInventory() { return Inventory; }
+		uint8 GetMaxInventorySlots() { return MaxInventorySlots; }
+
+	UFUNCTION(BlueprintCallable)
+		TArray<TSubclassOf<class ABaseTrapActor>> GetInventoryArray() { return Inventory; }
 
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerPlaceTrap(FVector location);
@@ -88,7 +86,22 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 		void NetMulticastPlaceTrap(FVector location);
 
-		void PlaceTrap(FVector location);
-		void SpawnTrap(FVector location);
-	
+	void CollectLoot(AActor* lootedObject);
+	void PlaceTrap(FVector location);
+	void SpawnTrap(FVector location);
+
+public:
+	//Slots...
+	UFUNCTION(BlueprintCallable)
+		uint8 GetSlot1() { return Slot1; }
+	UFUNCTION(BlueprintCallable)
+		uint8 GetSlot2() { return Slot2; }
+	UFUNCTION(BlueprintCallable)
+		uint8 GetSlot3() { return Slot3; }
+	UFUNCTION(BlueprintCallable)
+		uint8 GetSlot4() { return Slot4; }
+	UFUNCTION(BlueprintCallable)
+		uint8 GetSlot5() { return Slot5; }
+	UFUNCTION(BlueprintCallable)
+		uint8 GetSlot6() { return Slot6; }
 };

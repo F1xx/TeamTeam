@@ -16,6 +16,8 @@ ABaseTrapActor::ABaseTrapActor() : Super()
 	GetStaticMeshComponent()->OnComponentBeginOverlap.AddDynamic(this, &ABaseTrapActor::HandleOverlap);
 
 	TrapDebuff = EDebuffs::DE_Nothing;
+
+	SetReplicates(true);
 	Tags.Add("Trap");
 }
 
