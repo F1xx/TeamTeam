@@ -1,0 +1,1 @@
+When server picks up an item it becomes invisible to client
