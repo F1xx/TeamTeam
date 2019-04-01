@@ -50,9 +50,9 @@ void AGrabbableStaticMeshActor::PostInitializeComponents()
 	DestructibleMesh = GetDestructibleComponent();
 
 	//By default the static mesh will physically block everything.
-	DestructibleMesh->SetSimulatePhysics(true);
 	DestructibleMesh->SetCollisionProfileName(FName("GrabbableTrace"));
 	DestructibleMesh ->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	DestructibleMesh->SetSimulatePhysics(true);
 
 	DestructibleMesh->SetNotifyRigidBodyCollision(true);
 
@@ -68,19 +68,22 @@ void AGrabbableStaticMeshActor::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	if (m_Character)
+	if (HasAuthority())
 	{
-		//Set the interaction point to be in front of the camera
-		FVector campos;
-		FRotator camrot;
+		if (m_Character)
+		{
+			//Set the interaction point to be in front of the camera
+			FVector campos;
+			FRotator camrot;
 
-		AController* control = m_Character->GetController();
-		if (control)
-			control->GetPlayerViewPoint(campos, camrot); //Fills with info from the camera
+			AController* control = m_Character->GetController();
+			if (control)
+				control->GetPlayerViewPoint(campos, camrot); //Fills with info from the camera
 
-		FVector end = campos + (camrot.Vector() * m_Distance);
+			FVector end = campos + (camrot.Vector() * m_Distance);
 
-		SetActorLocationAndRotation(end, m_Rotation);
+			SetActorLocationAndRotation(end, m_Rotation);
+		}
 	}
 }
 
@@ -95,8 +98,8 @@ void AGrabbableStaticMeshActor::Pickup(ABaseCharacter* acharacter)
 	if (Role == ROLE_Authority)
 	{
 		DestructibleMesh->SetSimulatePhysics(false);
-		SetActorEnableCollision(false);
 		DestructibleMesh->SetEnableGravity(false);
+		SetActorEnableCollision(false);
 	}
 }
 
@@ -107,9 +110,9 @@ void AGrabbableStaticMeshActor::Drop()
 
 	if (Role == ROLE_Authority)
 	{
-		DestructibleMesh->SetSimulatePhysics(true);
 		SetActorEnableCollision(true);
 		DestructibleMesh->SetEnableGravity(true);
+		DestructibleMesh->SetSimulatePhysics(true);
 	}
 }
 
@@ -119,9 +122,9 @@ void AGrabbableStaticMeshActor::Throw()
 {
 	if (Role == ROLE_Authority)
 	{
-		DestructibleMesh->SetSimulatePhysics(true);
 		SetActorEnableCollision(true);
 		DestructibleMesh->SetEnableGravity(true);
+		DestructibleMesh->SetSimulatePhysics(true);
 		bWasThrown = true;
 
 		if (m_Character)

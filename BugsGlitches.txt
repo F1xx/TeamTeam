@@ -1,1 +1,1 @@
-When server picks up an item it becomes invisible to client
+Grabbables move super slow on client because they're on the server
