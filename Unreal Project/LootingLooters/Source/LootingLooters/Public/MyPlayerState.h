@@ -26,5 +26,11 @@ public:
 		uint8 TrapCount = 0;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = Inventory)
-		uint8 SelectedInventorySlot = 0;	
+		uint8 SelectedInventorySlot = 0;
+
+	UFUNCTION(BlueprintCallable)
+		int GetSlot(int index);
+
+	UPROPERTY(Replicated)
+		uint8 Slots[6];
 };

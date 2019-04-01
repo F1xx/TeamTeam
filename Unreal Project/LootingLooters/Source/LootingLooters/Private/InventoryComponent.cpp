@@ -23,13 +23,6 @@ void UInventoryComponent::BeginPlay()
 
 	//set all slots to empty
 	Inventory.Init(nullptr, MaxInventorySlots);
-
-	Slots[0] = &Slot1;
-	Slots[1] = &Slot2;
-	Slots[2] = &Slot3;
-	Slots[3] = &Slot4;
-	Slots[4] = &Slot5;
-	Slots[5] = &Slot6;
 }
 
 
@@ -67,7 +60,7 @@ void UInventoryComponent::AddRandomTrap()
 
 				GetOwningPlayer()->GetPlayerState()->TrapCount++;
 				Inventory[i] = Traps[traptype];
-				*Slots[i] = (uint8)traptype;
+				GetOwningPlayer()->GetPlayerState()->Slots[i] = (uint8)traptype;
 				break; //exit the for loop
 			}
 		}
@@ -206,7 +199,7 @@ void UInventoryComponent::SpawnTrap(FVector location)
 			trap->SetOwner(GetOwner());
 
 			Inventory[GetOwningPlayer()->GetPlayerState()->SelectedInventorySlot] = Traps[0]; //set it back to empty
-			*Slots[GetOwningPlayer()->GetPlayerState()->SelectedInventorySlot] = 0;
+			GetOwningPlayer()->GetPlayerState()->Slots[GetOwningPlayer()->GetPlayerState()->SelectedInventorySlot] = 0;
 			GetOwningPlayer()->GetPlayerState()->TrapCount--;
 		}
 	}
@@ -217,11 +210,5 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UInventoryComponent, Inventory);
-	DOREPLIFETIME(UInventoryComponent, Slot1);
-	DOREPLIFETIME(UInventoryComponent, Slot2);
-	DOREPLIFETIME(UInventoryComponent, Slot3);
-	DOREPLIFETIME(UInventoryComponent, Slot4);
-	DOREPLIFETIME(UInventoryComponent, Slot5);
-	DOREPLIFETIME(UInventoryComponent, Slot6);
 	DOREPLIFETIME(UInventoryComponent, MaxInventorySlots);
 }

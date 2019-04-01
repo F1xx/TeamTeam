@@ -95,6 +95,7 @@ void APlayerCharacter::Die()
 	if (cont)
 	{
 		cont->DisableInput(cont);
+		GetCapsuleComponent()->SetHiddenInGame(true);
 		GEngine->AddOnScreenDebugMessage(-1, 50.0f, FColor::Red, "YOU WERE KILLED BY THE GUARD");
 	}
 }
