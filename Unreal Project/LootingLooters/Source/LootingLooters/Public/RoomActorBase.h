@@ -31,8 +31,14 @@ public:
 		void GenerateRandomLoot(unsigned int loot_count);
 
 	//Iterate through all doors without connections and attempt to connect them to other doors without connections.
-	UFUNCTION()
-		void GenerateDoorConnections();
+	UFUNCTION(Server, Reliable, WithValidation)
+		void Server_GenerateDoorConnections();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void Server_SpawnDoor(FVector SpawnLocation, FRotator SpawnRotation);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void Server_SpawnAsset(const TArray<FString> &TypeNameArray, FVector SpawnLocation, FRotator SpawnRotation);
 
 	//Getter for door Tarray
 	void GetDoorArray(TArray<class ADoorActor*> &Output);
@@ -60,11 +66,11 @@ protected:
 		AStaticMeshActor* RoomMesh;
 
 	//All Static Assets spawned by the room
-	UPROPERTY(VisibleInstanceOnly, Category = "Assets")
+	UPROPERTY(Replicated, VisibleInstanceOnly, Category = "Assets")
 		TArray<class AAssetTemplate*> StaticRoomAssets;
 
 	//All Grabbable Assets spawned by the room
-	UPROPERTY(VisibleInstanceOnly, Category = "Assets")
+	UPROPERTY(Replicated, VisibleInstanceOnly, Category = "Assets")
 		TArray<class AGrabbableStaticMeshActor*> GrabbableRoomAssets;
 
 };

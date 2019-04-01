@@ -73,7 +73,11 @@ void AGrabbableStaticMeshActor::Tick(float DeltaSeconds)
 		//Set the interaction point to be in front of the camera
 		FVector campos;
 		FRotator camrot;
-		m_Character->GetController()->GetPlayerViewPoint(campos, camrot); //Fills with info from the camera
+
+		AController* control = m_Character->GetController();
+		if (control)
+			control->GetPlayerViewPoint(campos, camrot); //Fills with info from the camera
+
 		FVector end = campos + (camrot.Vector() * m_Distance);
 
 		SetActorLocationAndRotation(end, m_Rotation);

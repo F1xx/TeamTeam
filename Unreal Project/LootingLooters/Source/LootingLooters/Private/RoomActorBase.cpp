@@ -13,14 +13,14 @@
 
 ARoomActorBase::ARoomActorBase()
 {
+	SetReplicates(true);
+
 	RoomOverlap = CreateDefaultSubobject<UBoxComponent>("OverlapBox");
 	RoomOverlap->SetCollisionResponseToAllChannels(ECR_Ignore);
 	RoomOverlap->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	RoomOverlap->SetMobility(EComponentMobility::Static);
 	RoomOverlap->SetupAttachment(RootComponent);
 	RootComponent = RoomOverlap;
-
-	SetReplicates(true);
 }
 
 void ARoomActorBase::SetRoomMesh(AStaticMeshActor* Mesh)
@@ -38,88 +38,52 @@ void ARoomActorBase::SetRoomMesh(AStaticMeshActor* Mesh)
 
 void ARoomActorBase::PopulateEmptySockets()
 {
-	//Get all static meshes
-	TArray<UStaticMeshComponent*> Meshes;
-	RoomMesh->GetComponents<UStaticMeshComponent>(Meshes);
 
-	//get our game mode
-	ALootingLootersGameModeBase* GameMode = Cast<ALootingLootersGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
-
-	//safety check in case a room mesh wasn't actually added for some reason
-	if (Meshes.Num() > 1)
+	if (HasAuthority())
 	{
-		//iterate through all meshes that make up the room and check their sockets for spawning objects.
-		for (int i = 0; i < Meshes.Num(); i++)
+		//Get all static meshes
+		TArray<UStaticMeshComponent*> Meshes;
+		RoomMesh->GetComponents<UStaticMeshComponent>(Meshes);
+
+		//safety check in case a room mesh wasn't actually added for some reason
+		if (Meshes.Num() > 1)
 		{
-			//Get all socket names
-			TArray<FName> Socket_Names = Meshes[i]->GetAllSocketNames();
-
-			//Check each socket name and fill it appropriately
-			for (int a = 0; a < Socket_Names.Num(); a++)
+			//iterate through all meshes that make up the room and check their sockets for spawning objects.
+			for (int i = 0; i < Meshes.Num(); i++)
 			{
-				//string parsing
-				FString Raw_Socket_Name = Socket_Names[a].ToString();
-				TArray<FString> Type_Names;
-				Raw_Socket_Name.ParseIntoArray(Type_Names, TEXT("_"), true);
+				//Get all socket names
+				TArray<FName> Socket_Names = Meshes[i]->GetAllSocketNames();
 
-				//remove the last element (this is a socket naming number and isn't needed)
-				Type_Names.RemoveAt(Type_Names.Num() - 1, 1, true);
-
-				//Spawning parameters
-				FActorSpawnParameters SpawnParams;
-				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-				FVector SpawnLocation = Meshes[i]->GetSocketLocation(Socket_Names[a]);
-				FRotator SpawnRotation = Meshes[i]->GetSocketRotation(Socket_Names[a]);
-
-				//spawn a door if the socket is a door
-				if (Type_Names[0] == "Door")
+				//Check each socket name and fill it appropriately
+				for (int a = 0; a < Socket_Names.Num(); a++)
 				{
-					ADoorActor* door = GetWorld()->SpawnActor<ADoorActor>(GameMode->GetDoorBlueprint(), SpawnLocation, SpawnRotation, SpawnParams);
-					door->SetOwner(this);
-					GeneratedDoors.Add(door);
-				}
-				//otherwise spawn assets. We can get as specific as we want when spawning items.
-				//Type 1 - Location (floor, wall, ceiling)
-				//Type 2 - Size (small, medium, large etc)
-				//Type 3 - Asset type (object, light etc)
-				// etc etc.
-				else
-				{
-					//fetch a random mesh that fits our type specifiers
-					TSubclassOf<AActor> AssetMesh = GameMode->GetRandomAssetOfTypes(Type_Names);
+					//string parsing
+					FString Raw_Socket_Name = Socket_Names[a].ToString();
+					TArray<FString> Type_Names;
+					Raw_Socket_Name.ParseIntoArray(Type_Names, TEXT("_"), true);
 
-					if (AssetMesh != nullptr)
+					//remove the last element (this is a socket naming number and isn't needed)
+					Type_Names.RemoveAt(Type_Names.Num() - 1, 1, true);
+
+					//Spawning parameters
+					FVector SpawnLocation = Meshes[i]->GetSocketLocation(Socket_Names[a]);
+					FRotator SpawnRotation = Meshes[i]->GetSocketRotation(Socket_Names[a]);
+
+					//spawn a door if the socket is a door
+					if (Type_Names[0] == "Door")
 					{
-						//create the asset
-						AActor* Asset = GetWorld()->SpawnActor<AActor>(*AssetMesh, SpawnLocation, SpawnRotation, SpawnParams);
-
-						//check to see which array to push the asset into
-						if (Asset->ActorHasTag("Grabbable") == false)
-						{
-							AAssetTemplate* StaticMeshObject = Cast<AAssetTemplate>(Asset);
-
-							//add our static object and populate loot sockets
-							if (StaticMeshObject)
-							{
-								StaticMeshObject->PopulateLootSockets();
-								StaticRoomAssets.Add(StaticMeshObject);
-							}
-						}
-						else
-						{
-							AGrabbableStaticMeshActor* GrabbableMeshObject = Cast<AGrabbableStaticMeshActor>(Asset);
-
-							//add our grabbable mesh
-							if (GrabbableMeshObject)
-								GrabbableRoomAssets.Add(GrabbableMeshObject);
-						}
-
+						Server_SpawnDoor(SpawnLocation, SpawnRotation);
+					}
+					//otherwise spawn assets. We can get as specific as we want when spawning items.
+					else
+					{
+						Server_SpawnAsset(Type_Names, SpawnLocation, SpawnRotation);
 					}
 				}
 			}
+
 		}
 	}
-
 }
 
 void ARoomActorBase::GenerateRandomLoot(unsigned int loot_count)
@@ -135,73 +99,138 @@ RULES FOR DOOR CONNECTION LOGIC
 3. Unconnected doors simply will not move you. (It's possible we'll have loose ends)
 
 */
-void ARoomActorBase::GenerateDoorConnections()
+void ARoomActorBase::Server_GenerateDoorConnections_Implementation()
 {
-	if (Role == ROLE_Authority)
+	ALootingLootersGameModeBase* GameMode = Cast<ALootingLootersGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
+
+	if (GameMode)
 	{
-		ALootingLootersGameModeBase* GameMode = Cast<ALootingLootersGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
+		//our entire room list
+		TArray<ARoomActorBase*> TotalRooms;
+		GameMode->GetRoomArray(TotalRooms);
 
-		if (GameMode)
+		//Get all doors with connections (we need this to ignore rooms we've already connected with)
+		TArray<ADoorActor*> ConnectedDoors;
+		GetOrganizedDoors(ConnectedDoors, true);
+
+		//if the number of connnected doors is the same as the total doors, get out of here.
+		if (ConnectedDoors.Num() == GeneratedDoors.Num())
+			return;
+
+		//Our list of rooms filtered to only contain the ones still missing connections
+		TArray<ARoomActorBase*> UnconnectedRooms;
+		for (int i = 0; i < TotalRooms.Num(); i++)
 		{
-			//our entire room list
-			TArray<ARoomActorBase*> TotalRooms;
-			GameMode->GetRoomArray(TotalRooms);
-
-			//Get all doors with connections (we need this to ignore rooms we've already connected with)
-			TArray<ADoorActor*> ConnectedDoors;
-			GetOrganizedDoors(ConnectedDoors, true);
-
-			//if the number of connnected doors is the same as the total doors, get out of here.
-			if (ConnectedDoors.Num() == GeneratedDoors.Num())
-				return;
-
-			//Our list of rooms filtered to only contain the ones still missing connections
-			TArray<ARoomActorBase*> UnconnectedRooms;
-			for (int i = 0; i < TotalRooms.Num(); i++)
-			{
-				//ignore any rooms that we know about
-				for (int a = 0; a < ConnectedDoors.Num(); a++)
-					if (TotalRooms[i] == ConnectedDoors[a]->GetOwner())
-						continue;
-
-				//ignore our own room
-				if (TotalRooms[i] == this)
+			//ignore any rooms that we know about
+			for (int a = 0; a < ConnectedDoors.Num(); a++)
+				if (TotalRooms[i] == ConnectedDoors[a]->GetOwner())
 					continue;
 
-				//If the room has available connections add it 
-				if (TotalRooms[i]->GetNumberOfDoorsWithoutAConnection() > 0)
-					UnconnectedRooms.Add(TotalRooms[i]);
-			}
+			//ignore our own room
+			if (TotalRooms[i] == this)
+				continue;
 
-			//Get all unconnected doors that require a connection
-			TArray<ADoorActor*> UnconnectedDoors;
-			GetOrganizedDoors(UnconnectedDoors, false);
+			//If the room has available connections add it 
+			if (TotalRooms[i]->GetNumberOfDoorsWithoutAConnection() > 0)
+				UnconnectedRooms.Add(TotalRooms[i]);
+		}
 
-			//iterate through all unconnected doors and connect them all
-			for (int i = 0; i < UnconnectedDoors.Num(); i++)
-			{
-				if (UnconnectedRooms.Num() == 0)
-					break;
+		//Get all unconnected doors that require a connection
+		TArray<ADoorActor*> UnconnectedDoors;
+		GetOrganizedDoors(UnconnectedDoors, false);
 
-				//Choose a random number clamped to our list of rooms
-				int random = FMath::RandRange(0, UnconnectedRooms.Num() - 1);
+		//iterate through all unconnected doors and connect them all
+		for (int i = 0; i < UnconnectedDoors.Num(); i++)
+		{
+			if (UnconnectedRooms.Num() == 0)
+				break;
 
-				//get our lucky door
-				ARoomActorBase* ChosenRoom = UnconnectedRooms[random];
-				ADoorActor* OtherDoor = ChosenRoom->GetARandomUnconnectedDoor();
+			//Choose a random number clamped to our list of rooms
+			int random = FMath::RandRange(0, UnconnectedRooms.Num() - 1);
 
-				//connect them together
-				UnconnectedDoors[i]->ApplyConnection(OtherDoor);
-				OtherDoor->ApplyConnection(UnconnectedDoors[i]);
+			//get our lucky door
+			ARoomActorBase* ChosenRoom = UnconnectedRooms[random];
+			ADoorActor* OtherDoor = ChosenRoom->GetARandomUnconnectedDoor();
 
-				//remove it from the list now that a connection has been made
-				UnconnectedRooms.RemoveSingle(ChosenRoom);
-			}
+			//connect them together
+			UnconnectedDoors[i]->ApplyConnection(OtherDoor);
+			OtherDoor->ApplyConnection(UnconnectedDoors[i]);
+
+			//remove it from the list now that a connection has been made
+			UnconnectedRooms.RemoveSingle(ChosenRoom);
 		}
 	}
 }
 
+bool ARoomActorBase::Server_GenerateDoorConnections_Validate()
+{
+	return true;
+}
 
+void ARoomActorBase::Server_SpawnDoor_Implementation(FVector SpawnLocation, FRotator SpawnRotation)
+{
+	//get our game mode
+	ALootingLootersGameModeBase* GameMode = Cast<ALootingLootersGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
+
+	//Spawning parameters
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	ADoorActor* door = GetWorld()->SpawnActor<ADoorActor>(GameMode->GetDoorBlueprint(), SpawnLocation, SpawnRotation, SpawnParams);
+	door->SetOwner(this);
+	GeneratedDoors.Add(door);
+}
+
+bool ARoomActorBase::Server_SpawnDoor_Validate(FVector SpawnLocation, FRotator SpawnRotation)
+{
+	return true;
+}
+
+void ARoomActorBase::Server_SpawnAsset_Implementation(const TArray<FString>& TypeNameArray, FVector SpawnLocation, FRotator SpawnRotation)
+{
+	//get our game mode
+	ALootingLootersGameModeBase* GameMode = Cast<ALootingLootersGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
+
+	//fetch a random mesh that fits our type specifiers
+	TSubclassOf<AActor> AssetMesh = GameMode->GetRandomAssetOfTypes(TypeNameArray);
+
+	//Spawning parameters
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	if (AssetMesh != nullptr)
+	{
+		//create the asset
+		AActor* Asset = GetWorld()->SpawnActor<AActor>(*AssetMesh, SpawnLocation, SpawnRotation, SpawnParams);
+
+		//check to see which array to push the asset into
+		if (Asset->ActorHasTag("Grabbable") == false)
+		{
+			AAssetTemplate* StaticMeshObject = Cast<AAssetTemplate>(Asset);
+
+			//add our static object and populate loot sockets
+			if (StaticMeshObject)
+			{
+				StaticMeshObject->PopulateLootSockets();
+				StaticRoomAssets.Add(StaticMeshObject);
+			}
+		}
+		else
+		{
+			AGrabbableStaticMeshActor* GrabbableMeshObject = Cast<AGrabbableStaticMeshActor>(Asset);
+
+			//add our grabbable mesh
+			if (GrabbableMeshObject)
+				GrabbableRoomAssets.Add(GrabbableMeshObject);
+		}
+
+	}
+}
+
+bool ARoomActorBase::Server_SpawnAsset_Validate(const TArray<FString>& TypeNameArray, FVector SpawnLocation, FRotator SpawnRotation)
+{
+	return true;
+}
 
 void ARoomActorBase::GetDoorArray(TArray<ADoorActor*> &Output)
 {
@@ -248,4 +277,6 @@ void ARoomActorBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 	DOREPLIFETIME(ARoomActorBase, GeneratedDoors);
 	DOREPLIFETIME(ARoomActorBase, RoomMesh);
+	DOREPLIFETIME(ARoomActorBase, StaticRoomAssets);
+	DOREPLIFETIME(ARoomActorBase, GrabbableRoomAssets);
 }

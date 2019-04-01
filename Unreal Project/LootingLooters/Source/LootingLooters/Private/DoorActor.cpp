@@ -9,31 +9,18 @@
 #include "PlayerCharacter.h"
 #include "GameFramework/Controller.h"
 #include "ConstructorHelpers.h"
+#include "Net/UnrealNetwork.h"
 
 
 
 ADoorActor::ADoorActor()
 {
+	SetReplicates(true);
+
 	//By default the doors won't block anything. Feel free to adjust this if needed.
 	GetStaticMeshComponent()->SetCollisionProfileName(FName("OverlapAllDynamic"));
 	GetStaticMeshComponent()->SetSimulatePhysics(false);
 	GetStaticMeshComponent()->SetEnableGravity(false);
-
-	//Hardcoded. I think we only ever use 1 door. If not this will change.
-
-// 	FString FilePath;
-// #ifdef UE_BUILD_RELEASE
-// 	FilePath += "Blueprint'";
-// #endif
-// 	FString NameTag = "ProperDoor";
-// 	FilePath += "/Game/Assets/BuildingStructure/Door/";
-// 
-// 	FString DoorFile = FilePath + NameTag;
-// 
-// #ifdef UE_BUILD_RELEASE
-// 	DoorFile += "." + NameTag + "'";
-// #endif
-	//GetStaticMeshComponent()->SetStaticMesh(ConstructorHelpers::FObjectFinder<UStaticMesh>(*DoorFile).Object);
 
 	//Arrow for controlling the spawn facing
 	ArrowComponent = CreateDefaultSubobject<UArrowComponent>("Arrow");
@@ -44,13 +31,10 @@ ADoorActor::ADoorActor()
 	Sphere->SetSphereRadius(25.0f);
 	Sphere->SetSimulatePhysics(false);
 	Sphere->SetEnableGravity(false);
-	Sphere->SetCollisionProfileName("OverlapOnlyPawn"); //Note that this means it blocks everything that isn't a pawn
 	Sphere->SetupAttachment(RootComponent);
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &ADoorActor::TeleportPawnToOtherDoor);
 
 	Tags.Add("Door");
-
-	SetReplicates(true);
 }
 
 bool ADoorActor::IsConnected()
@@ -58,27 +42,24 @@ bool ADoorActor::IsConnected()
 	return Connector != nullptr;
 }
 
-void ADoorActor::ApplyConnection(ADoorActor* OtherDoor)
-{
-	check(Connector == nullptr);
-
-	Connector = OtherDoor;
-
-	//Make the door visible now that it's connected
-	GetStaticMeshComponent()->SetVisibility(true);
-	Sphere->SetHiddenInGame(false, true);
-	Sphere->SetCollisionProfileName("OverlapOnlyPawn");
-	PrimaryActorTick.bCanEverTick = true;
-}
-
 void ADoorActor::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
+}
 
-	//if the door lacks a connection it should be invisible and unheard of until it receives one.
-	if (IsConnected() == false)
+void ADoorActor::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	//Adjust visibility if connected or not.
+	if (IsConnected())
+	{	
+		GetStaticMeshComponent()->SetVisibility(true);
+		Sphere->SetHiddenInGame(false, true);
+		Sphere->SetCollisionProfileName("OverlapOnlyPawn");//Note that this means it blocks everything that isn't a pawn
+	}
+	else
 	{
-		//While not connected make the door invisible
 		GetStaticMeshComponent()->SetVisibility(false);
 		Sphere->SetHiddenInGame(true, true);
 		Sphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -86,14 +67,19 @@ void ADoorActor::PostInitializeComponents()
 	}
 }
 
+void ADoorActor::ApplyConnection(ADoorActor* OtherDoor)
+{
+	Connector = OtherDoor;
+	PrimaryActorTick.bCanEverTick = true;
+}
+
 void ADoorActor::TeleportPawnToOtherDoor(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
 	//If the other door isnt set then this collision function doesn't do anything.
-	if (Connector != nullptr)
+	if (IsConnected())
 	{
-
 		//Fetch the other doors location and arrow.
-		FVector NewLocation = Connector->GetActorLocation() + FVector(0.0f,0.0f,20.0f);
+		FVector NewLocation = Connector->GetActorLocation() + FVector(0.0f, 0.0f, 20.0f);
 		FRotator Direction = Connector->ArrowComponent->GetComponentQuat().Rotator();
 		Direction.Normalize();
 
@@ -108,7 +94,7 @@ void ADoorActor::TeleportPawnToOtherDoor(UPrimitiveComponent* OverlappedComponen
 
 			//Get the camera
 			AController* Controller = character->GetController();
-			
+
 			//If the camera exists, snap it to adjust.
 			if (Controller != nullptr)
 			{
@@ -119,4 +105,12 @@ void ADoorActor::TeleportPawnToOtherDoor(UPrimitiveComponent* OverlappedComponen
 			character->SetLastDoorAccessed(this);
 		}
 	}
+}
+
+
+void ADoorActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const 
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ADoorActor, Connector);
 }
