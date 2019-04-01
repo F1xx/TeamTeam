@@ -34,9 +34,11 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 		void Server_GenerateDoorConnections();
 
+	//Server call to spawn a door in the world and have this room own it.
 	UFUNCTION(Server, Reliable, WithValidation)
 		void Server_SpawnDoor(FVector SpawnLocation, FRotator SpawnRotation);
 
+	//Server call to spawn an asset in the world and have this room own it.
 	UFUNCTION(Server, Reliable, WithValidation)
 		void Server_SpawnAsset(const TArray<FString> &TypeNameArray, FVector SpawnLocation, FRotator SpawnRotation);
 

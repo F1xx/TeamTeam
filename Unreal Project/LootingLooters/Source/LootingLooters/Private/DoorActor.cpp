@@ -16,6 +16,7 @@
 ADoorActor::ADoorActor()
 {
 	SetReplicates(true);
+	PrimaryActorTick.bCanEverTick = true;
 
 	//By default the doors won't block anything. Feel free to adjust this if needed.
 	GetStaticMeshComponent()->SetCollisionProfileName(FName("OverlapAllDynamic"));

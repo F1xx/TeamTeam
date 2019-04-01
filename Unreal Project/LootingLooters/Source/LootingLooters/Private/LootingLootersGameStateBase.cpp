@@ -28,16 +28,20 @@ void ALootingLootersGameStateBase::BeginPlay()
 
 void ALootingLootersGameStateBase::Server_GenerateRandomRoomLayout_Implementation()
 {
+	
 	TArray<TSubclassOf<AStaticMeshActor>> Room_Assets;
-	Cast<ALootingLootersGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->GetRoomTemplateArray(Room_Assets);
-
-	check(Room_Assets.Num() > 0);
-
 	UWorld* world = GetWorld();
-	int room_root = FMath::Sqrt(Total_Rooms_To_Generate);
-
+	
 	if (world)
 	{
+		//Get our rooms from the game mode.
+		Cast<ALootingLootersGameModeBase>(UGameplayStatics::GetGameMode(world))->GetRoomTemplateArray(Room_Assets);
+		check(Room_Assets.Num() > 0);
+
+		//get the total amount of rooms to spawn and our grid size.
+		int Total_Rooms_To_Generate = Cast<ALootingLootersGameModeBase>(UGameplayStatics::GetGameMode(world))->Total_Rooms_To_Generate;
+		int room_root = FMath::Sqrt(Total_Rooms_To_Generate);
+
 		for (int i = 0; i < Total_Rooms_To_Generate; i++)
 		{
 			//pull a random room 

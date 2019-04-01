@@ -54,82 +54,7 @@ void ALootingLootersGameModeBase::StartPlay()
 		//controller->bEnableClickEvents = true;
 		//controller->bEnableMouseOverEvents = true;
 	}
-	//GenerateRandomRoomLayout();
-	//PopulateRoomSockets();
-	//GenerateRandomRoomConnections();
-	//GenerateLoot();
 }
-
-//void ALootingLootersGameModeBase::GenerateRandomRoomLayout_Implementation()
-//{
-//	check(Room_Assets.Num() > 0);
-//
-//	UWorld* world = GetWorld();
-//	int room_root = FMath::Sqrt(Total_Rooms_To_Generate);
-//
-//	if (world)
-//	{
-//		for (int i = 0; i < Total_Rooms_To_Generate; i++)
-//		{
-//			//pull a random room 
-//			int random_index = FMath::RandRange(0, Room_Assets.Num() - 1);
-//
-//			FActorSpawnParameters SpawnParams;
-//			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-//
-//			//Spacing so the rooms aren't on top of one another.
-//			FVector SpawnOffset = FVector(2000.0f * (i / room_root), 2000.0f * (i % room_root), -500.0f);
-//			FRotator SpawnRotation = FRotator(0.0f, 0.0f, 0.0f);
-//
-//			//Spawn the room and the Mesh for the room and attach them together.
-//			ARoomActorBase* AddedRoom = world->SpawnActor<ARoomActorBase>(ARoomActorBase::StaticClass(), SpawnOffset, SpawnRotation, SpawnParams);
-//			AStaticMeshActor* AddedRoomMesh = world->SpawnActor<AStaticMeshActor>(Room_Assets[random_index], SpawnOffset, SpawnRotation, SpawnParams);
-//			AddedRoom->SetRoomMesh(AddedRoomMesh);
-//			Rooms.Add(AddedRoom);
-//		}
-//	}
-//}
-//
-//bool ALootingLootersGameModeBase::GenerateRandomRoomLayout_Validate()
-//{
-//	return true;
-//}
-//
-//void ALootingLootersGameModeBase::GenerateRandomRoomConnections_Implementation()
-//{
-//	//iterate through all rooms and have them connect to each other
-//	for (int i = 0; i < Rooms.Num(); i++)
-//		Rooms[i]->GenerateDoorConnections();
-//}
-//
-//bool ALootingLootersGameModeBase::GenerateRandomRoomConnections_Validate()
-//{
-//	return true;
-//}
-//
-//void ALootingLootersGameModeBase::PopulateRoomSockets_Implementation()
-//{
-//	//iterate through all rooms and have them generate assets to fill them
-//	for (int i = 0; i < Rooms.Num(); i++)
-//		Rooms[i]->PopulateEmptySockets();
-//}
-//
-//bool ALootingLootersGameModeBase::PopulateRoomSockets_Validate()
-//{
-//	return true;
-//}
-//
-//void ALootingLootersGameModeBase::GenerateLoot_Implementation()
-//{
-//	//iterate through all rooms and have them generate loot on their assets
-//	for (int i = 0; i < Rooms.Num(); i++)
-//		Rooms[i]->GenerateRandomLoot(-1);
-//}
-//
-//bool ALootingLootersGameModeBase::GenerateLoot_Validate()
-//{
-//	return true;
-//}
 
 void ALootingLootersGameModeBase::GetRoomArray(TArray<ARoomActorBase*>& RoomArray)
 {
@@ -230,10 +155,3 @@ TSubclassOf <ALootActor> ALootingLootersGameModeBase::GetARandomLootAsset()
 	//return a random loot asset
 	return Loot_Assets[FMath::RandRange(0, Loot_Assets.Num() - 1)];
 }
-
-//void ALootingLootersGameModeBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-//{
-//	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-//
-//	DOREPLIFETIME(ALootingLootersGameModeBase, Rooms);
-//}
