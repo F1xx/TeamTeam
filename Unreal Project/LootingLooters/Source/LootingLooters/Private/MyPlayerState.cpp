@@ -36,4 +36,5 @@ void AMyPlayerState::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & Ou
 	DOREPLIFETIME(AMyPlayerState, TrapCount);
 	DOREPLIFETIME(AMyPlayerState, SelectedInventorySlot);
 	DOREPLIFETIME(AMyPlayerState, Slots);
+	DOREPLIFETIME(AMyPlayerState, Team);
 }

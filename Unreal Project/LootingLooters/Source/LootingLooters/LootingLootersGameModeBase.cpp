@@ -11,6 +11,7 @@
 #include "Engine/StaticMesh.h"
 #include "AssetTemplate.h"
 #include "LootingLootersGameStateBase.h"
+#include "PlayerCharacter.h"
 
 ALootingLootersGameModeBase::ALootingLootersGameModeBase() : Super()
  {
@@ -229,6 +230,22 @@ TSubclassOf <ALootActor> ALootingLootersGameModeBase::GetARandomLootAsset()
 
 	//return a random loot asset
 	return Loot_Assets[FMath::RandRange(0, Loot_Assets.Num() - 1)];
+}
+
+void ALootingLootersGameModeBase::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
+{
+	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
+	HandleNewPlayer(NewPlayer);
+}
+
+void ALootingLootersGameModeBase::HandleNewPlayer(APlayerController* NewPlayer)
+{
+	APlayerCharacter* character = Cast<APlayerCharacter>(NewPlayer->GetPawn());
+	if (character)
+	{
+		//GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Blue, "Character Logged In with team: " + FString::SanitizeFloat(character->Team));
+		character->AssignTeam();
+	}
 }
 
 //void ALootingLootersGameModeBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

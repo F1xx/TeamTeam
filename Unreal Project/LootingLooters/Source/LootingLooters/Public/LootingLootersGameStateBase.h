@@ -33,6 +33,30 @@ public:
 
 	//Copies the room list.
 	void GetRoomArray(TArray<class ARoomActorBase*>& RoomArray);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Materials, Replicated)
+		class UMaterialInterface* TeamOneMaterials;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Materials, Replicated)
+		class UMaterialInterface* TeamTwoMaterials;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Materials, Replicated)
+		class UMaterialInterface* TeamThreeMaterials;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Materials, Replicated)
+		class UMaterialInterface* TeamFourMaterials;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Gameplay, Replicated)
+		bool PlayerOneLoggedIn;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Gameplay, Replicated)
+		bool PlayerTwoLoggedIn;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Gameplay, Replicated)
+		bool PlayerThreeLoggedIn;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Gameplay, Replicated)
+		bool PlayerFourLoggedIn;
 	
 protected:
 
