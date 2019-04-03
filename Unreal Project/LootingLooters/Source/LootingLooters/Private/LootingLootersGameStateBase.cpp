@@ -110,10 +110,12 @@ void ALootingLootersGameStateBase::GetLifetimeReplicatedProps(TArray<FLifetimePr
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ALootingLootersGameStateBase, Rooms);
+
 	DOREPLIFETIME(ALootingLootersGameStateBase, TeamOneMaterials);
 	DOREPLIFETIME(ALootingLootersGameStateBase, TeamTwoMaterials);
 	DOREPLIFETIME(ALootingLootersGameStateBase, TeamThreeMaterials);
 	DOREPLIFETIME(ALootingLootersGameStateBase, TeamFourMaterials);
+
 	DOREPLIFETIME(ALootingLootersGameStateBase, PlayerOneLoggedIn);
 	DOREPLIFETIME(ALootingLootersGameStateBase, PlayerTwoLoggedIn);
 	DOREPLIFETIME(ALootingLootersGameStateBase, PlayerThreeLoggedIn);

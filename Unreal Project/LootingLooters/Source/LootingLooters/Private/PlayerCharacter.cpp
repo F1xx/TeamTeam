@@ -119,6 +119,7 @@ void APlayerCharacter::Multicast_AssignColor_Implementation()
 		{
 			DefaultMaterial = GetGameState()->TeamFourMaterials;
 		}
+
 		SetColor();
 	}
 }
@@ -126,6 +127,9 @@ void APlayerCharacter::Multicast_AssignColor_Implementation()
 void APlayerCharacter::SetColor()
 {
 	GetMesh()->SetMaterial(0, DefaultMaterial);
+	GetMesh()->SetMaterial(1, DefaultMaterial);
+
+	GetPlayerState()->Team = Team;
 }
 
 void APlayerCharacter::PostBeginPlay()
