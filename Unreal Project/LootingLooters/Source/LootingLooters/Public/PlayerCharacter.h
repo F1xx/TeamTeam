@@ -33,6 +33,9 @@ public:
 	UFUNCTION()
 		class AMyPlayerState* GetPlayerState();
 
+	UFUNCTION()
+		class ALootingLootersGameStateBase* GetGameState();
+
 	UFUNCTION(BlueprintCallable)
 		UInventoryComponent* GetInventoryComponent() { return m_Inventory; }
 
@@ -52,6 +55,26 @@ public:
 	virtual void RotateHeldObjectX(float Value) override;
 	virtual void RotateHeldObjectY(float Value) override;
 
+	void AssignTeam();
+
+	UFUNCTION(NetMulticast, Reliable)
+		void Multicast_AssignColor();
+
+	UFUNCTION(BlueprintCallable)
+		void SetColor();
+
+	UFUNCTION(BlueprintCallable)
+		void PostBeginPlay();
+
+	UPROPERTY(Replicated)
+		FTimerHandle PostBeginPlayDelay;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Materials, Replicated)
+		class UMaterialInterface* DefaultMaterial;
+
 	UFUNCTION(BlueprintCallable, Category = "Camera")
 		FORCEINLINE class UCameraComponent* GetFollowCamera() const { return Camera; }
+
+	UPROPERTY(Replicated)
+		uint8 Team;
 };

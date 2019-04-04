@@ -18,6 +18,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "LootingLootersGameStateBase.h"
 
 APlayerCharacter::APlayerCharacter() : Super()
 {
@@ -48,6 +49,8 @@ void APlayerCharacter::BeginPlay()
 
 	class APlayerCharacterController* controller = Cast<APlayerCharacterController>(GetController());
 
+	GetWorld()->GetTimerManager().SetTimer(PostBeginPlayDelay, this, &APlayerCharacter::PostBeginPlay, 1.0f, false);
+
 	//UGameplayStatics::GetPlayerCameraManager(this, 0)->bEnableFading = true;
 }
 
@@ -68,6 +71,69 @@ void APlayerCharacter::RotateHeldObjectY(float Value)
 	}
 }
 
+void APlayerCharacter::AssignTeam()
+{
+	if (!GetGameState())
+		return;
+
+	//IF TeamOneCOunt is EQUAL to TeamTwoCount
+	if (!GetGameState()->PlayerOneLoggedIn)
+	{
+		Team = 0;
+		GetGameState()->PlayerOneLoggedIn = true;
+	}
+	else if (!GetGameState()->PlayerTwoLoggedIn)
+	{
+		Team = 1;
+		GetGameState()->PlayerTwoLoggedIn = true;
+	}
+	else if (!GetGameState()->PlayerOneLoggedIn)
+	{
+		Team = 2;
+		GetGameState()->PlayerThreeLoggedIn = true;
+	}
+	else if (!GetGameState()->PlayerTwoLoggedIn)
+	{
+		Team = 3;
+		GetGameState()->PlayerFourLoggedIn = true;
+	}
+}
+
+void APlayerCharacter::Multicast_AssignColor_Implementation()
+{
+	if (GetGameState())
+	{
+		if (Team == 0)
+		{
+			DefaultMaterial = GetGameState()->TeamOneMaterials;
+		}
+		else if (Team == 1)
+		{
+			DefaultMaterial = GetGameState()->TeamTwoMaterials;
+		}
+		else if (Team == 2)
+		{
+			DefaultMaterial = GetGameState()->TeamThreeMaterials;
+		}
+		else if (Team == 3)
+		{
+			DefaultMaterial = GetGameState()->TeamFourMaterials;
+		}
+		SetColor();
+	}
+}
+
+void APlayerCharacter::SetColor()
+{
+	GetMesh()->SetMaterial(0, DefaultMaterial);
+}
+
+void APlayerCharacter::PostBeginPlay()
+{
+	if (Role == ROLE_Authority)
+		Multicast_AssignColor();
+}
+
 //A control to rotate whatever object we're interacting with via the Xaxis
 void APlayerCharacter::RotateHeldObjectX(float Value)
 {
@@ -85,6 +151,11 @@ class AMyPlayerState* APlayerCharacter::GetPlayerState()
 	return Cast<AMyPlayerState>(Controller->PlayerState);
 }
 
+class ALootingLootersGameStateBase* APlayerCharacter::GetGameState()
+{
+	return Cast<ALootingLootersGameStateBase>(GetWorld()->GetGameState());
+}
+
 //if we die remove input and go ragdoll
 void APlayerCharacter::Die()
 {
@@ -95,6 +166,7 @@ void APlayerCharacter::Die()
 	if (cont)
 	{
 		cont->DisableInput(cont);
+		GetCapsuleComponent()->SetHiddenInGame(true);
 		GEngine->AddOnScreenDebugMessage(-1, 50.0f, FColor::Red, "YOU WERE KILLED BY THE GUARD");
 	}
 }
@@ -158,4 +230,7 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 	DOREPLIFETIME(APlayerCharacter, Camera);
 	DOREPLIFETIME(APlayerCharacter, m_Inventory);
+	DOREPLIFETIME(APlayerCharacter, DefaultMaterial);
+	DOREPLIFETIME(APlayerCharacter, PostBeginPlayDelay);
+	DOREPLIFETIME(APlayerCharacter, Team);
 }

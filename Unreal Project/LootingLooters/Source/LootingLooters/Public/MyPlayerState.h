@@ -16,6 +16,9 @@ class LOOTINGLOOTERS_API AMyPlayerState : public APlayerState
 	
 public:
 
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = Teams)
+		uint8 Team;
+
 	AMyPlayerState();
 
 	//Adds the value to the score variable. Cannot pass negatives.
@@ -26,5 +29,11 @@ public:
 		uint8 TrapCount = 0;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = Inventory)
-		uint8 SelectedInventorySlot = 0;	
+		uint8 SelectedInventorySlot = 0;
+
+	UFUNCTION(BlueprintCallable)
+		int GetSlot(int index);
+
+	UPROPERTY(Replicated)
+		uint8 Slots[6];
 };

@@ -21,10 +21,20 @@ void AMyPlayerState::AddScore(int value)
 	Score += value;
 }
 
+int AMyPlayerState::GetSlot(int index)
+{
+	if (index < 0 || index > 6)
+		return -1;
+	else
+		return Slots[index];
+}
+
 void AMyPlayerState::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AMyPlayerState, TrapCount);
 	DOREPLIFETIME(AMyPlayerState, SelectedInventorySlot);
+	DOREPLIFETIME(AMyPlayerState, Slots);
+	DOREPLIFETIME(AMyPlayerState, Team);
 }

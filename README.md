@@ -5,10 +5,11 @@ Movement: WASD, up, down
 Camera: Mouse, left, right
 Interact/Drop: E
 Zoom held object in/out: Mousewheel up/down
-Enter Rotation Mode: Q
+Enter Rotation Mode: tab
 Rotate objects (while in rotation mode): mouse
 Throw Object: F
 Place Trap: G
+Switch Trap Slot: Q
 
 GamePad:
 Movemtnt: Left Stick

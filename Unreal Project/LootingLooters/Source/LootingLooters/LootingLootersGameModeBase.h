@@ -111,5 +111,11 @@ protected:
 	//All door asset templates
 	UPROPERTY(VisibleAnywhere, Category = "Assets")
 		TArray<TSubclassOf<AStaticMeshActor>> Door_Assets;
+
+	public:
+	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
+
+private:
+	void HandleNewPlayer(APlayerController* NewPlayer);
 	
 };

@@ -38,26 +38,6 @@ public:
 	UPROPERTY(VisibleAnywhere, Replicated)
 		TArray<TSubclassOf<class ABaseTrapActor>> Inventory;
 
-	UPROPERTY(VisibleAnywhere, Replicated)
-		uint8 Slot1;
-
-	UPROPERTY(VisibleAnywhere, Replicated)
-		uint8 Slot2;
-
-	UPROPERTY(VisibleAnywhere, Replicated)
-		uint8 Slot3;
-
-	UPROPERTY(VisibleAnywhere, Replicated)
-		uint8 Slot4;
-
-	UPROPERTY(VisibleAnywhere, Replicated)
-		uint8 Slot5;
-
-	UPROPERTY(VisibleAnywhere, Replicated)
-		uint8 Slot6;
-
-	uint8* Slots[6];
-
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -89,19 +69,4 @@ public:
 	void CollectLoot(AActor* lootedObject);
 	void PlaceTrap(FVector location);
 	void SpawnTrap(FVector location);
-
-public:
-	//Slots...
-	UFUNCTION(BlueprintCallable)
-		uint8 GetSlot1() { return Slot1; }
-	UFUNCTION(BlueprintCallable)
-		uint8 GetSlot2() { return Slot2; }
-	UFUNCTION(BlueprintCallable)
-		uint8 GetSlot3() { return Slot3; }
-	UFUNCTION(BlueprintCallable)
-		uint8 GetSlot4() { return Slot4; }
-	UFUNCTION(BlueprintCallable)
-		uint8 GetSlot5() { return Slot5; }
-	UFUNCTION(BlueprintCallable)
-		uint8 GetSlot6() { return Slot6; }
 };
