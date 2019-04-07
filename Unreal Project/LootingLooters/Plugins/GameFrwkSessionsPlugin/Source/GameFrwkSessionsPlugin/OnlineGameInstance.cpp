@@ -9,6 +9,7 @@
 
 #include "MenuSystem/MainMenu.h"
 #include "MenuSystem/MenuWidget.h"
+#include "DefaultValueHelper.h"
 
 const static FName SESSION_NAME = TEXT("Game");
 const static FName SERVER_NAME_SETTINGS_KEY = TEXT("ServerName");
@@ -94,11 +95,15 @@ void UOnlineGameInstance::InGameLoadMenu()
 }
 
 //TODO Week 9: Host a game session
-void UOnlineGameInstance::Host(FString ServerName, FString Team)
+void UOnlineGameInstance::Host(FString ServerName, FString Team, int32 num)
 {
     //ASSIGN DesiredServerName to ServerName
 	DesiredServerName = ServerName;
 	DesiredTeamNum = Team;
+
+	NumPlayers = num;
+	FMath::Clamp(NumPlayers, 2, 4);
+
     //IF SessionInterface.IsValid()
     if (SessionInterface.IsValid())
 	{
@@ -165,8 +170,8 @@ void UOnlineGameInstance::CreateSession()
 			SessionSettings.bIsLANMatch = false;
 		}
         //ENDIF
-        //ASSIGN NumPublicConnections in SessionSettings to 5 /** The number of publicly available connections advertised */
-		SessionSettings.NumPublicConnections = 4;
+        //ASSIGN NumPublicConnections in SessionSettings to 4 /** The number of publicly available connections advertised */
+		SessionSettings.NumPublicConnections = NumPlayers;
         //ASSIGN bShouldAdvertise in SessionSettings to true /**this will advertise whether this match is advertized on the online service*/
 		SessionSettings.bShouldAdvertise = true;
         //ASSIGN bUsesPresence in SessionSettings to true /** Whether to display user presence information or not */
@@ -254,7 +259,8 @@ void UOnlineGameInstance::OnFindSessionsComplete(bool Success)
             //ASSIGN MaxPlayers in Data to SearchResult.Session.SessionSettings.NumPublicConnections
 			Data.MaxPlayers = SearchResult.Session.SessionSettings.NumPublicConnections;
             //ASSIGN CurrentPlayers in Data to Data.MaxPlayers - SearchResult.Session.NumOpenPublicConnections 
-			Data.CurrentPlayers = Data.MaxPlayers - SearchResult.Session.NumOpenPublicConnections;
+			//add one for the host
+			Data.CurrentPlayers = Data.MaxPlayers - (SearchResult.Session.NumOpenPublicConnections - 1);
             //ASSIGN HostUsername in Data to SearchResult.Session.OwningUserName
 			Data.HostUsername = SearchResult.Session.OwningUserName;
 
@@ -288,7 +294,6 @@ void UOnlineGameInstance::OnFindSessionsComplete(bool Success)
 //TODO Week 9: Join a session
 void UOnlineGameInstance::Join(uint32 Index, FString Team)
 {
-    DesiredTeamNum = Team;
 	if (!SessionInterface.IsValid()) return;
 	if (!SessionSearch.IsValid()) return;
 

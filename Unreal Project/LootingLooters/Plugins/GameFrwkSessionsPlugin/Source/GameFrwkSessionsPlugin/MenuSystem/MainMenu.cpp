@@ -100,8 +100,7 @@ void UMainMenu::HostServer()
 	{
 		FString ServerName = ServerHostName->Text.ToString();
 		FString TeamNum = TeamHost->Text.ToString();
-		MenuInterface->Host(ServerName, TeamNum);/*Call Host on the MenuInterface pass in the server name from the ServerHostName widget*/
-		
+		MenuInterface->Host(ServerName, TeamNum, 2);/*Call Host on the MenuInterface pass in the server name from the ServerHostName widget*/
 	}
 }
 //TODO Week 9: Join a Session, SelectedIndex is Set by a UServerRow 

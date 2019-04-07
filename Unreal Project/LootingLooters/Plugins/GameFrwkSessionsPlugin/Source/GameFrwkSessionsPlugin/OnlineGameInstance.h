@@ -32,7 +32,7 @@ public:
 	void InGameLoadMenu();
 
 	UFUNCTION(Exec)
-	void Host(FString ServerName, FString Team) override;
+	void Host(FString ServerName, FString Team, int32 num) override;
 
 	UFUNCTION()
 		void StartSoloGame(FName name) override;
@@ -46,7 +46,8 @@ public:
 
 	void RefreshServerList() override;
     
-	 FString DesiredTeamNum;
+	FString DesiredTeamNum;
+	int32 NumPlayers;
 	 
 private:
 	TSubclassOf<class UUserWidget> MenuClass;
