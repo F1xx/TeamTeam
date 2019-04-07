@@ -8,6 +8,7 @@
 #include "Components/WidgetSwitcher.h"
 #include "Components/EditableTextBox.h"
 #include "Components/TextBlock.h"
+#include "Components/SpinBox.h"
 
 #include "ServerRow.h"
 #include <Kismet/GameplayStatics.h>
@@ -100,7 +101,7 @@ void UMainMenu::HostServer()
 	{
 		FString ServerName = ServerHostName->Text.ToString();
 		FString TeamNum = TeamHost->Text.ToString();
-		MenuInterface->Host(ServerName, TeamNum, 2);/*Call Host on the MenuInterface pass in the server name from the ServerHostName widget*/
+		MenuInterface->Host(ServerName, TeamNum, NumPlayers->GetValue());/*Call Host on the MenuInterface pass in the server name from the ServerHostName widget*/
 	}
 }
 //TODO Week 9: Join a Session, SelectedIndex is Set by a UServerRow 

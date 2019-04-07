@@ -48,6 +48,7 @@ public:
     
 	FString DesiredTeamNum;
 	int32 NumPlayers;
+	int32 Loggedin;
 	 
 private:
 	TSubclassOf<class UUserWidget> MenuClass;

@@ -126,6 +126,7 @@ void UOnlineGameInstance::Host(FString ServerName, FString Team, int32 num)
         //ENDIF
 	}
     //ENDIF
+	Loggedin = 1;
 }
 
 void UOnlineGameInstance::StartSoloGame(FName name)
@@ -260,7 +261,7 @@ void UOnlineGameInstance::OnFindSessionsComplete(bool Success)
 			Data.MaxPlayers = SearchResult.Session.SessionSettings.NumPublicConnections;
             //ASSIGN CurrentPlayers in Data to Data.MaxPlayers - SearchResult.Session.NumOpenPublicConnections 
 			//add one for the host
-			Data.CurrentPlayers = Data.MaxPlayers - (SearchResult.Session.NumOpenPublicConnections - 1);
+			Data.CurrentPlayers = Loggedin;
             //ASSIGN HostUsername in Data to SearchResult.Session.OwningUserName
 			Data.HostUsername = SearchResult.Session.OwningUserName;
 
@@ -310,6 +311,8 @@ void UOnlineGameInstance::Join(uint32 Index, FString Team)
 void UOnlineGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
 {
 	if (!SessionInterface.IsValid()) return;
+
+	Loggedin++;
 
 	FString Address;
     /*Look at the documentation for GetResolvedConnectString() or go into OnlineSessionInterface.h and look up this function*/

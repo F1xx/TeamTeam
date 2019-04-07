@@ -87,6 +87,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UPanelWidget* ServerList;
 
+	UPROPERTY(meta = (BindWidget))
+		class USpinBox* NumPlayers;
+
     TOptional<uint32> SelectedIndex;
 
 	UFUNCTION()
