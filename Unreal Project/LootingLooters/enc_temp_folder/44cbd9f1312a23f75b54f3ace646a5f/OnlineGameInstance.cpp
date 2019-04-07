@@ -127,6 +127,30 @@ void UOnlineGameInstance::StartSoloGame(FName name)
 {
 	GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameOnly());
 	UGameplayStatics::OpenLevel(this, name);
+
+//  	DesiredServerName = "NULL";
+//  	DesiredTeamNum = "0";
+//  	if (SessionInterface.IsValid())
+//  	{
+//  		auto ExistingSession = SessionInterface->GetNamedSession(SESSION_NAME);
+//  		if (ExistingSession != nullptr)
+//  		{
+//  			SessionInterface->DestroySession(SESSION_NAME);
+//  		}
+//  		else
+//  		{
+//  			CreateSession();
+//  		}
+//  	}
+
+//  	APlayerController* PlayerController = GetFirstLocalPlayerController();
+//  	if (!ensure(PlayerController != nullptr)) return;
+//  	PlayerController->ClientTravel(name.ToString(), ETravelType::TRAVEL_Absolute);
+
+	//GetWorld()->ServerTravel(name.ToString());
+
+	//GetWorld()->ServerTravel(name.ToString() + "?listen");
+
 }
 
 //TODO Week 9: Destroy a Game Session and Create a new one

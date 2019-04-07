@@ -34,6 +34,9 @@ public:
 	UFUNCTION(Exec)
 	void Host(FString ServerName, FString Team) override;
 
+	UFUNCTION()
+		void StartSoloGame(FName name) override;
+
 	UFUNCTION(Exec)
 	void Join(uint32 Index, FString Team) override;
 

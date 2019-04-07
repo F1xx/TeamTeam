@@ -25,6 +25,7 @@ class GAMEFRWKSESSIONSPLUGIN_API IMenuInterface
 public:
 	virtual void Host(FString ServerName, FString Team) = 0;
 	virtual void Join(uint32 Index, FString Team) = 0;
+	virtual void StartSoloGame(FName name) = 0;
 	virtual void LoadMainMenu() = 0;
 	virtual void RefreshServerList() = 0;
 

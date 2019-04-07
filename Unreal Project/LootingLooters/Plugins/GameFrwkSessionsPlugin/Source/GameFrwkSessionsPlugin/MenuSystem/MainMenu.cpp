@@ -10,6 +10,7 @@
 #include "Components/TextBlock.h"
 
 #include "ServerRow.h"
+#include <Kismet/GameplayStatics.h>
 
 //TODO Week 9: Set the ServerRowClass by loading it from a asset
 UMainMenu::UMainMenu(const FObjectInitializer & ObjectInitializer)
@@ -27,6 +28,9 @@ bool UMainMenu::Initialize()
 	
 	if (!ensure(HostButton != nullptr)) return false;
 	HostButton->OnClicked.AddDynamic(this, &UMainMenu::OpenHostMenu);
+
+	if (!ensure(SoloButton != nullptr)) return false;
+	SoloButton->OnClicked.AddDynamic(this, &UMainMenu::StartSinglePlayer);
 
 	if (!ensure(CancelHostMenuButton != nullptr)) return false;
 	CancelHostMenuButton->OnClicked.AddDynamic(this, &UMainMenu::OpenMainMenu);
@@ -53,6 +57,11 @@ bool UMainMenu::Initialize()
 void UMainMenu::OpenHostMenu()
 {
 	MenuSwitcher->SetActiveWidget(HostMenu);
+}
+
+void UMainMenu::StartSinglePlayer()
+{
+	MenuInterface->StartSoloGame("Level_1");
 }
 
 //TODO Week 9: Open the Join menu, Set/Switch the Active Widget to the Join Menu and Refresh the Server List
