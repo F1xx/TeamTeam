@@ -60,7 +60,7 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 		void Multicast_AssignColor();
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
 		void SetColor();
 
 	UFUNCTION(BlueprintCallable)

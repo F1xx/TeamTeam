@@ -119,19 +119,19 @@ void APlayerCharacter::Multicast_AssignColor_Implementation()
 		{
 			DefaultMaterial = GetGameState()->TeamFourMaterials;
 		}
-		SetColor();
 	}
 }
 
-void APlayerCharacter::SetColor()
+void APlayerCharacter::SetColor_Implementation()
 {
 	GetMesh()->SetMaterial(0, DefaultMaterial);
+	GetMesh()->SetMaterial(1, DefaultMaterial);
 }
 
 void APlayerCharacter::PostBeginPlay()
 {
 	if (Role == ROLE_Authority)
-		Multicast_AssignColor();
+		SetColor();
 }
 
 //A control to rotate whatever object we're interacting with via the Xaxis

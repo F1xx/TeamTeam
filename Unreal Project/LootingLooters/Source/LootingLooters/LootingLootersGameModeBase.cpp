@@ -170,5 +170,6 @@ void ALootingLootersGameModeBase::HandleNewPlayer(APlayerController* NewPlayer)
 	{
 		//GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Blue, "Character Logged In with team: " + FString::SanitizeFloat(character->Team));
 		character->AssignTeam();
+		character->Multicast_AssignColor();
 	}
 }
