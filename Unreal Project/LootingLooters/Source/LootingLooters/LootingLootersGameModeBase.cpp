@@ -178,5 +178,6 @@ void ALootingLootersGameModeBase::HandleNewPlayer(APlayerController* NewPlayer)
 	if (character)
 	{
 		character->AssignTeam();
+		character->Multicast_AssignColor();
 	}
 }
