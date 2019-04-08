@@ -143,6 +143,7 @@ void UMainMenu::SetServerList(TArray<FServerData> ServerNames)
 		ServerList->AddChild(Row);
 	}
 }
+
 //TODO Week 9: Set the SelectedIndex, this is called from UServerRow::OnClicked()
 void UMainMenu::SelectIndex(uint32 Index)
 {

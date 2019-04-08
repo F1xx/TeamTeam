@@ -163,12 +163,20 @@ void ALootingLootersGameModeBase::HandleStartingNewPlayer_Implementation(APlayer
 	HandleNewPlayer(NewPlayer);
 }
 
+void ALootingLootersGameModeBase::EndMatch()
+{
+#ifdef UE_BUILD_DEBUG
+	UKismetSystemLibrary::QuitGame(GetWorld(), GetWorld()->GetFirstPlayerController(), EQuitPreference::Quit);
+#else
+	FGenericPlatformMisc::RequestExit(false);
+#endif
+}
+
 void ALootingLootersGameModeBase::HandleNewPlayer(APlayerController* NewPlayer)
 {
 	APlayerCharacter* character = Cast<APlayerCharacter>(NewPlayer->GetPawn());
 	if (character)
 	{
-		//GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Blue, "Character Logged In with team: " + FString::SanitizeFloat(character->Team));
 		character->AssignTeam();
 	}
 }

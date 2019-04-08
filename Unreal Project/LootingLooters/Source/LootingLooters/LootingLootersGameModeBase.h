@@ -115,6 +115,8 @@ protected:
 	public:
 	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
 
+	virtual void EndMatch();
+
 private:
 	void HandleNewPlayer(APlayerController* NewPlayer);
 	

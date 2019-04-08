@@ -87,12 +87,12 @@ void APlayerCharacter::AssignTeam()
 		Team = 1;
 		GetGameState()->PlayerTwoLoggedIn = true;
 	}
-	else if (!GetGameState()->PlayerOneLoggedIn)
+	else if (!GetGameState()->PlayerThreeLoggedIn)
 	{
 		Team = 2;
 		GetGameState()->PlayerThreeLoggedIn = true;
 	}
-	else if (!GetGameState()->PlayerTwoLoggedIn)
+	else if (!GetGameState()->PlayerFourLoggedIn)
 	{
 		Team = 3;
 		GetGameState()->PlayerFourLoggedIn = true;

@@ -14,6 +14,7 @@
 ALootingLootersGameStateBase::ALootingLootersGameStateBase()
 {
 	SetReplicates(true);
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 void ALootingLootersGameStateBase::BeginPlay()
@@ -24,6 +25,17 @@ void ALootingLootersGameStateBase::BeginPlay()
 	Server_PopulateRoomSockets();
 	Server_GenerateRandomRoomConnections();
 	Server_GenerateLoot();
+
+	MatchCountDown = MatchLength;
+	GetWorld()->GetTimerManager().SetTimer(MatchTimer, this, &ALootingLootersGameStateBase::Server_StartEndGame, MatchLength, false);
+}
+
+void ALootingLootersGameStateBase::Tick(float DeltaSeconds)
+{
+	MatchCountDown -= DeltaSeconds;
+
+	if (MatchCountDown < 0.0f)
+		MatchCountDown = 0.0f;
 }
 
 void ALootingLootersGameStateBase::Server_GenerateRandomRoomLayout_Implementation()
@@ -109,6 +121,43 @@ void ALootingLootersGameStateBase::GetRoomArray(TArray<class ARoomActorBase*>& R
 	RoomArray = Rooms;
 }
 
+void ALootingLootersGameStateBase::Server_EndGame_Implementation()
+{
+	ALootingLootersGameModeBase* mode = Cast<ALootingLootersGameModeBase>(GetWorld()->GetAuthGameMode());
+
+	if (mode)
+	{
+		mode->EndMatch();
+	}
+}
+
+bool ALootingLootersGameStateBase::Server_EndGame_Validate()
+{
+	return true;
+}
+
+void ALootingLootersGameStateBase::Server_StartEndGame_Implementation()
+{
+	TArray<AActor*> playercontrollers;
+	UGameplayStatics::GetAllActorsOfClass(this, APlayerController::StaticClass(), playercontrollers);
+
+	for (auto a : playercontrollers)
+	{
+		APlayerController* pc = Cast<APlayerController>(a);
+
+		pc->DisableInput(pc);
+	}
+
+	MatchEnding = true;
+
+	GetWorld()->GetTimerManager().SetTimer(EndBufferTime, this, &ALootingLootersGameStateBase::Server_EndGame, BufferLength, false);
+}
+
+bool ALootingLootersGameStateBase::Server_StartEndGame_Validate()
+{
+	return true;
+}
+
 void ALootingLootersGameStateBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -122,6 +171,12 @@ void ALootingLootersGameStateBase::GetLifetimeReplicatedProps(TArray<FLifetimePr
 	DOREPLIFETIME(ALootingLootersGameStateBase, PlayerTwoLoggedIn);
 	DOREPLIFETIME(ALootingLootersGameStateBase, PlayerThreeLoggedIn);
 	DOREPLIFETIME(ALootingLootersGameStateBase, PlayerFourLoggedIn);
+	DOREPLIFETIME(ALootingLootersGameStateBase, MatchTimer);
+	DOREPLIFETIME(ALootingLootersGameStateBase, EndBufferTime);
+	DOREPLIFETIME(ALootingLootersGameStateBase, MatchLength);
+	DOREPLIFETIME(ALootingLootersGameStateBase, BufferLength);
+	DOREPLIFETIME(ALootingLootersGameStateBase, MatchEnding);
+	DOREPLIFETIME(ALootingLootersGameStateBase, MatchCountDown);
 }
 
 
