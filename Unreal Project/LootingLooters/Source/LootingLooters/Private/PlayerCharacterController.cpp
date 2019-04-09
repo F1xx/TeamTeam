@@ -182,5 +182,5 @@ void APlayerCharacterController::ZoomObject(float Value)
 
 void APlayerCharacterController::Shutdown()
 {
-	GetGameInstance()->Shutdown();
+	//GetGameInstance()->Shutdown();
 }

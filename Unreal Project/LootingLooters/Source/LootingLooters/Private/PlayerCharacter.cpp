@@ -87,12 +87,12 @@ void APlayerCharacter::AssignTeam()
 		Team = 1;
 		GetGameState()->PlayerTwoLoggedIn = true;
 	}
-	else if (!GetGameState()->PlayerOneLoggedIn)
+	else if (!GetGameState()->PlayerThreeLoggedIn)
 	{
 		Team = 2;
 		GetGameState()->PlayerThreeLoggedIn = true;
 	}
-	else if (!GetGameState()->PlayerTwoLoggedIn)
+	else if (!GetGameState()->PlayerFourLoggedIn)
 	{
 		Team = 3;
 		GetGameState()->PlayerFourLoggedIn = true;
@@ -119,23 +119,19 @@ void APlayerCharacter::Multicast_AssignColor_Implementation()
 		{
 			DefaultMaterial = GetGameState()->TeamFourMaterials;
 		}
-
-		SetColor();
 	}
 }
 
-void APlayerCharacter::SetColor()
+void APlayerCharacter::NetMulticast_SetColor_Implementation()
 {
 	GetMesh()->SetMaterial(0, DefaultMaterial);
 	GetMesh()->SetMaterial(1, DefaultMaterial);
-
-	GetPlayerState()->Team = Team;
 }
 
 void APlayerCharacter::PostBeginPlay()
 {
 	if (Role == ROLE_Authority)
-		Multicast_AssignColor();
+		NetMulticast_SetColor();
 }
 
 //A control to rotate whatever object we're interacting with via the Xaxis

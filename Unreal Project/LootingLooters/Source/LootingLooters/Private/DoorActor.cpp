@@ -16,6 +16,7 @@
 ADoorActor::ADoorActor()
 {
 	SetReplicates(true);
+	PrimaryActorTick.bCanEverTick = true;
 
 	//By default the doors won't block anything. Feel free to adjust this if needed.
 	GetStaticMeshComponent()->SetCollisionProfileName(FName("OverlapAllDynamic"));
@@ -28,6 +29,7 @@ ADoorActor::ADoorActor()
 
 	//Collision for the sphere. We only collide with pawns and our goal is to teleport the pawn if it touches.
 	Sphere = CreateDefaultSubobject<USphereComponent>("Collision");
+	Sphere->SetCollisionProfileName("OverlapOnlyPawn");
 	Sphere->SetSphereRadius(25.0f);
 	Sphere->SetSimulatePhysics(false);
 	Sphere->SetEnableGravity(false);
@@ -78,19 +80,19 @@ void ADoorActor::TeleportPawnToOtherDoor(UPrimitiveComponent* OverlappedComponen
 	//If the other door isnt set then this collision function doesn't do anything.
 	if (IsConnected())
 	{
-		//Fetch the other doors location and arrow.
-		FVector NewLocation = Connector->GetActorLocation() + FVector(0.0f, 0.0f, 20.0f);
-		FRotator Direction = Connector->ArrowComponent->GetComponentQuat().Rotator();
-		Direction.Normalize();
-
-		//Move the pawn to the other door (with some buffer room) and rotate him to face the arrow components direction.
-		OtherActor->SetActorLocation((Direction.Vector() * TELEPORT_DISTANCE_FROM_DOOR) + NewLocation);
-		OtherActor->SetActorRotation(Direction);
-
-		//Adjust character variables if its a character
 		ABaseCharacter* character = Cast<ABaseCharacter>(OtherActor);
 		if (character)
 		{
+			//Fetch the other doors location and arrow.
+			FVector NewLocation = Connector->GetActorLocation() + FVector(0.0f, 0.0f, 20.0f);
+			FRotator Direction = Connector->ArrowComponent->GetComponentQuat().Rotator();
+			Direction.Normalize();
+
+			//Move the pawn to the other door (with some buffer room) and rotate him to face the arrow components direction.
+			OtherActor->SetActorLocation((Direction.Vector() * TELEPORT_DISTANCE_FROM_DOOR) + NewLocation);
+			OtherActor->SetActorRotation(Direction);
+
+
 
 			//Get the camera
 			AController* Controller = character->GetController();

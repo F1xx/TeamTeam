@@ -43,6 +43,9 @@ private:
 	class UButton* HostButton;
 	
 	UPROPERTY(meta = (BindWidget))
+	class UButton* SoloButton;
+	
+	UPROPERTY(meta = (BindWidget))
 	class UButton* JoinButton;
 
 	UPROPERTY(meta = (BindWidget))
@@ -84,6 +87,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UPanelWidget* ServerList;
 
+	UPROPERTY(meta = (BindWidget))
+		class USpinBox* NumPlayers;
+
     TOptional<uint32> SelectedIndex;
 
 	UFUNCTION()
@@ -95,6 +101,9 @@ private:
 
 	UFUNCTION()
 	void OpenHostMenu();
+
+	UFUNCTION()
+		void StartSinglePlayer();
 
 	UFUNCTION()
 	void OpenJoinMenu();

@@ -8,8 +8,10 @@
 #include "Components/WidgetSwitcher.h"
 #include "Components/EditableTextBox.h"
 #include "Components/TextBlock.h"
+#include "Components/SpinBox.h"
 
 #include "ServerRow.h"
+#include <Kismet/GameplayStatics.h>
 
 //TODO Week 9: Set the ServerRowClass by loading it from a asset
 UMainMenu::UMainMenu(const FObjectInitializer & ObjectInitializer)
@@ -27,6 +29,9 @@ bool UMainMenu::Initialize()
 	
 	if (!ensure(HostButton != nullptr)) return false;
 	HostButton->OnClicked.AddDynamic(this, &UMainMenu::OpenHostMenu);
+
+	if (!ensure(SoloButton != nullptr)) return false;
+	SoloButton->OnClicked.AddDynamic(this, &UMainMenu::StartSinglePlayer);
 
 	if (!ensure(CancelHostMenuButton != nullptr)) return false;
 	CancelHostMenuButton->OnClicked.AddDynamic(this, &UMainMenu::OpenMainMenu);
@@ -53,6 +58,11 @@ bool UMainMenu::Initialize()
 void UMainMenu::OpenHostMenu()
 {
 	MenuSwitcher->SetActiveWidget(HostMenu);
+}
+
+void UMainMenu::StartSinglePlayer()
+{
+	MenuInterface->StartSoloGame("Level_1");
 }
 
 //TODO Week 9: Open the Join menu, Set/Switch the Active Widget to the Join Menu and Refresh the Server List
@@ -91,8 +101,7 @@ void UMainMenu::HostServer()
 	{
 		FString ServerName = ServerHostName->Text.ToString();
 		FString TeamNum = TeamHost->Text.ToString();
-		MenuInterface->Host(ServerName, TeamNum);/*Call Host on the MenuInterface pass in the server name from the ServerHostName widget*/
-		
+		MenuInterface->Host(ServerName, TeamNum, NumPlayers->GetValue());/*Call Host on the MenuInterface pass in the server name from the ServerHostName widget*/
 	}
 }
 //TODO Week 9: Join a Session, SelectedIndex is Set by a UServerRow 
@@ -134,6 +143,7 @@ void UMainMenu::SetServerList(TArray<FServerData> ServerNames)
 		ServerList->AddChild(Row);
 	}
 }
+
 //TODO Week 9: Set the SelectedIndex, this is called from UServerRow::OnClicked()
 void UMainMenu::SelectIndex(uint32 Index)
 {

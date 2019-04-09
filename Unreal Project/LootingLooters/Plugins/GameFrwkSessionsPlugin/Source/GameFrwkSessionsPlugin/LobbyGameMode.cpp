@@ -9,6 +9,7 @@
 //TODO Week 9: Count how many players have logged in, then Start the Game after 10 Seconds
 void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 {
+	MaxNumberOfPlayers = Cast<UOnlineGameInstance>(GetGameInstance())->NumPlayers;
     //CALL Super Function
 	Super::PostLogin(NewPlayer);
     //Pre-Increment NumberOfPlayers
@@ -18,7 +19,7 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 	if (NumberOfPlayers >= MaxNumberOfPlayers)
 	{
         //START the GameStartTimer, to CALL ALobbyGameMode::StartGame after 10 seconds
-		GetWorldTimerManager().SetTimer(GameStartTimer, this, &ALobbyGameMode::StartGame, 10);
+		GetWorldTimerManager().SetTimer(GameStartTimer, this, &ALobbyGameMode::StartGame, 5);
 	}
     //ENDIF
 }

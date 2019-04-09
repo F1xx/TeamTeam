@@ -25,15 +25,17 @@ ARoomActorBase::ARoomActorBase()
 
 void ARoomActorBase::SetRoomMesh(AStaticMeshActor* Mesh)
 {
-	RoomMesh = Mesh;
-	RoomMesh->SetOwner(Cast<AActor>(this));
-	RoomMesh->AttachToActor(Cast<AActor>(this), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	if (HasAuthority())
+	{
+		RoomMesh = Mesh;
+		RoomMesh->SetOwner(Cast<AActor>(this));
 
-	FVector origin;
-	FVector bounds;
+		FVector origin;
+		FVector bounds;
 
-	RoomMesh->GetActorBounds(false, origin, bounds);
-	RoomOverlap->SetBoxExtent(bounds);
+		RoomMesh->GetActorBounds(false, origin, bounds);
+		RoomOverlap->SetBoxExtent(bounds);
+	}
 }
 
 void ARoomActorBase::PopulateEmptySockets()
@@ -202,6 +204,7 @@ void ARoomActorBase::Server_SpawnAsset_Implementation(const TArray<FString>& Typ
 	{
 		//create the asset
 		AActor* Asset = GetWorld()->SpawnActor<AActor>(*AssetMesh, SpawnLocation, SpawnRotation, SpawnParams);
+		Asset->SetOwner(this);
 
 		//check to see which array to push the asset into
 		if (Asset->ActorHasTag("Grabbable") == false)

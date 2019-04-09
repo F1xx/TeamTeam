@@ -23,8 +23,9 @@ class GAMEFRWKSESSIONSPLUGIN_API IMenuInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	virtual void Host(FString ServerName, FString Team) = 0;
+	virtual void Host(FString ServerName, FString Team, int32 num) = 0;
 	virtual void Join(uint32 Index, FString Team) = 0;
+	virtual void StartSoloGame(FName name) = 0;
 	virtual void LoadMainMenu() = 0;
 	virtual void RefreshServerList() = 0;
 
