@@ -44,6 +44,13 @@ ABaseCharacter::ABaseCharacter()
 	bAlwaysRelevant = true;
 	GetCharacterMovement()->SetIsReplicated(true);
 	GetCharacterMovement()->SetNetAddressable();
+
+	SphereComp = CreateDefaultSubobject<USphereComponent>("Sphere Collision");
+	SphereComp->SetCollisionProfileName("OverlapOnlyPawn");
+	SphereComp->SetGenerateOverlapEvents(true);
+	SphereComp->SetNotifyRigidBodyCollision(true);
+	SphereComp->SetSphereRadius(65.0f);
+	SphereComp->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -75,9 +82,16 @@ void ABaseCharacter::Die()
 
 void ABaseCharacter::NetMulticastOnDeath_Implementation()
 {
+	//disable collision
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SphereComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetCapsuleComponent()->SetVisibility(false, false);
+	SphereComp->SetVisibility(false, false);
+
+	//we dead
 	bIsDead = true;
-	//ragdoll
+
+	//ragdoll time
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	GetMesh()->SetSimulatePhysics(true);
 }
