@@ -84,6 +84,9 @@ public:
 	UPROPERTY(Replicated, BlueprintReadOnly)
 		uint8 Team;
 
+	UPROPERTY(Replicated, BlueprintReadOnly)
+		FTransform RespawnLoc;
+
 	UPROPERTY(Replicated)
 		FTimerHandle RespawnTimer;
 };

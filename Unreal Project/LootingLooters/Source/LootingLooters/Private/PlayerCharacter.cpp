@@ -160,6 +160,7 @@ class ALootingLootersGameStateBase* APlayerCharacter::GetGameState()
 //if we die remove input and go ragdoll
 void APlayerCharacter::Die()
 {
+	RespawnLoc = GetTransform();
 	Super::Die();
 
 	APlayerController* cont = Cast<APlayerController>(GetController());
@@ -184,9 +185,7 @@ void APlayerCharacter::Respawn()
 			ALootingLootersGameModeBase* GM = Cast<ALootingLootersGameModeBase>(GetWorld()->GetAuthGameMode());
 			if (GM)
 			{
-				GetCapsuleComponent()->SetHiddenInGame(false);
-				FTransform loc = FTransform(GetCapsuleComponent()->GetComponentLocation());
-				GM->RespawnPlayer(cont, Team, loc);
+				GM->RespawnPlayer(cont, Team, RespawnLoc);
 				Destroy();
 			}
 		}
@@ -271,4 +270,5 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(APlayerCharacter, PostBeginPlayDelay);
 	DOREPLIFETIME(APlayerCharacter, Team);
 	DOREPLIFETIME(APlayerCharacter, RespawnTimer);
+	DOREPLIFETIME(APlayerCharacter, RespawnLoc);
 }
