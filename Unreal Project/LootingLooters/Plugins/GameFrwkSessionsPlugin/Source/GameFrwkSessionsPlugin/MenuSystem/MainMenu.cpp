@@ -62,6 +62,7 @@ void UMainMenu::OpenHostMenu()
 
 void UMainMenu::StartSinglePlayer()
 {
+	TeamJoin->SetText(FText());
 	MenuInterface->StartSoloGame("Level_1");
 }
 

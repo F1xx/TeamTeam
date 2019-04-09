@@ -131,6 +131,7 @@ void UOnlineGameInstance::Host(FString ServerName, FString Team, int32 num)
 
 void UOnlineGameInstance::StartSoloGame(FName name)
 {
+	isSolo = true;
 	GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameOnly());
 	UGameplayStatics::OpenLevel(this, name);
 }
@@ -223,20 +224,23 @@ void UOnlineGameInstance::OnCreateSessionComplete(FName SessionName, bool Succes
 //TODO Week 9: Refresh the List of Servers
 void UOnlineGameInstance::RefreshServerList()
 {
-    //ASSIGN the SessionSearch variable to the return value of MakeShareable(new FOnlineSessionSearch())
-	SessionSearch = MakeShareable(new FOnlineSessionSearch());
-    //IF SessionSearch.IsValid()
-	if (SessionSearch.IsValid())
+	if (!isSolo)
 	{
-        //ASSIGN bIsLanQuery in SessionSearch to true /** Whether the query is intended for LAN matches or not */
-		SessionSearch->bIsLanQuery = true;
-        //ASSIGN MaxSearchResults in SessionSearch to 100 /** Max number of queries returned by the matchmaking service */
-		SessionSearch->MaxSearchResults = 100;
-        //CALL SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals) /**Sets a key value pair combination that defines a search parameter*/
-		SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
-		UE_LOG(LogTemp, Warning, TEXT("Starting Find Session"));
-        //CALL FindSessions() on the SessionInterface and pass in 0, SessionSearch.ToSharedRef() 
-		SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
+		//ASSIGN the SessionSearch variable to the return value of MakeShareable(new FOnlineSessionSearch())
+		SessionSearch = MakeShareable(new FOnlineSessionSearch());
+		//IF SessionSearch.IsValid()
+		if (SessionSearch.IsValid())
+		{
+			//ASSIGN bIsLanQuery in SessionSearch to true /** Whether the query is intended for LAN matches or not */
+			SessionSearch->bIsLanQuery = true;
+			//ASSIGN MaxSearchResults in SessionSearch to 100 /** Max number of queries returned by the matchmaking service */
+			SessionSearch->MaxSearchResults = 100;
+			//CALL SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals) /**Sets a key value pair combination that defines a search parameter*/
+			SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+			UE_LOG(LogTemp, Warning, TEXT("Starting Find Session"));
+			//CALL FindSessions() on the SessionInterface and pass in 0, SessionSearch.ToSharedRef() 
+			SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
+		}
 	}
     //ENDIF
 }
@@ -244,50 +248,53 @@ void UOnlineGameInstance::RefreshServerList()
 //TODO Week 9: Handle/Callback when FInding Sessions has completed
 void UOnlineGameInstance::OnFindSessionsComplete(bool Success)
 {
-    //IF Success AND SessionSearch.IsValid() AND Menu NOT EQUAL nullptr
-	if (Success && SessionSearch.IsValid() && Menu != nullptr)
+	if (!isSolo)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Finished Find Session"));
-        //DECLARE a TArray of type FServerData called ServerNames
-		TArray<FServerData> ServerNames;
-        /*Loop through the found sessions and create server data for each found session*/
-        //FOR ( const FOnlineSessionSearchResult& SearchResult IN SessionSearch->SearchResults )
-		for (const FOnlineSessionSearchResult& SearchResult : SessionSearch->SearchResults)
+		//IF Success AND SessionSearch.IsValid() AND Menu NOT EQUAL nullptr
+		if (Success && SessionSearch.IsValid() && Menu != nullptr)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Found session names: %s"), *SearchResult.GetSessionIdStr());
-            //DECLARE a variable called Data of type FServerData
-			FServerData Data;
-            //ASSIGN MaxPlayers in Data to SearchResult.Session.SessionSettings.NumPublicConnections
-			Data.MaxPlayers = SearchResult.Session.SessionSettings.NumPublicConnections;
-            //ASSIGN CurrentPlayers in Data to Data.MaxPlayers - SearchResult.Session.NumOpenPublicConnections 
-			//add one for the host
-			Data.CurrentPlayers = Loggedin;
-            //ASSIGN HostUsername in Data to SearchResult.Session.OwningUserName
-			Data.HostUsername = SearchResult.Session.OwningUserName;
-
-            //DECLARE a FString called ServerName
-			FString ServerName;
-            //IF SearchResult.Session.SessionSettings.Get(SERVER_NAME_SETTINGS_KEY, ServerName) /*Gets the Server name from the Session's Settings*/
-			if (SearchResult.Session.SessionSettings.Get(SERVER_NAME_SETTINGS_KEY, ServerName))
+			UE_LOG(LogTemp, Warning, TEXT("Finished Find Session"));
+			//DECLARE a TArray of type FServerData called ServerNames
+			TArray<FServerData> ServerNames;
+			/*Loop through the found sessions and create server data for each found session*/
+			//FOR ( const FOnlineSessionSearchResult& SearchResult IN SessionSearch->SearchResults )
+			for (const FOnlineSessionSearchResult& SearchResult : SessionSearch->SearchResults)
 			{
-                //ASSIGN Name in Data to ServerName
-				Data.Name = ServerName;
-			}
-            //ELSE
-			else
-			{
-                //ASSIGN Name in Data to "Could not find name."
-				Data.Name = "Could not find name.";
-			}
-            //ENDIF
+				UE_LOG(LogTemp, Warning, TEXT("Found session names: %s"), *SearchResult.GetSessionIdStr());
+				//DECLARE a variable called Data of type FServerData
+				FServerData Data;
+				//ASSIGN MaxPlayers in Data to SearchResult.Session.SessionSettings.NumPublicConnections
+				Data.MaxPlayers = SearchResult.Session.SessionSettings.NumPublicConnections;
+				//ASSIGN CurrentPlayers in Data to Data.MaxPlayers - SearchResult.Session.NumOpenPublicConnections 
+				//add one for the host
+				Data.CurrentPlayers = Loggedin;
+				//ASSIGN HostUsername in Data to SearchResult.Session.OwningUserName
+				Data.HostUsername = SearchResult.Session.OwningUserName;
 
-            //CALL Add in ServerNames and pass in Data
-			ServerNames.Add(Data);
+				//DECLARE a FString called ServerName
+				FString ServerName;
+				//IF SearchResult.Session.SessionSettings.Get(SERVER_NAME_SETTINGS_KEY, ServerName) /*Gets the Server name from the Session's Settings*/
+				if (SearchResult.Session.SessionSettings.Get(SERVER_NAME_SETTINGS_KEY, ServerName))
+				{
+					//ASSIGN Name in Data to ServerName
+					Data.Name = ServerName;
+				}
+				//ELSE
+				else
+				{
+					//ASSIGN Name in Data to "Could not find name."
+					Data.Name = "Could not find name.";
+				}
+				//ENDIF
+
+				//CALL Add in ServerNames and pass in Data
+				ServerNames.Add(Data);
+			}
+			//ENDFOR
+
+			//CALL SetServerList() on Menu and pass in ServerNames
+			Menu->SetServerList(ServerNames);
 		}
-        //ENDFOR
-
-        //CALL SetServerList() on Menu and pass in ServerNames
-		Menu->SetServerList(ServerNames);
 	}
     //ENDIF
 }

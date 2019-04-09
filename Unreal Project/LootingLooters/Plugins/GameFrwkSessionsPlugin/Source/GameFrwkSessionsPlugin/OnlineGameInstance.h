@@ -67,4 +67,6 @@ private:
 	FString DesiredServerName;
    
 	void CreateSession();
+
+	bool isSolo = false;
 };
