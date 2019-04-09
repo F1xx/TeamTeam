@@ -122,7 +122,7 @@ void APlayerCharacter::Multicast_AssignColor_Implementation()
 	}
 }
 
-void APlayerCharacter::SetColor_Implementation()
+void APlayerCharacter::NetMulticast_SetColor_Implementation()
 {
 	GetMesh()->SetMaterial(0, DefaultMaterial);
 	GetMesh()->SetMaterial(1, DefaultMaterial);
@@ -131,7 +131,7 @@ void APlayerCharacter::SetColor_Implementation()
 void APlayerCharacter::PostBeginPlay()
 {
 	if (Role == ROLE_Authority)
-		SetColor();
+		NetMulticast_SetColor();
 }
 
 //A control to rotate whatever object we're interacting with via the Xaxis

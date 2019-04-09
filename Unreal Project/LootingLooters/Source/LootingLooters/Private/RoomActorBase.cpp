@@ -25,15 +25,17 @@ ARoomActorBase::ARoomActorBase()
 
 void ARoomActorBase::SetRoomMesh(AStaticMeshActor* Mesh)
 {
-	RoomMesh = Mesh;
-	RoomMesh->SetOwner(Cast<AActor>(this));
-	RoomMesh->AttachToActor(Cast<AActor>(this), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	if (HasAuthority())
+	{
+		RoomMesh = Mesh;
+		RoomMesh->SetOwner(Cast<AActor>(this));
 
-	FVector origin;
-	FVector bounds;
+		FVector origin;
+		FVector bounds;
 
-	RoomMesh->GetActorBounds(false, origin, bounds);
-	RoomOverlap->SetBoxExtent(bounds);
+		RoomMesh->GetActorBounds(false, origin, bounds);
+		RoomOverlap->SetBoxExtent(bounds);
+	}
 }
 
 void ARoomActorBase::PopulateEmptySockets()

@@ -12,6 +12,7 @@
 #include "DoorActor.h"
 #include "RoomActorBase.h"
 #include "PlayerCharacter.h"
+#include "Components/SphereComponent.h"
 
 AGuardCharacter::AGuardCharacter() : Super()
 {
@@ -38,7 +39,11 @@ void AGuardCharacter::BeginPlay()
 	OriginalRotator = GetActorRotation();
 	MoveToNextPatrolPoint();
 
-	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AGuardCharacter::OnComponentHit);
+	if (HasAuthority())
+	{
+		SphereComp->OnComponentBeginOverlap.AddDynamic(this, &AGuardCharacter::OnPawnHit);
+		GetWorldTimerManager().SetTimer(PostStart, this, &AGuardCharacter::PostBeginPlay, 1.0f, false);
+	}
 }
 
 //if we see a player, attack them
@@ -216,9 +221,11 @@ void AGuardCharacter::HandleAI()
 //use this function to find the door in the room that the guard will go to
 void AGuardCharacter::MoveToNextPatrolPoint()
 {
-	FindNewPatrolPoint();
-
-	UAIBlueprintHelperLibrary::SimpleMoveToActor(GetController(), CurrentPatrolPoint);
+	if (HasAuthority())
+	{
+		FindNewPatrolPoint();
+		UAIBlueprintHelperLibrary::SimpleMoveToActor(GetController(), CurrentPatrolPoint);
+	}
 }
 
 void AGuardCharacter::FindNewPatrolPoint()
@@ -278,7 +285,7 @@ class ARoomActorBase* AGuardCharacter::GetCurrentRoom()
 	return nullptr;
 }
 
-void AGuardCharacter::OnComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
+void AGuardCharacter::OnPawnHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	APlayerCharacter* player = Cast<APlayerCharacter>(OtherActor);
 
@@ -286,15 +293,28 @@ void AGuardCharacter::OnComponentHit(UPrimitiveComponent* HitComponent, AActor* 
 	{
 		player->Die();
 		TargetActor = nullptr;
+		SetGuardState(EAIState::EPatrol);
+		MoveToNextPatrolPoint();
 	}
+}
+
+void AGuardCharacter::PostBeginPlay()
+{
+	bHasBegun = true;
 }
 
 void AGuardCharacter::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
+	if (bHasBegun)
+	{
+		Super::Tick(DeltaTime);
 
-	DetermineGuardState();
-	HandleAI();
+		if (HasAuthority())
+		{
+			DetermineGuardState();
+			HandleAI();
+		}
+	}
 
 	//GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, "Guard State: " + EnumToString(TEXT("EAIState"), static_cast<uint8>(GuardState)));
 }

@@ -70,8 +70,13 @@ protected:
 		class ARoomActorBase* GetCurrentRoom();
 
 	UFUNCTION()
-		virtual void OnComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
+		virtual void OnPawnHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
+	UFUNCTION()
+		virtual void PostBeginPlay();
+
+	FTimerHandle PostStart;
+	bool bHasBegun = false;
 
 public:
 	virtual void Tick(float DeltaTime) override;

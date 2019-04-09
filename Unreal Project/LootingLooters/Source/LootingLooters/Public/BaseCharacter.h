@@ -30,6 +30,9 @@ protected:
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Last Door Used")
 		class ADoorActor* LastDoorAccessed;
 
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+		class USphereComponent* SphereComp;
+
 public:	
 	UPROPERTY(Replicated)
 		bool bIsDead = false;
