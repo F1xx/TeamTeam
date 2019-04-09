@@ -35,6 +35,7 @@ void AGrabbableStaticMeshActor::BeginPlay()
 	m_CamForward = FVector::ZeroVector;
 	m_Rotation = GetActorRotation();
 	GetDestructibleComponent()->SetCanEverAffectNavigation(true); //make sure the navmesh makes the AI try to avoid these
+	//GetDestructibleComponent()->SetNotifyRigidBodyCollision(true);
 
 	//register for onhit so we can fracture ourselves potentially
 	DestructibleMesh->OnComponentHit.AddDynamic(this, &AGrabbableStaticMeshActor::OnHit);
@@ -53,13 +54,11 @@ void AGrabbableStaticMeshActor::PostInitializeComponents()
 	DestructibleMesh->SetCollisionProfileName(FName("GrabbableTrace"));
 	DestructibleMesh ->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	DestructibleMesh->SetSimulatePhysics(true);
-
 	DestructibleMesh->SetNotifyRigidBodyCollision(true);
-
 	DestructibleMesh->SetEnableGravity(true);
 	DestructibleMesh->SetIsReplicated(true);
 
-	Health->OnDeath.AddDynamic(this, &AGrabbableStaticMeshActor::MulticastBreakMesh);
+	Health->OnDeath.AddDynamic(this, &AGrabbableStaticMeshActor::BreakMesh);
 }
 
 //Updates the object
@@ -103,6 +102,7 @@ void AGrabbableStaticMeshActor::Pickup(ABaseCharacter* acharacter)
 	}
 }
 
+//remove the object from its player. It has been dropped. Return to being an object.
 void AGrabbableStaticMeshActor::Drop()
 {
 	m_Character = nullptr;
@@ -116,6 +116,21 @@ void AGrabbableStaticMeshActor::Drop()
 	}
 }
 
+//Makes sure the server calls multicast breakmesh to make the mesh break for everyone.
+//Called by this object's health component's OnDeath
+void AGrabbableStaticMeshActor::BreakMesh_Implementation(AActor* actor)
+{
+	if (HasAuthority())
+	{
+		MulticastBreakMesh(actor);
+	}
+}
+
+bool AGrabbableStaticMeshActor::BreakMesh_Validate(AActor* actor)
+{
+	return true;
+}
+
 //Apply a force to this object using the character's forward vector to simulate a throw
 //The result of throwing can result in this actor fracturing
 void AGrabbableStaticMeshActor::Throw()
@@ -125,6 +140,7 @@ void AGrabbableStaticMeshActor::Throw()
 		SetActorEnableCollision(true);
 		DestructibleMesh->SetEnableGravity(true);
 		DestructibleMesh->SetSimulatePhysics(true);
+		DestructibleMesh->SetNotifyRigidBodyCollision(true);
 		bWasThrown = true;
 
 		if (m_Character)
@@ -184,15 +200,15 @@ void AGrabbableStaticMeshActor::Die()
 //if it was thrown fracture it
 void AGrabbableStaticMeshActor::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (Role == ROLE_Authority)
-	{
-		if (bWasThrown)
-		{
-			TakeDamage(50.0f, FDamageEvent(), nullptr, OtherActor);
-			OtherActor->TakeDamage(50.0f, FDamageEvent(), nullptr, OtherActor);
-		}
-		bWasThrown = false; //it will be thrown and take damage from 1 hit
-	}
+ 	if (Role == ROLE_Authority)
+ 	{
+ 		if (bWasThrown)
+ 		{
+ 			TakeDamage(Health->MaximumHealth, FDamageEvent(), nullptr, OtherActor);
+ 			OtherActor->TakeDamage(Health->MaximumHealth * 0.5f, FDamageEvent(), nullptr, OtherActor);
+ 		}
+ 		bWasThrown = false;
+ 	}
 }
 
 // We want to turn off the ability to grab this actor after its been exploded
@@ -203,26 +219,15 @@ void AGrabbableStaticMeshActor::OnFracture(const FVector& HitPosition, const FVe
 	//Spawn loot, preferably through game mode
 }
 
-void AGrabbableStaticMeshActor::BreakMesh(AActor* actor)
+void AGrabbableStaticMeshActor::MulticastBreakMesh_Implementation(AActor* actor)
 {
 	if (actor)
 	{
-		if (Role == ROLE_Authority)
-		{
-			FVector direction = actor->GetActorLocation() - GetActorLocation();
+		FVector direction = actor->GetActorLocation() - GetActorLocation();
 
-			DestructibleMesh->ApplyDamage(500.0f, GetActorLocation(), direction.GetSafeNormal(), 0.0f);
-			DestructibleMesh->SetEnableGravity(true);
-			GetWorldTimerManager().SetTimer(DespawnTimer, this, &AGrabbableStaticMeshActor::Die, TimeBeforeDespawn, false);
-		}
-	}
-}
-
-void AGrabbableStaticMeshActor::MulticastBreakMesh_Implementation(AActor* actor)
-{
-	if (Role == ROLE_Authority)
-	{
-		BreakMesh(actor);
+		DestructibleMesh->ApplyDamage(500.0f, GetActorLocation(), direction.GetSafeNormal(), 0.0f);
+		DestructibleMesh->SetEnableGravity(true);
+		GetWorldTimerManager().SetTimer(DespawnTimer, this, &AGrabbableStaticMeshActor::Die, TimeBeforeDespawn, false);
 	}
 }
 

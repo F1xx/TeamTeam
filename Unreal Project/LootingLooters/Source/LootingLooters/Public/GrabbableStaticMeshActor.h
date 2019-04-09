@@ -46,7 +46,7 @@ public:
 	UFUNCTION()
 		void Drop();
 
-	UFUNCTION()
+	UFUNCTION(Server, Reliable, WithValidation)
 		virtual void BreakMesh(AActor* actor);
 
 	UFUNCTION(NetMulticast, Reliable)
