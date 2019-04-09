@@ -12,6 +12,7 @@
 #include "AssetTemplate.h"
 #include "LootingLootersGameStateBase.h"
 #include "PlayerCharacter.h"
+#include "GameFramework/PlayerStart.h"
 
 ALootingLootersGameModeBase::ALootingLootersGameModeBase() : Super()
  {
@@ -155,6 +156,26 @@ TSubclassOf <ALootActor> ALootingLootersGameModeBase::GetARandomLootAsset()
 
 	//return a random loot asset
 	return Loot_Assets[FMath::RandRange(0, Loot_Assets.Num() - 1)];
+}
+
+void ALootingLootersGameModeBase::RespawnPlayer(APlayerController* NewPlayer, uint8 playerTeam, FTransform location)
+{
+	TArray<AActor*> PlayerStarts;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), PlayerStarts);
+
+	APawn* pawn = SpawnDefaultPawnFor(NewPlayer, PlayerStarts[0]);
+	if (pawn)
+	{
+		if (Cast<APlayerCharacter>(pawn))
+		{
+			Cast<APlayerCharacter>(pawn)->Team = playerTeam;
+			NewPlayer->EnableInput(NewPlayer);
+			NewPlayer->SetPawn(pawn);
+			RestartPlayerAtTransform(NewPlayer, location);
+			Cast<APlayerCharacter>(pawn)->Multicast_AssignColor();
+			Cast<APlayerCharacter>(pawn)->NetMulticast_SetColor();
+		}
+	}
 }
 
 void ALootingLootersGameModeBase::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)

@@ -77,7 +77,10 @@ void ABaseCharacter::Die()
 
 	ServerDropItem();
 
-	NetMulticastOnDeath();
+	if (HasAuthority())
+	{
+		NetMulticastOnDeath();
+	}
 }
 
 void ABaseCharacter::NetMulticastOnDeath_Implementation()

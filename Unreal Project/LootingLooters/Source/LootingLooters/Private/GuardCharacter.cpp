@@ -315,19 +315,4 @@ void AGuardCharacter::Tick(float DeltaTime)
 			HandleAI();
 		}
 	}
-
-	//GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, "Guard State: " + EnumToString(TEXT("EAIState"), static_cast<uint8>(GuardState)));
 }
-
-//const FString AGuardCharacter::EnumToString(const TCHAR* Enum, int32 EnumValue)
-//{
-//	const UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, Enum, true);
-//	if (!EnumPtr)
-//		return NSLOCTEXT("Invalid", "Invalid", "Invalid").ToString();
-//
-//#if WITH_EDITOR
-//	return EnumPtr->GetDisplayNameTextByIndex(EnumValue).ToString();
-//#else
-//	return EnumPtr->GetEnumName(EnumValue);
-//#endif
-//}

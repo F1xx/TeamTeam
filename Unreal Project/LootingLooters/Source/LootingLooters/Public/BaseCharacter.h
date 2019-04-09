@@ -34,7 +34,7 @@ protected:
 		class USphereComponent* SphereComp;
 
 public:	
-	UPROPERTY(Replicated)
+	UPROPERTY(BlueprintReadOnly, Replicated)
 		bool bIsDead = false;
 
 	// Called every frame

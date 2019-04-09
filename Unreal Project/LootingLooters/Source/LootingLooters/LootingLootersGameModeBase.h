@@ -89,6 +89,8 @@ public:
 	//Return the door blueprint.
 	TSubclassOf<class AStaticMeshActor> GetDoorBlueprint() { return Door_Assets[0]; }
 
+	void RespawnPlayer(APlayerController* NewPlayer, uint8 playerTeam, FTransform location);
+
 	//how many rooms we're making
 	UPROPERTY(EditAnywhere, Category = "Rooms")
 		int Total_Rooms_To_Generate = 10;

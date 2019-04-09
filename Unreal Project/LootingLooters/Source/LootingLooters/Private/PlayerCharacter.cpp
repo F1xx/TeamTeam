@@ -19,6 +19,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "LootingLootersGameStateBase.h"
+#include "LootingLootersGameModeBase.h"
 
 APlayerCharacter::APlayerCharacter() : Super()
 {
@@ -167,8 +168,49 @@ void APlayerCharacter::Die()
 	{
 		cont->DisableInput(cont);
 		GetCapsuleComponent()->SetHiddenInGame(true);
-		GEngine->AddOnScreenDebugMessage(-1, 50.0f, FColor::Red, "YOU WERE KILLED BY THE GUARD");
 	}
+
+	GetWorld()->GetTimerManager().SetTimer(RespawnTimer, this, &APlayerCharacter::Respawn, 5.0f, false);
+}
+
+void APlayerCharacter::Respawn()
+{
+	APlayerController* cont = Cast<APlayerController>(GetController());
+
+	if (cont)
+	{
+		if (HasAuthority())
+		{
+			ALootingLootersGameModeBase* GM = Cast<ALootingLootersGameModeBase>(GetWorld()->GetAuthGameMode());
+			if (GM)
+			{
+				GetCapsuleComponent()->SetHiddenInGame(false);
+				FTransform loc = FTransform(GetCapsuleComponent()->GetComponentLocation());
+				GM->RespawnPlayer(cont, Team, loc);
+				Destroy();
+			}
+		}
+	}
+}
+
+void APlayerCharacter::NetMulticastOnRespawn_Implementation()
+{
+	//disable collision
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	SphereComp->SetCollisionProfileName("OverlapOnlyPawn");
+	SphereComp->SetVisibility(true, true);
+
+	//we dead
+	bIsDead = false;
+
+	//ragdoll time
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetSimulatePhysics(false);
+}
+
+bool APlayerCharacter::NetMulticastOnRespawn_Validate()
+{
+	return true;
 }
 
 //Calls ABaseCharacter's Interact
@@ -177,25 +219,20 @@ void APlayerCharacter::Interact()
 {
 	Super::Interact();
 
-	GetPlayerState();
+	//if after super we're still not interacting with anything check if we can grab some loot
+	if (!bIsInteracting)
+	{
+		FHitResult Hit(ForceInit);
 
-// 	if (Role == ROLE_Authority)
-// 		{
-		//if after super we're still not interacting with anything check if we can grab some loot
-		if (!bIsInteracting)
+		if (PerformRayCast(FName("GrabbableTrace"), Hit))
 		{
-			FHitResult Hit(ForceInit);
-
-			if (PerformRayCast(FName("GrabbableTrace"), Hit))
+			//Making sure what we hit was Loot
+			if (Hit.GetActor()->ActorHasTag("Loot"))
 			{
-				//Making sure what we hit was Loot
-				if (Hit.GetActor()->ActorHasTag("Loot"))
-				{
-					m_Inventory->ServerCollectLoot(Hit.GetActor());
-				}
+				m_Inventory->ServerCollectLoot(Hit.GetActor());
 			}
 		}
-	//}
+	}
 }
 
 //place a trap. This is for the player and will place it where they're aiming
@@ -233,4 +270,5 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(APlayerCharacter, DefaultMaterial);
 	DOREPLIFETIME(APlayerCharacter, PostBeginPlayDelay);
 	DOREPLIFETIME(APlayerCharacter, Team);
+	DOREPLIFETIME(APlayerCharacter, RespawnTimer);
 }

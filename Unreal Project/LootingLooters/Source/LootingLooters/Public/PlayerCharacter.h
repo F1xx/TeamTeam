@@ -41,6 +41,12 @@ public:
 
 	virtual void Die() override;
 
+	UFUNCTION()
+		virtual void Respawn();
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+		void NetMulticastOnRespawn();
+
 	virtual void Interact() override;
 	virtual void PlaceTrap() override;
 
@@ -75,6 +81,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Camera")
 		FORCEINLINE class UCameraComponent* GetFollowCamera() const { return Camera; }
 
-	UPROPERTY(Replicated)
+	UPROPERTY(Replicated, BlueprintReadOnly)
 		uint8 Team;
+
+	UPROPERTY(Replicated)
+		FTimerHandle RespawnTimer;
 };
