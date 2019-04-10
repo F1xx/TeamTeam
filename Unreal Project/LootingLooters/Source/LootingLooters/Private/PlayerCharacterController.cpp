@@ -51,8 +51,6 @@ void APlayerCharacterController::SetupInputComponent()
 		InputComponent->BindAction("NextInventory", IE_Pressed, this, &APlayerCharacterController::NextInventory);
 		InputComponent->BindAction("SetRotationMode", IE_Pressed, this, &APlayerCharacterController::RotateMode);
 		InputComponent->BindAction("SetRotationMode", IE_Released, this, &APlayerCharacterController::RotateMode);
-
-		InputComponent->BindAction("QuitToDesktop", IE_Pressed, this, &APlayerCharacterController::Shutdown);
 	}
 }
 
@@ -178,9 +176,4 @@ void APlayerCharacterController::ZoomObject(float Value)
 	ABaseCharacter* owner = Cast<ABaseCharacter>(GetPawn());
 	if (owner)
 		owner->ZoomObject(Value);
-}
-
-void APlayerCharacterController::Shutdown()
-{
-	//GetGameInstance()->Shutdown();
 }
