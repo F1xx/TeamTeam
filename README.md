@@ -1,4 +1,12 @@
 # TeamTeam
+Travis Britton - Programmer
+Dayton Heywood - Programmer
+Raffaele Gambuto - Artist
+
+The goal of the game is simply to avoid the guard and collect as much loot as you can. 
+Loot can give traps. Use them against the guard or other players.
+
+
 Controls:
 PC:
 Movement: WASD, up, down
