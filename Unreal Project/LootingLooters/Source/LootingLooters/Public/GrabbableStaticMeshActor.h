@@ -58,11 +58,9 @@ public:
 	UFUNCTION()
 		void Throw();
 
-	UFUNCTION()
 		void RotateX(float Value);
 		void RotateY(float Value);
 
-	UFUNCTION()
 		void Zoom(float Value);
 	
 	UPROPERTY(Replicated)
