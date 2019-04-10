@@ -202,7 +202,17 @@ void ALootingLootersGameModeBase::HandleStartingNewPlayer_Implementation(APlayer
 void ALootingLootersGameModeBase::EndMatch()
 {
 #ifdef UE_BUILD_DEBUG
-	UKismetSystemLibrary::QuitGame(GetWorld(), GetWorld()->GetFirstPlayerController(), EQuitPreference::Quit);
+	//UKismetSystemLibrary::QuitGame(GetWorld(), GetWorld()->GetFirstPlayerController(), EQuitPreference::Quit);
+
+	TArray<AActor*> playercontrollers;
+	UGameplayStatics::GetAllActorsOfClass(this, APlayerController::StaticClass(), playercontrollers);
+
+	for (auto a : playercontrollers)
+	{
+		APlayerController* pc = Cast<APlayerController>(a);
+
+		pc->ClientTravel("/GameFrwkSessionsPlugin/MenuSystem/MainMenu?listen", TRAVEL_Absolute, true);
+	}
 #else
 	//FGenericPlatformMisc::RequestExit(false);
 
