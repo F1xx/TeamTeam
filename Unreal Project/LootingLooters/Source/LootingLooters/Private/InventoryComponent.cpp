@@ -99,7 +99,7 @@ void UInventoryComponent::CollectLoot(AActor* lootedObject)
 				AddRandomTrap();
 			}
 
-			loot->MulticastDie();
+			loot->NetMulticast_Die();
 
 			GetOwningPlayer()->GetPlayerState()->AddScore(FMath::RandRange(20, 60));
 		}
@@ -189,16 +189,16 @@ void UInventoryComponent::SpawnTrap(FVector location)
 		//if we actually have a trap selected
 		if (Inventory[GetOwningPlayer()->GetPlayerState()->SelectedInventorySlot] != Traps[0] && GetOwningPlayer()->GetPlayerState()->TrapCount > 0)
 		{
-			//Spawn the trap in-world
+			//Set spawn parameters
 			FRotator Rotation(0.0f, 0.0f, 0.0f);
 			FActorSpawnParameters SpawnInfo;
 			SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-			//SpawnInfo.Owner = GetOwner();
 
+			//Spawn the actual trap and set the owner (so the trap can identify which team it belongs to later).
 			AActor* trap = GetWorld()->SpawnActor(Inventory[GetOwningPlayer()->GetPlayerState()->SelectedInventorySlot], &location, &Rotation, SpawnInfo);
-
 			trap->SetOwner(GetOwner());
 
+			//Reduce the inventory
 			Inventory[GetOwningPlayer()->GetPlayerState()->SelectedInventorySlot] = Traps[0]; //set it back to empty
 			GetOwningPlayer()->GetPlayerState()->Slots[GetOwningPlayer()->GetPlayerState()->SelectedInventorySlot] = 0;
 			GetOwningPlayer()->GetPlayerState()->TrapCount--;

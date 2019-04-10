@@ -17,19 +17,21 @@ ASlowTrapActor::ASlowTrapActor() : Super()
 
 void ASlowTrapActor::BeginPlay()
 {
-	m_Sound = Cast<ALootingLootersGameStateBase>(GetWorld()->GetGameState())->GetSoundWave("Slowed");
 	m_Sound->bLooping = false;
 }
 
 //applies the slow debuff (lowering max walk speed) of the character that stepped on it
 void ASlowTrapActor::ApplyDebuff()
 {
+	//Server call to play the sound.
 	if (HasAuthority())
 		Server_PlaySound();
 
+	//Delegate our function
 	FTimerDelegate del;
 	del.BindUFunction(this, FName("RemoveDebuff"));
 
+	//Set our debuff timer.
 	TargetOriginalSpeed = m_Target->GetMaxSpeed();
 	m_Target->SetMaxSpeed(TargetOriginalSpeed * 0.2f);
 	GetWorld()->GetTimerManager().SetTimer(DebuffTime, del, DebuffLength, false);

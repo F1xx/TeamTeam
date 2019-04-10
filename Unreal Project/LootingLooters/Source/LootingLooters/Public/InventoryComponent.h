@@ -48,9 +48,11 @@ public:
 	void NextInventoryItem();
 	void PrevInventoryItem();
 
+	//Server call to cycle forwards
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerNextInventoryItem();
 
+	//Server call to cycle backwards
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerPrevInventoryItem();
 
@@ -60,9 +62,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 		TArray<TSubclassOf<class ABaseTrapActor>> GetInventoryArray() { return Inventory; }
 
+	//Server call to place a trap. Will multicast to all clients to ensure replication if net mode is dedicated.
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerPlaceTrap(FVector location);
 
+	//The actual spawning of the trap is here.
 	UFUNCTION(NetMulticast, Reliable)
 		void NetMulticastPlaceTrap(FVector location);
 

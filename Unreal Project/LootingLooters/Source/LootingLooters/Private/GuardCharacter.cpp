@@ -26,6 +26,7 @@ AGuardCharacter::AGuardCharacter() : Super()
 
 	SearchLocation = FVector::ZeroVector;
 	TargetActor = nullptr;
+	CurrentPatrolPoint = nullptr;
 
 	Tags.Add("Guard");
 }
@@ -34,15 +35,13 @@ void AGuardCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	m_GameMode = Cast<ALootingLootersGameModeBase>(GetWorld()->GetAuthGameMode());
-
-	OriginalRotator = GetActorRotation();
-	MoveToNextPatrolPoint();
-
+	//Set our collision component and set the delay timer.
 	if (HasAuthority())
 	{
 		SphereComp->OnComponentBeginOverlap.AddDynamic(this, &AGuardCharacter::OnPawnHit);
-		GetWorldTimerManager().SetTimer(PostStart, this, &AGuardCharacter::PostBeginPlay, 1.0f, false);
+		GetWorldTimerManager().SetTimer(PostStart, this, &AGuardCharacter::PostBeginPlay, 3.0f, false);
+
+		m_GameMode = Cast<ALootingLootersGameModeBase>(GetWorld()->GetAuthGameMode());
 	}
 }
 
@@ -54,6 +53,7 @@ void AGuardCharacter::OnPawnSeen(APawn * SeenPawn)
 
 	APlayerCharacter* player = Cast<APlayerCharacter>(SeenPawn);
 
+	//we dont chase dead targets.
 	if (player)
 		if (player->bIsDead)
 			return;
@@ -70,7 +70,7 @@ void AGuardCharacter::OnPawnSeen(APawn * SeenPawn)
 		if (current < potential)//if the current target is closer then just quit this
 			return;
 
-		//switched target so tell the former
+		//we switched target so tell the former character we are no longer pursuing them
 		APlayerCharacter* pc = Cast<APlayerCharacter>(TargetActor);
 		pc->Client_BeingChased(false);
 	}
@@ -93,10 +93,14 @@ void AGuardCharacter::ResetState()
 
 void AGuardCharacter::ResetPatrol()
 {
-	APlayerCharacter* player = Cast<APlayerCharacter>(TargetActor);
-	if (player)
+	//Notify the player they are no longer being chased.
+	if (TargetActor)
 	{
-		player->Server_BeingChased(false);
+		APlayerCharacter* player = Cast<APlayerCharacter>(TargetActor);
+		if (player)
+		{
+			player->Server_BeingChased(false);
+		}
 	}
 	
 	TargetActor = nullptr;
@@ -150,6 +154,7 @@ void AGuardCharacter::SetGuardState(EAIState NewState)
 
 		break;
 	case EAIState::EAttack:
+		//Notify the player theyre being chased.
 		APlayerCharacter* player = Cast<APlayerCharacter>(TargetActor);
 		if (player)
 		{
@@ -167,10 +172,8 @@ void AGuardCharacter::HandleAI()
 	{
 	case EAIState::EPatrol: //no target, patrol
 
-		if (!CurrentPatrolPoint)
-		{
+		if (CurrentPatrolPoint == nullptr)
 			MoveToNextPatrolPoint();
-		}
 
 		if (CurrentPatrolPoint && isPatrolPointInRoom())
 		{
@@ -304,19 +307,20 @@ void AGuardCharacter::OnPawnHit(UPrimitiveComponent* OverlappedComponent, AActor
 {
 	APlayerCharacter* player = Cast<APlayerCharacter>(OtherActor);
 
+	//if we hit the player kill them and reset our guard state back to patrol.
 	if (player)
 	{
 		player->Die();
-		player->Client_BeingChased(false);
-		TargetActor = nullptr;
-		SetGuardState(EAIState::EPatrol);
-		MoveToNextPatrolPoint();
+		ResetPatrol();
 	}
 }
 
 void AGuardCharacter::PostBeginPlay()
 {
 	bHasBegun = true;
+
+	OriginalRotator = GetActorRotation();
+	ResetState();
 }
 
 void AGuardCharacter::Tick(float DeltaTime)
@@ -325,6 +329,7 @@ void AGuardCharacter::Tick(float DeltaTime)
 	{
 		Super::Tick(DeltaTime);
 
+		//Every tick we determine our new guard state and what we're doing.
 		if (HasAuthority())
 		{
 			DetermineGuardState();

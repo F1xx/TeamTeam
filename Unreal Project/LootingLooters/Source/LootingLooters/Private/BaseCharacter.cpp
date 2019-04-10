@@ -38,6 +38,7 @@ ABaseCharacter::ABaseCharacter()
 
 	HeldObject = nullptr;
 
+	//replication
 	SetReplicateMovement(true);
 	GetCharacterMovement()->SetIsReplicated(true);
 	SetReplicates(true);
@@ -45,6 +46,7 @@ ABaseCharacter::ABaseCharacter()
 	GetCharacterMovement()->SetIsReplicated(true);
 	GetCharacterMovement()->SetNetAddressable();
 
+	//sphere collision defaults
 	SphereComp = CreateDefaultSubobject<USphereComponent>("Sphere Collision");
 	SphereComp->SetCollisionProfileName("OverlapOnlyPawn");
 	SphereComp->SetGenerateOverlapEvents(true);
@@ -71,6 +73,7 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
+//Let the server know we died and to multicast our death function to all clients.
 void ABaseCharacter::Die()
 {
 	SetActorTickEnabled(false);
@@ -194,8 +197,8 @@ bool ABaseCharacter::ServerDropItem_Validate()
 {
 	return true;
 }
-//NET CODE 1 NET PICKUP
-//TODO: DropWeapon Implementation Function
+
+// Server call to drop the held item
 void ABaseCharacter::ServerDropItem_Implementation()
 {
 	//if already interacting stop
@@ -256,9 +259,6 @@ void ABaseCharacter::Grab_Implementation(FHitResult Hit)
 			}
 		}
 	}
-#ifdef UE_BUILD_DEBUG
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Emerald, FString("Hit: " + Hit.Actor->GetName()));
-#endif
 }
 
 bool ABaseCharacter::Grab_Validate(FHitResult Hit)
@@ -283,10 +283,10 @@ bool ABaseCharacter::ServerThrowObject_Validate()
 	return true;
 }
 
-//place a trap. This is more for the AI and will place a trap at the character's
+//place a trap. This is empty by default and needs to be overridden.
 void ABaseCharacter::PlaceTrap_Implementation()
 {
-	//nothing right now though
+	
 }
 
 bool ABaseCharacter::PlaceTrap_Validate()

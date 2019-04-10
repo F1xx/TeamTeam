@@ -19,12 +19,15 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	//Our timer to respawn the loot.
 	UPROPERTY(Replicated)
 		FTimerHandle RespawnTimer;
 
+	//The particles our loot emits.
 	UPROPERTY(EditDefaultsOnly, Category = "Effects", Replicated)
 		class UParticleSystem* m_ParticleSystem;
 
+	//The particle component
 	UPROPERTY(VisibleAnywhere, Replicated)
 		class UParticleSystemComponent* m_ParticleComponent;
 
@@ -37,7 +40,7 @@ public:
 	//remove the loot without actually deleting it.
 	//unless bCanRespawn is false in which case it is Destroyed
 	UFUNCTION(NetMulticast, Reliable)
-		virtual void MulticastDie();
+		virtual void NetMulticast_Die();
 
 	virtual void Die();
 

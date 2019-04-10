@@ -16,19 +16,22 @@ ALootingLootersGameStateBase::ALootingLootersGameStateBase()
 	SetReplicates(true);
 	PrimaryActorTick.bCanEverTick = true;
 
-	LoadSoundMap();
+	//LoadSoundMap();
 }
 
 void ALootingLootersGameStateBase::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//Generate our world.
 	Server_GenerateRandomRoomLayout();
 	Server_PopulateRoomSockets();
 	Server_GenerateRandomRoomConnections();
 	Server_GenerateLoot();
 
 	MatchCountDown = MatchLength;
+
+	//Set our match duration timer.
 	GetWorld()->GetTimerManager().SetTimer(MatchTimer, this, &ALootingLootersGameStateBase::Server_StartEndGame, MatchLength, false);
 }
 
@@ -40,54 +43,9 @@ void ALootingLootersGameStateBase::Tick(float DeltaSeconds)
 		MatchCountDown = 0.0f;
 }
 
-void ALootingLootersGameStateBase::LoadSoundMap()
-{
-	//create filemanager and parsing array
-	IFileManager& manager = IFileManager::Get();
-
-	TArray<FString> FileResults;
-	FString wildcard("*.uasset");
-
-	FString FileDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content/Assets/Sound/"), *wildcard));
-	FString RootDirectory = "/Game/Assets/Sound/";
-	//SoundWave'/Game/Assets/Sound/FootSteps.FootSteps'
-
-	//fetch our files
-	manager.FindFiles(FileResults, *FileDirectory, true, false);
-
-	//add all objects to the asset list
-	for (int i = 0; i < FileResults.Num(); i++)
-	{
-		//trim file ending
-		FileResults[i].RemoveFromEnd(".uasset");
-
-		//raw filepath
-		FString AssetFilePath = RootDirectory + FileResults[i];
-
-		//find our blueprint and add it
-		ConstructorHelpers::FObjectFinder<USoundWave> AssetBlueprint(*AssetFilePath);
-
-		//if the file was found add it to the list
-		if (AssetBlueprint.Succeeded())
-		{
-			//create a blueprint template
-			USoundWave* bpClass = AssetBlueprint.Object;
-			USoundWave* subclass = bpClass;
-
-
-			//add it
-			SoundsMap.Add(FileResults[i], subclass);
-		}
-	}
-
-	//remove changes
-	FileResults.Empty();
-	manager.SetSandboxEnabled(false);
-}
-
 void ALootingLootersGameStateBase::Server_GenerateRandomRoomLayout_Implementation()
 {
-	
+	//Get our world and populate it with a random room layout.
 	TArray<TSubclassOf<AStaticMeshActor>> Room_Assets;
 	UWorld* world = GetWorld();
 	
@@ -168,11 +126,6 @@ void ALootingLootersGameStateBase::GetRoomArray(TArray<class ARoomActorBase*>& R
 	RoomArray = Rooms;
 }
 
-USoundWave* ALootingLootersGameStateBase::GetSoundWave(FString name)
-{
-	return *SoundsMap.Find(name);
-}
-
 void ALootingLootersGameStateBase::Server_EndGame_Implementation()
 {
 	ALootingLootersGameModeBase* mode = Cast<ALootingLootersGameModeBase>(GetWorld()->GetAuthGameMode());
@@ -196,8 +149,10 @@ void ALootingLootersGameStateBase::Server_StartEndGame_Implementation()
 		mode->Server_StartEndGame();
 	}
 
+	//Flag ending to true for HUD.
 	MatchEnding = true;
 
+	//Set our buffer timer.
 	GetWorld()->GetTimerManager().SetTimer(EndBufferTime, this, &ALootingLootersGameStateBase::Server_EndGame, BufferLength, false);
 }
 
@@ -228,7 +183,59 @@ void ALootingLootersGameStateBase::GetLifetimeReplicatedProps(TArray<FLifetimePr
 	DOREPLIFETIME(ALootingLootersGameStateBase, MatchEnding);
 	DOREPLIFETIME(ALootingLootersGameStateBase, MatchCountDown);
 
-	DOREPLIFETIME(ALootingLootersGameStateBase, SoundsMap);
+	//DOREPLIFETIME(ALootingLootersGameStateBase, SoundsMap);
 }
+
+//CURRENTLY UNUSED BUT CAN BE REIMPLEMENTED IF WE FIX THE SOUND ISSUE WITH LOADING FILES//
+
+//USoundWave* ALootingLootersGameStateBase::GetSoundWave(FString name)
+//{
+//	return *SoundsMap.Find(name);
+//}
+
+//void ALootingLootersGameStateBase::LoadSoundMap()
+//{
+//	//create filemanager and parsing array
+//	IFileManager& manager = IFileManager::Get();
+//
+//	TArray<FString> FileResults;
+//	FString wildcard("*.uasset");
+//
+//	FString FileDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content/Assets/Sound/"), *wildcard));
+//	FString RootDirectory = "/Game/Assets/Sound/";
+//	//SoundWave'/Game/Assets/Sound/FootSteps.FootSteps'
+//
+//	//fetch our files
+//	manager.FindFiles(FileResults, *FileDirectory, true, false);
+//
+//	//add all objects to the asset list
+//	for (int i = 0; i < FileResults.Num(); i++)
+//	{
+//		//trim file ending
+//		FileResults[i].RemoveFromEnd(".uasset");
+//
+//		//raw filepath
+//		FString AssetFilePath = RootDirectory + FileResults[i];
+//
+//		//find our blueprint and add it
+//		ConstructorHelpers::FObjectFinder<USoundWave> AssetBlueprint(*AssetFilePath);
+//
+//		//if the file was found add it to the list
+//		if (AssetBlueprint.Succeeded())
+//		{
+//			//create a blueprint template
+//			USoundWave* bpClass = AssetBlueprint.Object;
+//			USoundWave* subclass = bpClass;
+//
+//
+//			//add it
+//			SoundsMap.Add(FileResults[i], subclass);
+//		}
+//	}
+//
+//	//remove changes
+//	FileResults.Empty();
+//	manager.SetSandboxEnabled(false);
+//}
 
 

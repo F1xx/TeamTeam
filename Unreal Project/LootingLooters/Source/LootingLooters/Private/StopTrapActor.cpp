@@ -22,12 +22,15 @@ void AStopTrapActor::BeginPlay()
 //completely stops the character that stepped on it (sets its speed to 0)
 void AStopTrapActor::ApplyDebuff()
 {
+	//Server call to play the shatter sound.
 	if (HasAuthority())
 		Server_PlaySound();
 
+	//Timer delegate function
 	FTimerDelegate del;
 	del.BindUFunction(this, FName("RemoveDebuff"));
 
+	//Set the debuff timer
 	TargetOriginalSpeed = m_Target->GetMaxSpeed();
 	m_Target->SetMaxSpeed(0.0f);
 	GetWorld()->GetTimerManager().SetTimer(DebuffTime, del, DebuffLength, false);

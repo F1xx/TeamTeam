@@ -17,6 +17,7 @@ class LOOTINGLOOTERS_API UGameEndHUD : public UMenuWidget
 public:
 	UGameEndHUD(const FObjectInitializer & ObjectInitializer);
 	
+	//Function to display all scores to the clients when the match ends.
 	UFUNCTION(BlueprintCallable)
 		void ShowScores();
 

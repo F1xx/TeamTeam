@@ -22,6 +22,7 @@ public:
 
 	void Logout(AController* Exiting) override;
 
+	//The game will begin starting once 2 players are in the lobby but more can join.
 	UPROPERTY(EditAnywhere, Category = "Max Players")
 		uint32 MaxNumberOfPlayers = 2;
 

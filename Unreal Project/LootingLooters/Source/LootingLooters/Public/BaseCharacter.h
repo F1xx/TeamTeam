@@ -19,21 +19,27 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	//The object this player is holding.
 	UPROPERTY(Replicated)
 		class AGrabbableStaticMeshActor* HeldObject;
 
+	//Bools to determine interaction with a held object when issuing commands.
 	UPROPERTY(Replicated)
 		bool bIsInteracting = false;
 	UPROPERTY(Replicated)
 		bool bIsRotating = false;
 
+	//Used for tracking player movements by the guard.
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Last Door Used")
 		class ADoorActor* LastDoorAccessed;
 
+	//Collision sphere for overlapping pawns.
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 		class USphereComponent* SphereComp;
 
 public:	
+
+	//Is this player dead? Used by the guard.
 	UPROPERTY(BlueprintReadOnly, Replicated)
 		bool bIsDead = false;
 
@@ -53,9 +59,11 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 		float BaseLookUpRate;
 
+	//How close the player needs to be to loot objects or grab objects.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = RayCast, meta = (AllowPrivateAccess = "true"))
 		float InteractRange = 800.0f;
 	 
+	//Our speed maximum
 	UFUNCTION(BlueprintCallable)
 		void SetMaxSpeed(float speed);
 
@@ -83,30 +91,39 @@ public:
 	//returns true if it hit the given channel
 	bool PerformRayCast(FName TraceProfile, FHitResult &OutHit);
 
+	//Method for handling Player commands to attempt looting or picking up Grabbable meshes.
 	UFUNCTION(Server, Reliable, WithValidation)
 	virtual void Interact();	
 
+	//Method for handling Player commands to attempt to place a trap.
+	UFUNCTION(Server, Reliable, WithValidation)
+		virtual void PlaceTrap();
+
+	//Method for handling Player commands to attempt to grab a grabbable object.
 	UFUNCTION(Server, Reliable, WithValidation)
 	virtual void Grab(FHitResult Hit);
 
+	//Method for handling commands to drop whatever the player is holding.
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerDropItem();
 
+	//Method for handling Player commands to attemot throwing a grabbable object.
 	UFUNCTION(Server, Reliable, WithValidation)
 	virtual void ServerThrowObject();
 
-	virtual void ThrowObject();
-
-	UFUNCTION()
-		virtual void Die();
-
+	//Multicasted death function to affect the player across all clients.
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 		void NetMulticastOnDeath();
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	virtual void PlaceTrap();
+	//Throw an object in client side.
+	virtual void ThrowObject();
 
+	//Pickup an object in client side.
 	void PickupObject();
+
+	//Called when the player is killed by a guard.
+	UFUNCTION()
+		virtual void Die();
 
 	virtual void NextInventory(){};
 

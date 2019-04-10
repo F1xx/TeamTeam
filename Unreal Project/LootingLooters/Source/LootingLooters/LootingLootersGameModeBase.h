@@ -90,8 +90,10 @@ public:
 	//Return the door blueprint.
 	TSubclassOf<class AStaticMeshActor> GetDoorBlueprint() { return Door_Assets[0]; }
 
+	//Called by PlayerCharacters when they are killed by the guard and will respawn the Player at the set location with their old team.
 	void RespawnPlayer(APlayerController* NewPlayer, uint8 playerTeam, FTransform location);
 
+	//Called by GameState to end the game once time has expired in the match.
 	void Server_StartEndGame();
 
 	//how many rooms we're making
@@ -117,10 +119,15 @@ protected:
 		TArray<TSubclassOf<AStaticMeshActor>> Door_Assets;
 
 	public:
+
+	//Override to apply PlayerCharacter specific logic upon a new controller logging in.
 	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
 
+	//Request to move all clients back to the main menu after match ends.
 	virtual void EndMatch();
 
 private:
+
+	//Helper to set PlayerCharacter logic upon login.
 	void HandleNewPlayer(APlayerController* NewPlayer);
 };

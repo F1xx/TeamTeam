@@ -37,18 +37,12 @@ void AGrabbableStaticMeshActor::BeginPlay()
 	m_CamForward = FVector::ZeroVector;
 	m_Rotation = GetActorRotation();
 	GetDestructibleComponent()->SetCanEverAffectNavigation(true); //make sure the navmesh makes the AI try to avoid these
-	//GetDestructibleComponent()->SetNotifyRigidBodyCollision(true);
 
 	//register for onhit so we can fracture ourselves potentially
 	DestructibleMesh->OnComponentHit.AddDynamic(this, &AGrabbableStaticMeshActor::OnHit);
 
 	//Setup our function to be called when the mesh breaks
 	DestructibleMesh->OnComponentFracture.AddDynamic(this, &AGrabbableStaticMeshActor::OnFracture);
-
-// 	if (HasAuthority())
-// 	{
-// 		m_Sound = Cast<ALootingLootersGameStateBase>(GetWorld()->GetGameState())->GetSoundWave("Break");
-// 	}
 }
 
 void AGrabbableStaticMeshActor::PostInitializeComponents()
@@ -65,6 +59,7 @@ void AGrabbableStaticMeshActor::PostInitializeComponents()
 	DestructibleMesh->SetEnableGravity(true);
 	DestructibleMesh->SetIsReplicated(true);
 
+	//our event handle to cause the grabble to shatter if the health reaches 0
 	Health->OnDeath.AddDynamic(this, &AGrabbableStaticMeshActor::BreakMesh);
 }
 
@@ -129,7 +124,7 @@ void AGrabbableStaticMeshActor::BreakMesh_Implementation(AActor* actor)
 {
 	if (HasAuthority())
 	{
-		MulticastBreakMesh(actor);
+		NetMulticast_BreakMesh(actor);
 	}
 }
 
@@ -193,8 +188,6 @@ void AGrabbableStaticMeshActor::Zoom(float Value)
 	m_Distance += Value;
 
 	m_Distance = FMath::Clamp(m_Distance, 150.0f, 500.0f);
-
-	GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Emerald, FString("Zooming: " + FString::SanitizeFloat(m_Distance)));
 }
 
 //destroy the object
@@ -222,11 +215,9 @@ void AGrabbableStaticMeshActor::OnHit(UPrimitiveComponent* HitComponent, AActor*
 void AGrabbableStaticMeshActor::OnFracture(const FVector& HitPosition, const FVector& HitDirection)
 {
 	DestructibleMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-
-	//Spawn loot, preferably through game mode
 }
 
-void AGrabbableStaticMeshActor::MulticastBreakMesh_Implementation(AActor* actor)
+void AGrabbableStaticMeshActor::NetMulticast_BreakMesh_Implementation(AActor* actor)
 {
 	if (actor)
 	{

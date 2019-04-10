@@ -53,7 +53,7 @@ void ALootingLootersGameModeBase::StartPlay()
 
 	if (controller)
 	{
-		controller->ConsoleCommand(command, false);
+		//controller->ConsoleCommand(command, false);
 		//controller->bShowMouseCursor = true;
 		//controller->bEnableClickEvents = true;
 		//controller->bEnableMouseOverEvents = true;
@@ -162,10 +162,12 @@ TSubclassOf <ALootActor> ALootingLootersGameModeBase::GetARandomLootAsset()
 
 void ALootingLootersGameModeBase::RespawnPlayer(APlayerController* NewPlayer, uint8 playerTeam, FTransform location)
 {
+	//We find the player start.
 	TArray<AActor*> PlayerStarts;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), PlayerStarts);
 
 	APawn* pawn = SpawnDefaultPawnFor(NewPlayer, PlayerStarts[0]);
+	//Respawn the player at their specified location and have them fetch their material and set their mesh color.
 	if (pawn)
 	{
 		if (Cast<APlayerCharacter>(pawn))
@@ -174,7 +176,7 @@ void ALootingLootersGameModeBase::RespawnPlayer(APlayerController* NewPlayer, ui
 			NewPlayer->EnableInput(NewPlayer);
 			NewPlayer->SetPawn(pawn);
 			RestartPlayerAtTransform(NewPlayer, location);
-			Cast<APlayerCharacter>(pawn)->Multicast_AssignColor();
+			Cast<APlayerCharacter>(pawn)->Multicast_AssignDefaultMaterial();
 			Cast<APlayerCharacter>(pawn)->NetMulticast_SetColor();
 		}
 	}
@@ -182,14 +184,14 @@ void ALootingLootersGameModeBase::RespawnPlayer(APlayerController* NewPlayer, ui
 
 void ALootingLootersGameModeBase::Server_StartEndGame()
 {
-	TArray<AActor*> playercontrollers;
-	UGameplayStatics::GetAllActorsOfClass(this, APlayerController::StaticClass(), playercontrollers);
+	//Get all PlayerCharacters and disable their inputs.
+	TArray<AActor*> playerchars;
+	UGameplayStatics::GetAllActorsOfClass(this, APlayerCharacter::StaticClass(), playerchars);
 
-	for (auto a : playercontrollers)
+	for (auto a : playerchars)
 	{
-		APlayerController* pc = Cast<APlayerController>(a);
-
-		pc->DisableInput(pc);
+		APlayerCharacter* pc = Cast<APlayerCharacter>(a);
+		pc->NetMultiCast_DisableControllerInputs();
 	}
 }
 
@@ -203,7 +205,8 @@ void ALootingLootersGameModeBase::EndMatch()
 {
 #ifdef UE_BUILD_DEBUG
 	//UKismetSystemLibrary::QuitGame(GetWorld(), GetWorld()->GetFirstPlayerController(), EQuitPreference::Quit);
-
+	
+	//Have all Controllers travel back to the main menu after a match ends.
 	TArray<AActor*> playercontrollers;
 	UGameplayStatics::GetAllActorsOfClass(this, APlayerController::StaticClass(), playercontrollers);
 
@@ -230,10 +233,11 @@ void ALootingLootersGameModeBase::EndMatch()
 
 void ALootingLootersGameModeBase::HandleNewPlayer(APlayerController* NewPlayer)
 {
+	//Whenever a new player joins we assign their team and have them fetch their material.
 	APlayerCharacter* character = Cast<APlayerCharacter>(NewPlayer->GetPawn());
 	if (character)
 	{
 		character->AssignTeam();
-		character->Multicast_AssignColor();
+		character->Multicast_AssignDefaultMaterial();
 	}
 }

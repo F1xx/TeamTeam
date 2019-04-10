@@ -64,7 +64,7 @@ void ALootActor::PostInitializeComponents()
 	}
 }
 
-void ALootActor::MulticastDie_Implementation()
+void ALootActor::NetMulticast_Die_Implementation()
 {
 	Die();
 }

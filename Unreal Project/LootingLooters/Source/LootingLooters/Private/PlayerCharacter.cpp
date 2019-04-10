@@ -76,6 +76,18 @@ void APlayerCharacter::RotateHeldObjectY(float Value)
 	}
 }
 
+//A control to rotate whatever object we're interacting with via the Xaxis
+void APlayerCharacter::RotateHeldObjectX(float Value)
+{
+	if (bIsRotating)
+	{
+		if (HeldObject && bIsInteracting)
+		{
+			HeldObject->RotateX(Value);
+		}
+	}
+}
+
 void APlayerCharacter::AssignTeam()
 {
 	if (!GetGameState())
@@ -104,7 +116,7 @@ void APlayerCharacter::AssignTeam()
 	}
 }
 
-void APlayerCharacter::Multicast_AssignColor_Implementation()
+void APlayerCharacter::Multicast_AssignDefaultMaterial_Implementation()
 {
 	if (GetGameState())
 	{
@@ -153,42 +165,16 @@ void APlayerCharacter::NetMultiCast_PlayLootSound_Implementation()
 
 void APlayerCharacter::PostBeginPlay()
 {
-// 	USoundWave* wave = GetGameState()->GetSoundWave("Ambient");
-// 
-// 	if (wave)
-// 	{
-// 		wave->bLooping = true;
-// 		m_Music->Sound = wave;
-// 		m_Music->VolumeMultiplier = 0.25f;
-// 		m_Music->Play();
-// 	}
-// 
-// 	wave = GetGameState()->GetSoundWave("Chase_Music");
-// 
-// 	if (wave)
-// 	{
-// 		wave->bLooping = true;
-// 		m_ChaseMusic->Sound = wave;
-// 	}
-// 
-// 	m_LootSound = GetGameState()->GetSoundWave("loot");
-// 	m_LootSound->bLooping = false;
-
-
 	if (Role == ROLE_Authority)
 		NetMulticast_SetColor();
 }
 
-//A control to rotate whatever object we're interacting with via the Xaxis
-void APlayerCharacter::RotateHeldObjectX(float Value)
+void APlayerCharacter::NetMultiCast_DisableControllerInputs_Implementation()
 {
-	if (bIsRotating)
-	{
-		if (HeldObject && bIsInteracting)
-		{
-			HeldObject->RotateX(Value);
-		}
-	}
+	APlayerController* controller = Cast<APlayerController>(GetController());
+
+	if (controller)
+		controller->DisableInput(controller);
 }
 
 void APlayerCharacter::Server_BeingChased_Implementation(bool chased)
@@ -205,13 +191,19 @@ void APlayerCharacter::Client_BeingChased_Implementation(bool chased)
 {
 	if (chased)
 	{
-		m_Music->FadeOut(1.0f, 0.5f);
-		m_ChaseMusic->FadeIn(1.0f);
+		if (m_ChaseMusic->IsPlaying() == false)
+		{
+			m_Music->FadeOut(1.0f, 0.5f);
+			m_ChaseMusic->FadeIn(1.0f);
+		}
 	}
 	else
 	{
-		m_Music->FadeIn(2.0f);
-		m_ChaseMusic->FadeOut(2.0f, 0.5f);
+		if (m_Music->IsPlaying() == false)
+		{
+			m_Music->FadeIn(2.0f);
+			m_ChaseMusic->FadeOut(5.0f, 0.5f);
+		}
 	}
 }
 
