@@ -15,6 +15,8 @@ ALootingLootersGameStateBase::ALootingLootersGameStateBase()
 {
 	SetReplicates(true);
 	PrimaryActorTick.bCanEverTick = true;
+
+	LoadSoundMap();
 }
 
 void ALootingLootersGameStateBase::BeginPlay()
@@ -36,6 +38,51 @@ void ALootingLootersGameStateBase::Tick(float DeltaSeconds)
 
 	if (MatchCountDown < 0.0f)
 		MatchCountDown = 0.0f;
+}
+
+void ALootingLootersGameStateBase::LoadSoundMap()
+{
+	//create filemanager and parsing array
+	IFileManager& manager = IFileManager::Get();
+
+	TArray<FString> FileResults;
+	FString wildcard("*.uasset");
+
+	FString FileDirectory(FPaths::Combine(*FPaths::ProjectDir(), TEXT("Content/Assets/Sound/"), *wildcard));
+	FString RootDirectory = "/Game/Assets/Sound/";
+	//SoundWave'/Game/Assets/Sound/FootSteps.FootSteps'
+
+	//fetch our files
+	manager.FindFiles(FileResults, *FileDirectory, true, false);
+
+	//add all objects to the asset list
+	for (int i = 0; i < FileResults.Num(); i++)
+	{
+		//trim file ending
+		FileResults[i].RemoveFromEnd(".uasset");
+
+		//raw filepath
+		FString AssetFilePath = RootDirectory + FileResults[i];
+
+		//find our blueprint and add it
+		ConstructorHelpers::FObjectFinder<USoundWave> AssetBlueprint(*AssetFilePath);
+
+		//if the file was found add it to the list
+		if (AssetBlueprint.Succeeded())
+		{
+			//create a blueprint template
+			USoundWave* bpClass = AssetBlueprint.Object;
+			USoundWave* subclass = bpClass;
+
+
+			//add it
+			SoundsMap.Add(FileResults[i], subclass);
+		}
+	}
+
+	//remove changes
+	FileResults.Empty();
+	manager.SetSandboxEnabled(false);
 }
 
 void ALootingLootersGameStateBase::Server_GenerateRandomRoomLayout_Implementation()
@@ -121,6 +168,11 @@ void ALootingLootersGameStateBase::GetRoomArray(TArray<class ARoomActorBase*>& R
 	RoomArray = Rooms;
 }
 
+USoundWave* ALootingLootersGameStateBase::GetSoundWave(FString name)
+{
+	return *SoundsMap.Find(name);
+}
+
 void ALootingLootersGameStateBase::Server_EndGame_Implementation()
 {
 	ALootingLootersGameModeBase* mode = Cast<ALootingLootersGameModeBase>(GetWorld()->GetAuthGameMode());
@@ -138,14 +190,10 @@ bool ALootingLootersGameStateBase::Server_EndGame_Validate()
 
 void ALootingLootersGameStateBase::Server_StartEndGame_Implementation()
 {
-	TArray<AActor*> playercontrollers;
-	UGameplayStatics::GetAllActorsOfClass(this, APlayerController::StaticClass(), playercontrollers);
-
-	for (auto a : playercontrollers)
+	ALootingLootersGameModeBase* mode = Cast<ALootingLootersGameModeBase>(GetWorld()->GetAuthGameMode());
+	if (mode)
 	{
-		APlayerController* pc = Cast<APlayerController>(a);
-
-		pc->DisableInput(pc);
+		mode->Server_StartEndGame();
 	}
 
 	MatchEnding = true;
@@ -179,6 +227,8 @@ void ALootingLootersGameStateBase::GetLifetimeReplicatedProps(TArray<FLifetimePr
 	DOREPLIFETIME(ALootingLootersGameStateBase, BufferLength);
 	DOREPLIFETIME(ALootingLootersGameStateBase, MatchEnding);
 	DOREPLIFETIME(ALootingLootersGameStateBase, MatchCountDown);
+
+	DOREPLIFETIME(ALootingLootersGameStateBase, SoundsMap);
 }
 
 

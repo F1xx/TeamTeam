@@ -12,6 +12,8 @@
 #include "HealthComponent.h"
 
 #include "Net/UnrealNetwork.h"
+#include "Sound/SoundWave.h"
+#include "LootingLootersGameStateBase.h"
 
 AGrabbableStaticMeshActor::AGrabbableStaticMeshActor()
 	: DestructibleMesh(nullptr)
@@ -42,6 +44,11 @@ void AGrabbableStaticMeshActor::BeginPlay()
 
 	//Setup our function to be called when the mesh breaks
 	DestructibleMesh->OnComponentFracture.AddDynamic(this, &AGrabbableStaticMeshActor::OnFracture);
+
+// 	if (HasAuthority())
+// 	{
+// 		m_Sound = Cast<ALootingLootersGameStateBase>(GetWorld()->GetGameState())->GetSoundWave("Break");
+// 	}
 }
 
 void AGrabbableStaticMeshActor::PostInitializeComponents()
@@ -223,6 +230,8 @@ void AGrabbableStaticMeshActor::MulticastBreakMesh_Implementation(AActor* actor)
 {
 	if (actor)
 	{
+		UGameplayStatics::SpawnSoundAtLocation(this, m_Sound, GetActorLocation());
+
 		FVector direction = actor->GetActorLocation() - GetActorLocation();
 
 		DestructibleMesh->ApplyDamage(500.0f, GetActorLocation(), direction.GetSafeNormal(), 0.0f);
@@ -240,4 +249,5 @@ void AGrabbableStaticMeshActor::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	DOREPLIFETIME(AGrabbableStaticMeshActor, Health);
 	DOREPLIFETIME(AGrabbableStaticMeshActor, DespawnTimer);
 	DOREPLIFETIME(AGrabbableStaticMeshActor, bWasThrown);
+	DOREPLIFETIME(AGrabbableStaticMeshActor, m_Sound);
 }

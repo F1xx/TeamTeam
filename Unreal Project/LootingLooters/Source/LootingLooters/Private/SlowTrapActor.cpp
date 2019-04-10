@@ -3,6 +3,9 @@
 #include "SlowTrapActor.h"
 #include "BaseCharacter.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Sound/SoundWave.h"
+#include "LootingLootersGameStateBase.h"
+#include "Kismet/GameplayStatics.h"
 
 ASlowTrapActor::ASlowTrapActor() : Super()
 {
@@ -12,9 +15,18 @@ ASlowTrapActor::ASlowTrapActor() : Super()
 	SetReplicates(true);
 }
 
+void ASlowTrapActor::BeginPlay()
+{
+	m_Sound = Cast<ALootingLootersGameStateBase>(GetWorld()->GetGameState())->GetSoundWave("Slowed");
+	m_Sound->bLooping = false;
+}
+
 //applies the slow debuff (lowering max walk speed) of the character that stepped on it
 void ASlowTrapActor::ApplyDebuff()
 {
+	if (HasAuthority())
+		Server_PlaySound();
+
 	FTimerDelegate del;
 	del.BindUFunction(this, FName("RemoveDebuff"));
 

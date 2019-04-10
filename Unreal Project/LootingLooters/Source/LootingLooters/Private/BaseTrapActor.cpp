@@ -4,8 +4,14 @@
 #include "UObject/ConstructorHelpers.h"
 #include "BaseCharacter.h"
 
+#include "Net/UnrealNetwork.h"
+#include "Kismet/GameplayStatics.h"
+#include "PlayerCharacter.h"
+
 ABaseTrapActor::ABaseTrapActor() : Super()
 {
+	Team = -1;
+	m_Sound = nullptr;
 	PrimaryActorTick.bCanEverTick = true;
 
 	GetStaticMeshComponent()->SetCollisionProfileName(FName("GrabbableTrace"));
@@ -32,9 +38,23 @@ void ABaseTrapActor::HandleOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
 	if (!bIsTriggered)
 	{
 		//don't hit ourselves or our owner
-		if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && (OtherActor != GetOwner()))
+		if ((OtherActor != nullptr) && (OtherActor != this))
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Emerald, FString("Someone Stepped on a TRAP!!!!!!!!!"));//do something later
+			APlayerCharacter* owner = Cast<APlayerCharacter>(GetOwner());
+			if (owner)
+			{
+				Team = owner->Team;
+			}
+
+			//Don't hit owner/teammates
+			APlayerCharacter* pc = Cast<APlayerCharacter>(OtherActor);
+			if (pc)
+			{
+				if (pc->Team == Team)
+				{
+					return;
+				}
+			}
 
 			//cast to the actor as a basecharacter as those are all we can hit
 			ABaseCharacter* dummy = Cast<ABaseCharacter>(OtherActor);
@@ -53,25 +73,6 @@ void ABaseTrapActor::HandleOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
 				bIsTriggered = true;
 			}
 		}
-
-		//REMOVE this entire if so we can't hit our own trap
-		//if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && (OtherActor == GetOwner()))
-		//{
-		//	//Nothing actually should happen here. This is just so we know it knows it's owner
-		//	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Emerald, FString("My Owner Stepped on their own TRAP!!!!!!!!"));//do something later
-		//	ABaseCharacter* dummy = Cast<ABaseCharacter>(OtherActor);
-		//	if (dummy)
-		//	{
-		//		//Not all Traps have one
-		//		if (ActivatedMesh)
-		//		{
-		//			GetStaticMeshComponent()->SetStaticMesh(ActivatedMesh);
-		//		}
-		//		SetTarget(dummy);
-		//		ApplyDebuff();
-		//		bIsTriggered = true;
-		//	}
-		//}
 	}
 }
 
@@ -84,4 +85,30 @@ void ABaseTrapActor::Die()
 void ABaseTrapActor::SetTarget(class ABaseCharacter* character)
 {
 	m_Target = character;
+}
+
+void ABaseTrapActor::Server_PlaySound_Implementation()
+{
+	NetMulticast_PlaySound();
+}
+
+bool ABaseTrapActor::Server_PlaySound_Validate()
+{
+	return true;
+}
+
+void ABaseTrapActor::NetMulticast_PlaySound_Implementation()
+{
+	if (m_Sound)
+	{
+		UGameplayStatics::SpawnSoundAtLocation(this, m_Sound, GetActorLocation());
+	}
+}
+
+void ABaseTrapActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ABaseTrapActor, m_Sound);
+	DOREPLIFETIME(ABaseTrapActor, Team);
 }

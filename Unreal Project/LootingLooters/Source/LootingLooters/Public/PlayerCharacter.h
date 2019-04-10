@@ -29,7 +29,19 @@ protected:
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
 		class UInventoryComponent* m_Inventory;
 
+	UPROPERTY(Replicated, EditDefaultsOnly)
+		class UAudioComponent* m_Music;
+
+	UPROPERTY(Replicated, EditDefaultsOnly)
+		class UAudioComponent* m_ChaseMusic;
+
 public:
+	UFUNCTION(Server, Reliable, WithValidation)
+		void Server_BeingChased(bool chased);
+
+	UFUNCTION(Client, Reliable)
+		void Client_BeingChased(bool chased);
+
 	UFUNCTION()
 		class AMyPlayerState* GetPlayerState();
 
@@ -46,6 +58,8 @@ public:
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 		void NetMulticastOnRespawn();
+
+	virtual void PostInitializeComponents() override;
 
 	virtual void Interact() override;
 	virtual void PlaceTrap() override;
@@ -69,6 +83,12 @@ public:
 	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
 		void NetMulticast_SetColor();
 
+	UFUNCTION(Server, Reliable, WithValidation)
+		void Server_PlayLootSound();
+
+	UFUNCTION(NetMulticast, Reliable)
+		void NetMultiCast_PlayLootSound();
+
 	UFUNCTION(BlueprintCallable)
 		void PostBeginPlay();
 
@@ -89,4 +109,7 @@ public:
 
 	UPROPERTY(Replicated)
 		FTimerHandle RespawnTimer;
+
+	UPROPERTY(Replicated, EditDefaultsOnly)
+		class USoundWave* m_LootSound;
 };

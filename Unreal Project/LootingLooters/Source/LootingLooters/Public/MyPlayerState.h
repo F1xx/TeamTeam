@@ -36,4 +36,7 @@ public:
 
 	UPROPERTY(Replicated)
 		uint8 Slots[6];
+
+	UFUNCTION()
+		void Reset();
 };

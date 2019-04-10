@@ -21,7 +21,8 @@ protected:
 
 	float TargetOriginalSpeed;
 
+	virtual void BeginPlay() override;
+
 	virtual void ApplyDebuff() override;
 	virtual void RemoveDebuff() override;
-
 };

@@ -37,6 +37,9 @@ protected:
 	UFUNCTION()
 		virtual void PostInitializeComponents() override;
 
+	UPROPERTY(Replicated, EditDefaultsOnly)
+		USoundWave* m_Sound;
+
 public:
 	virtual void Tick(float DeltaSeconds);
 

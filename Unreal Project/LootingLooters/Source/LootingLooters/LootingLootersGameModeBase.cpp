@@ -13,6 +13,8 @@
 #include "LootingLootersGameStateBase.h"
 #include "PlayerCharacter.h"
 #include "GameFramework/PlayerStart.h"
+#include "Sound/SoundWave.h"
+#include "../Plugins/GameFrwkSessionsPlugin/Source/GameFrwkSessionsPlugin/OnlineGameInstance.h"
 
 ALootingLootersGameModeBase::ALootingLootersGameModeBase() : Super()
  {
@@ -178,6 +180,19 @@ void ALootingLootersGameModeBase::RespawnPlayer(APlayerController* NewPlayer, ui
 	}
 }
 
+void ALootingLootersGameModeBase::Server_StartEndGame()
+{
+	TArray<AActor*> playercontrollers;
+	UGameplayStatics::GetAllActorsOfClass(this, APlayerController::StaticClass(), playercontrollers);
+
+	for (auto a : playercontrollers)
+	{
+		APlayerController* pc = Cast<APlayerController>(a);
+
+		pc->DisableInput(pc);
+	}
+}
+
 void ALootingLootersGameModeBase::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
 {
 	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
@@ -189,7 +204,17 @@ void ALootingLootersGameModeBase::EndMatch()
 #ifdef UE_BUILD_DEBUG
 	UKismetSystemLibrary::QuitGame(GetWorld(), GetWorld()->GetFirstPlayerController(), EQuitPreference::Quit);
 #else
-	FGenericPlatformMisc::RequestExit(false);
+	//FGenericPlatformMisc::RequestExit(false);
+
+	TArray<AActor*> playercontrollers;
+	UGameplayStatics::GetAllActorsOfClass(this, APlayerController::StaticClass(), playercontrollers);
+
+	for (auto a : playercontrollers)
+	{
+		APlayerController* pc = Cast<APlayerController>(a);
+
+		pc->ClientTravel("/GameFrwkSessionsPlugin/MenuSystem/MainMenu?listen", TRAVEL_Absolute, true);
+	}
 #endif
 }
 

@@ -8,7 +8,7 @@
 
 AMyPlayerState::AMyPlayerState() :Super()
 {
-
+	Reset();
 }
 
 void AMyPlayerState::AddScore(int value)
@@ -27,6 +27,17 @@ int AMyPlayerState::GetSlot(int index)
 		return -1;
 	else
 		return Slots[index];
+}
+
+void AMyPlayerState::Reset()
+{
+	TrapCount = 0;
+	SelectedInventorySlot = 0;
+
+	for (auto i : Slots)
+	{
+		i = 0;
+	}
 }
 
 void AMyPlayerState::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const

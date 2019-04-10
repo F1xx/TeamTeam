@@ -109,5 +109,4 @@ void ALootActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	DOREPLIFETIME(ALootActor, m_ParticleComponent);
 	DOREPLIFETIME(ALootActor, Sphere);
 	DOREPLIFETIME(ALootActor, isDead);
-
 }

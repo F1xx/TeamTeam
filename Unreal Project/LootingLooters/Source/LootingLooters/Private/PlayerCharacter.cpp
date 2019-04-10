@@ -20,6 +20,8 @@
 #include "Net/UnrealNetwork.h"
 #include "LootingLootersGameStateBase.h"
 #include "LootingLootersGameModeBase.h"
+#include "Sound/SoundWave.h"
+#include "Components/AudioComponent.h"
 
 APlayerCharacter::APlayerCharacter() : Super()
 {
@@ -41,6 +43,10 @@ APlayerCharacter::APlayerCharacter() : Super()
 
 	m_Inventory = CreateDefaultSubobject<UInventoryComponent>("Inventory");
 
+	m_Music = CreateDefaultSubobject<UAudioComponent>("Music");
+	m_ChaseMusic = CreateDefaultSubobject<UAudioComponent>("ChaseMusic");
+	m_LootSound = CreateDefaultSubobject<USoundWave>("LootSound");
+
 	Tags.Add("Player");
 }
 
@@ -51,8 +57,6 @@ void APlayerCharacter::BeginPlay()
 	class APlayerCharacterController* controller = Cast<APlayerCharacterController>(GetController());
 
 	GetWorld()->GetTimerManager().SetTimer(PostBeginPlayDelay, this, &APlayerCharacter::PostBeginPlay, 1.0f, false);
-
-	//UGameplayStatics::GetPlayerCameraManager(this, 0)->bEnableFading = true;
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent * PlayerInputComponent)
@@ -129,8 +133,48 @@ void APlayerCharacter::NetMulticast_SetColor_Implementation()
 	GetMesh()->SetMaterial(1, DefaultMaterial);
 }
 
+void APlayerCharacter::Server_PlayLootSound_Implementation()
+{
+	NetMultiCast_PlayLootSound();
+}
+
+bool APlayerCharacter::Server_PlayLootSound_Validate()
+{
+	return true;
+}
+
+void APlayerCharacter::NetMultiCast_PlayLootSound_Implementation()
+{
+	if (m_LootSound)
+	{
+		UGameplayStatics::SpawnSoundAtLocation(this, m_LootSound, GetActorLocation());
+	}
+}
+
 void APlayerCharacter::PostBeginPlay()
 {
+// 	USoundWave* wave = GetGameState()->GetSoundWave("Ambient");
+// 
+// 	if (wave)
+// 	{
+// 		wave->bLooping = true;
+// 		m_Music->Sound = wave;
+// 		m_Music->VolumeMultiplier = 0.25f;
+// 		m_Music->Play();
+// 	}
+// 
+// 	wave = GetGameState()->GetSoundWave("Chase_Music");
+// 
+// 	if (wave)
+// 	{
+// 		wave->bLooping = true;
+// 		m_ChaseMusic->Sound = wave;
+// 	}
+// 
+// 	m_LootSound = GetGameState()->GetSoundWave("loot");
+// 	m_LootSound->bLooping = false;
+
+
 	if (Role == ROLE_Authority)
 		NetMulticast_SetColor();
 }
@@ -144,6 +188,30 @@ void APlayerCharacter::RotateHeldObjectX(float Value)
 		{
 			HeldObject->RotateX(Value);
 		}
+	}
+}
+
+void APlayerCharacter::Server_BeingChased_Implementation(bool chased)
+{
+	Client_BeingChased(chased);
+}
+
+bool APlayerCharacter::Server_BeingChased_Validate(bool chased)
+{
+	return true;
+}
+
+void APlayerCharacter::Client_BeingChased_Implementation(bool chased)
+{
+	if (chased)
+	{
+		m_Music->FadeOut(1.0f, 0.5f);
+		m_ChaseMusic->FadeIn(1.0f);
+	}
+	else
+	{
+		m_Music->FadeIn(2.0f);
+		m_ChaseMusic->FadeOut(2.0f, 0.5f);
 	}
 }
 
@@ -162,6 +230,8 @@ void APlayerCharacter::Die()
 {
 	RespawnLoc = GetTransform();
 	Super::Die();
+
+	GetPlayerState()->Reset();
 
 	APlayerController* cont = Cast<APlayerController>(GetController());
 
@@ -186,6 +256,9 @@ void APlayerCharacter::Respawn()
 			if (GM)
 			{
 				GM->RespawnPlayer(cont, Team, RespawnLoc);
+				m_Music->Stop();
+				m_ChaseMusic->Stop();
+
 				Destroy();
 			}
 		}
@@ -212,6 +285,15 @@ bool APlayerCharacter::NetMulticastOnRespawn_Validate()
 	return true;
 }
 
+void APlayerCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	m_LootSound->bLooping = false;
+	m_ChaseMusic->Stop();
+	m_Music->VolumeMultiplier = 0.25f;
+}
+
 //Calls ABaseCharacter's Interact
 //If we are not interacting from that then we will check if its loot (this is here because other character types cannot loot)
 void APlayerCharacter::Interact()
@@ -228,6 +310,7 @@ void APlayerCharacter::Interact()
 			//Making sure what we hit was Loot
 			if (Hit.GetActor()->ActorHasTag("Loot"))
 			{
+				Server_PlayLootSound();
 				m_Inventory->ServerCollectLoot(Hit.GetActor());
 			}
 		}
@@ -271,4 +354,7 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(APlayerCharacter, Team);
 	DOREPLIFETIME(APlayerCharacter, RespawnTimer);
 	DOREPLIFETIME(APlayerCharacter, RespawnLoc);
+	DOREPLIFETIME(APlayerCharacter, m_LootSound);
+	DOREPLIFETIME(APlayerCharacter, m_Music);
+	DOREPLIFETIME(APlayerCharacter, m_ChaseMusic);
 }

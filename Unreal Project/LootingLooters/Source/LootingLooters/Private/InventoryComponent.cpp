@@ -193,6 +193,7 @@ void UInventoryComponent::SpawnTrap(FVector location)
 			FRotator Rotation(0.0f, 0.0f, 0.0f);
 			FActorSpawnParameters SpawnInfo;
 			SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			//SpawnInfo.Owner = GetOwner();
 
 			AActor* trap = GetWorld()->SpawnActor(Inventory[GetOwningPlayer()->GetPlayerState()->SelectedInventorySlot], &location, &Rotation, SpawnInfo);
 

@@ -54,4 +54,16 @@ protected:
 	FTimerHandle DebuffTime;
 	class ABaseCharacter* m_Target;
 	bool bIsTriggered = false;
+
+	UPROPERTY(Replicated)
+		int8 Team;
+
+	UPROPERTY(Replicated, EditDefaultsOnly)
+		class USoundWave* m_Sound;
+
+	UFUNCTION(NetMulticast, Reliable)
+		void NetMulticast_PlaySound();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void Server_PlaySound();
 };

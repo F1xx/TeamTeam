@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "Sound/SoundCue.h"
 #include "LootingLootersGameModeBase.generated.h"
 
 /**
@@ -91,10 +92,11 @@ public:
 
 	void RespawnPlayer(APlayerController* NewPlayer, uint8 playerTeam, FTransform location);
 
+	void Server_StartEndGame();
+
 	//how many rooms we're making
 	UPROPERTY(EditAnywhere, Category = "Rooms")
 		int Total_Rooms_To_Generate = 10;
-
 
 protected:
 
@@ -121,5 +123,4 @@ protected:
 
 private:
 	void HandleNewPlayer(APlayerController* NewPlayer);
-	
 };

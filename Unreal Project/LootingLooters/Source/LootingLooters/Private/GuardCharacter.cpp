@@ -69,6 +69,10 @@ void AGuardCharacter::OnPawnSeen(APawn * SeenPawn)
 
 		if (current < potential)//if the current target is closer then just quit this
 			return;
+
+		//switched target so tell the former
+		APlayerCharacter* pc = Cast<APlayerCharacter>(TargetActor);
+		pc->Client_BeingChased(false);
 	}
 
 	TargetActor = SeenPawn;
@@ -89,6 +93,12 @@ void AGuardCharacter::ResetState()
 
 void AGuardCharacter::ResetPatrol()
 {
+	APlayerCharacter* player = Cast<APlayerCharacter>(TargetActor);
+	if (player)
+	{
+		player->Server_BeingChased(false);
+	}
+	
 	TargetActor = nullptr;
 	SetGuardState(EAIState::EPatrol);
 
@@ -140,6 +150,11 @@ void AGuardCharacter::SetGuardState(EAIState NewState)
 
 		break;
 	case EAIState::EAttack:
+		APlayerCharacter* player = Cast<APlayerCharacter>(TargetActor);
+		if (player)
+		{
+			player->Server_BeingChased(true);
+		}
 		SetMaxSpeed(AttackSpeed);
 		break;
 	}
@@ -292,6 +307,7 @@ void AGuardCharacter::OnPawnHit(UPrimitiveComponent* OverlappedComponent, AActor
 	if (player)
 	{
 		player->Die();
+		player->Client_BeingChased(false);
 		TargetActor = nullptr;
 		SetGuardState(EAIState::EPatrol);
 		MoveToNextPatrolPoint();

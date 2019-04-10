@@ -2,6 +2,9 @@
 
 #include "StopTrapActor.h"
 #include "BaseCharacter.h"
+#include "Sound/SoundWave.h"
+#include "LootingLootersGameStateBase.h"
+#include "Kismet/GameplayStatics.h"
 
 AStopTrapActor::AStopTrapActor() : Super()
 {
@@ -9,12 +12,19 @@ AStopTrapActor::AStopTrapActor() : Super()
 	DebuffLength = 5.0f;
 
 	SetReplicates(true);
+}
 
+void AStopTrapActor::BeginPlay()
+{
+	m_Sound->bLooping = false;
 }
 
 //completely stops the character that stepped on it (sets its speed to 0)
 void AStopTrapActor::ApplyDebuff()
 {
+	if (HasAuthority())
+		Server_PlaySound();
+
 	FTimerDelegate del;
 	del.BindUFunction(this, FName("RemoveDebuff"));
 

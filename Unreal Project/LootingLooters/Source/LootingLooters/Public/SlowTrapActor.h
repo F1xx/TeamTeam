@@ -25,4 +25,5 @@ protected:
 	virtual void ApplyDebuff() override;
 	virtual void RemoveDebuff() override;
 
+	virtual void BeginPlay() override;
 };
