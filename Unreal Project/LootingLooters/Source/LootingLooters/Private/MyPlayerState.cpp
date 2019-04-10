@@ -34,9 +34,9 @@ void AMyPlayerState::Reset()
 	TrapCount = 0;
 	SelectedInventorySlot = 0;
 
-	for (auto i : Slots)
+	for (int i = 0; i < 6; i++)
 	{
-		i = 0;
+		Slots[i] = 0;
 	}
 }
 
