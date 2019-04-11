@@ -23,6 +23,9 @@ public:
 
 	virtual void Tick( float DeltaSeconds ) override;
 
+	//Copies the room list.
+	void GetRoomArray(TArray<class ARoomActorBase*>& RoomArray);
+
 	//Server call : Spawn a random level.
 	UFUNCTION(Server, Reliable, WithValidation)
 		void Server_GenerateRandomRoomLayout();
@@ -39,8 +42,13 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 		void Server_GenerateLoot();
 
-	//Copies the room list.
-	void GetRoomArray(TArray<class ARoomActorBase*>& RoomArray);
+	//Called when the MatchTimer Ends. Creates another timer that when complete Actually closes the game
+	UFUNCTION(Server, Reliable, WithValidation)
+		void Server_StartEndGame();
+
+	//Called by EndBufferTimer. This calls the GameMode to begin EndGame.
+	UFUNCTION(Server, Reliable, WithValidation)
+		void Server_EndGame();
 
 	//Team 1 materials
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Materials, Replicated)
@@ -97,14 +105,6 @@ public:
 	//used for a HUD based Countdown timer
 	UPROPERTY(Replicated, BlueprintReadOnly)
 		float MatchCountDown = MatchLength;
-
-	//Called when the MatchTimer Ends. Creates another timer that when complete Actually closes the game
-	UFUNCTION(Server, Reliable, WithValidation)
-		void Server_StartEndGame();
-
-	//Called by EndBufferTimer. This calls the GameMode to begin EndGame.
-	UFUNCTION(Server, Reliable, WithValidation)
-		void Server_EndGame();
 
 protected:
 

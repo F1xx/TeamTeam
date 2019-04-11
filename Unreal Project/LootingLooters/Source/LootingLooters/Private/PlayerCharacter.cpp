@@ -54,8 +54,6 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	class APlayerCharacterController* controller = Cast<APlayerCharacterController>(GetController());
-
 	GetWorld()->GetTimerManager().SetTimer(PostBeginPlayDelay, this, &APlayerCharacter::PostBeginPlay, 1.0f, false);
 }
 
@@ -240,19 +238,16 @@ void APlayerCharacter::Respawn()
 {
 	APlayerController* cont = Cast<APlayerController>(GetController());
 
-	if (cont)
+	if (cont && HasAuthority())
 	{
-		if (HasAuthority())
+		ALootingLootersGameModeBase* GM = Cast<ALootingLootersGameModeBase>(GetWorld()->GetAuthGameMode());
+		if (GM)
 		{
-			ALootingLootersGameModeBase* GM = Cast<ALootingLootersGameModeBase>(GetWorld()->GetAuthGameMode());
-			if (GM)
-			{
-				GM->RespawnPlayer(cont, Team, RespawnLoc);
-				m_Music->Stop();
-				m_ChaseMusic->Stop();
+			GM->RespawnPlayer(cont, Team, RespawnLoc);
+			m_Music->Stop();
+			m_ChaseMusic->Stop();
 
-				Destroy();
-			}
+			Destroy();
 		}
 	}
 }

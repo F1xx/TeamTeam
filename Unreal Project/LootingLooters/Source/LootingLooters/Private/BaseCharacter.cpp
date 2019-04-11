@@ -250,7 +250,7 @@ void ABaseCharacter::Grab_Implementation(FHitResult Hit)
 		AGrabbableStaticMeshActor* grabbable = Cast<AGrabbableStaticMeshActor>(Hit.GetActor());
 		if (grabbable)
 		{
-			if (Role == ROLE_Authority)
+			if (HasAuthority())
 			{
 				//SET/ASSIGN CurrentWeapon to Weapon
 				HeldObject = grabbable;

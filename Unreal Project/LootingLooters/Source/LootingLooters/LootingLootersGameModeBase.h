@@ -67,6 +67,9 @@ class LOOTINGLOOTERS_API ALootingLootersGameModeBase : public AGameModeBase
 
 	virtual void StartPlay() override;
 
+	//Helper to set PlayerCharacter logic upon login.
+	void HandleNewPlayer(APlayerController* NewPlayer);
+
 public:
 
 	//Copies the room list.
@@ -96,6 +99,12 @@ public:
 	//Called by GameState to end the game once time has expired in the match.
 	void Server_StartEndGame();
 
+	//Override to apply PlayerCharacter specific logic upon a new controller logging in.
+	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
+
+	//Request to move all clients back to the main menu after match ends.
+	virtual void EndMatch();
+
 	//how many rooms we're making
 	UPROPERTY(EditAnywhere, Category = "Rooms")
 		int Total_Rooms_To_Generate = 10;
@@ -117,17 +126,4 @@ protected:
 	//All door asset templates
 	UPROPERTY(VisibleAnywhere, Category = "Assets")
 		TArray<TSubclassOf<AStaticMeshActor>> Door_Assets;
-
-	public:
-
-	//Override to apply PlayerCharacter specific logic upon a new controller logging in.
-	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
-
-	//Request to move all clients back to the main menu after match ends.
-	virtual void EndMatch();
-
-private:
-
-	//Helper to set PlayerCharacter logic upon login.
-	void HandleNewPlayer(APlayerController* NewPlayer);
 };

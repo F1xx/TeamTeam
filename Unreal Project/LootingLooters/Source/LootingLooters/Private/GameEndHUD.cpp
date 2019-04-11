@@ -6,6 +6,8 @@
 #include "Components/TextBlock.h"
 #include "PanelWidget.h"
 
+//NOT ACTUALLY USED
+
 UGameEndHUD::UGameEndHUD(const FObjectInitializer & ObjectInitializer)
 {
 	ConstructorHelpers::FClassFinder<UUserWidget> ServerRowBPClass(TEXT("/GameFrwkSessionsPlugin/MenuSystem/WBP_ServerRow"));
