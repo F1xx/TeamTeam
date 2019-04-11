@@ -143,21 +143,21 @@ void APlayerCharacter::NetMulticast_SetColor_Implementation()
 	GetMesh()->SetMaterial(1, DefaultMaterial);
 }
 
-void APlayerCharacter::Server_PlayLootSound_Implementation()
+void APlayerCharacter::Server_PlayLootSound_Implementation(FVector location)
 {
-	NetMultiCast_PlayLootSound();
+	NetMultiCast_PlayLootSound(location);
 }
 
-bool APlayerCharacter::Server_PlayLootSound_Validate()
+bool APlayerCharacter::Server_PlayLootSound_Validate(FVector location)
 {
 	return true;
 }
 
-void APlayerCharacter::NetMultiCast_PlayLootSound_Implementation()
+void APlayerCharacter::NetMultiCast_PlayLootSound_Implementation(FVector location)
 {
 	if (m_LootSound)
 	{
-		UGameplayStatics::SpawnSoundAtLocation(this, m_LootSound, GetActorLocation());
+		UGameplayStatics::SpawnSoundAtLocation(this, m_LootSound, location);
 	}
 }
 
@@ -165,6 +165,8 @@ void APlayerCharacter::PostBeginPlay()
 {
 	if (Role == ROLE_Authority)
 		NetMulticast_SetColor();
+
+	Client_StartMusic();
 }
 
 void APlayerCharacter::NetMultiCast_DisableControllerInputs_Implementation()
@@ -203,6 +205,11 @@ void APlayerCharacter::Client_BeingChased_Implementation(bool chased)
 			m_ChaseMusic->FadeOut(5.0f, 0.5f);
 		}
 	}
+}
+
+void APlayerCharacter::Client_StartMusic_Implementation()
+{
+	m_Music->FadeIn(4.0f);
 }
 
 class AMyPlayerState* APlayerCharacter::GetPlayerState()
@@ -279,6 +286,7 @@ void APlayerCharacter::PostInitializeComponents()
 	m_LootSound->bLooping = false;
 	m_ChaseMusic->Stop();
 	m_Music->VolumeMultiplier = 0.25f;
+	m_Music->Stop();
 }
 
 //Calls ABaseCharacter's Interact
@@ -297,7 +305,7 @@ void APlayerCharacter::Interact()
 			//Making sure what we hit was Loot
 			if (Hit.GetActor()->ActorHasTag("Loot"))
 			{
-				Server_PlayLootSound();
+				Server_PlayLootSound(GetActorLocation());
 				m_Inventory->ServerCollectLoot(Hit.GetActor());
 			}
 		}
@@ -342,6 +350,4 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(APlayerCharacter, RespawnTimer);
 	DOREPLIFETIME(APlayerCharacter, RespawnLoc);
 	DOREPLIFETIME(APlayerCharacter, m_LootSound);
-	DOREPLIFETIME(APlayerCharacter, m_Music);
-	DOREPLIFETIME(APlayerCharacter, m_ChaseMusic);
 }

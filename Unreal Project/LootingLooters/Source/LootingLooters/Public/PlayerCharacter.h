@@ -31,17 +31,20 @@ protected:
 		class UInventoryComponent* m_Inventory;
 
 	//Ambient music component.
-	UPROPERTY(Replicated, EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly)
 		class UAudioComponent* m_Music;
 
 	//Chase music component.
-	UPROPERTY(Replicated, EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly)
 		class UAudioComponent* m_ChaseMusic;
 
 public:
 	//Server function call to have the server call a sound change from ambient to chase (or vice versa)
 	UFUNCTION(Server, Reliable, WithValidation)
 		void Server_BeingChased(bool chased);
+
+	UFUNCTION(Client, Reliable)
+		void Client_StartMusic();
 
 	//Client method call to change music from ambient to chase (or vice versa).
 	//Server_BeingChased calls this method to ensure each client hears their own music.
@@ -107,11 +110,11 @@ public:
 
 	//Server call to play a loot sound. 
 	UFUNCTION(Server, Reliable, WithValidation)
-		void Server_PlayLootSound();
+		void Server_PlayLootSound(FVector location);
 
 	//Called by Server_PlayLootSound to cause all clients to hear the loot sound played.
 	UFUNCTION(NetMulticast, Reliable)
-		void NetMultiCast_PlayLootSound();
+		void NetMultiCast_PlayLootSound(FVector location);
 
 	//Delayed run-once function to apply Color to the PlayerCharacter during runtime.
 	UFUNCTION(BlueprintCallable)
