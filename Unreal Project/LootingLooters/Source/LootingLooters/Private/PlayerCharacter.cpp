@@ -165,7 +165,6 @@ void APlayerCharacter::PostBeginPlay()
 		NetMulticast_SetColor();
 
 	Client_StartMusic();
-	GetPlayerState()->Reset();
 }
 
 void APlayerCharacter::NetMultiCast_DisableControllerInputs_Implementation()
