@@ -33,6 +33,7 @@ ADoorActor::ADoorActor()
 	Sphere->SetSphereRadius(25.0f);
 	Sphere->SetSimulatePhysics(false);
 	Sphere->SetEnableGravity(false);
+	Sphere->SetVisibility(false, false);
 	Sphere->SetupAttachment(RootComponent);
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &ADoorActor::TeleportPawnToOtherDoor);
 
@@ -53,17 +54,15 @@ void ADoorActor::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	//Adjust visibility if connected or not.
+	//Adjust collision and visibility if connected or not.
 	if (IsConnected())
 	{	
 		GetStaticMeshComponent()->SetVisibility(true);
-		Sphere->SetHiddenInGame(false, true);
-		Sphere->SetCollisionProfileName("OverlapOnlyPawn");//Note that this means it blocks everything that isn't a pawn
+		Sphere->SetCollisionProfileName("OverlapOnlyPawn");
 	}
 	else
 	{
 		GetStaticMeshComponent()->SetVisibility(false);
-		Sphere->SetHiddenInGame(true, true);
 		Sphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		PrimaryActorTick.bCanEverTick = false;
 	}
