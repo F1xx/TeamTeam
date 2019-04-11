@@ -2,9 +2,15 @@
 
 #include "PlayerCharacterController.h"
 #include "BaseCharacter.h"
+#include "Components/AudioComponent.h"
 
 APlayerCharacterController::APlayerCharacterController() : Super()
 {
+	m_Music = CreateDefaultSubobject<UAudioComponent>("Music");
+	m_Music->VolumeMultiplier = 0.25f;
+	m_Music->bAutoActivate = false;
+	m_ChaseMusic = CreateDefaultSubobject<UAudioComponent>("ChaseMusic");
+	m_ChaseMusic->bAutoActivate = false;
 }
 
 void APlayerCharacterController::Possess(APawn* aPawn)
@@ -62,6 +68,11 @@ void APlayerCharacterController::AcknowledgePossession(APawn * PossesedPawn)
 void APlayerCharacterController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
+// 	if (m_Music->IsPlaying())
+// 		m_ChaseMusic->Stop();
+// 	else if (m_ChaseMusic->IsPlaying())
+// 		m_Music->Stop();
 }
 
 void APlayerCharacterController::MoveForward(float Value)

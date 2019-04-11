@@ -43,8 +43,6 @@ APlayerCharacter::APlayerCharacter() : Super()
 
 	m_Inventory = CreateDefaultSubobject<UInventoryComponent>("Inventory");
 
-	m_Music = CreateDefaultSubobject<UAudioComponent>("Music");
-	m_ChaseMusic = CreateDefaultSubobject<UAudioComponent>("ChaseMusic");
 	m_LootSound = CreateDefaultSubobject<USoundWave>("LootSound");
 
 	Tags.Add("Player");
@@ -167,6 +165,7 @@ void APlayerCharacter::PostBeginPlay()
 		NetMulticast_SetColor();
 
 	Client_StartMusic();
+	GetPlayerState()->Reset();
 }
 
 void APlayerCharacter::NetMultiCast_DisableControllerInputs_Implementation()
@@ -189,27 +188,33 @@ bool APlayerCharacter::Server_BeingChased_Validate(bool chased)
 
 void APlayerCharacter::Client_BeingChased_Implementation(bool chased)
 {
-	if (chased)
+	if (GetPlayerCharacterController())
 	{
-		if (m_ChaseMusic->IsPlaying() == false)
+		if (chased)
 		{
-			m_Music->FadeOut(1.0f, 0.5f);
-			m_ChaseMusic->FadeIn(1.0f);
+			if (GetPlayerCharacterController()->m_ChaseMusic->IsPlaying() == false)
+			{
+				GetPlayerCharacterController()->m_Music->FadeOut(1.0f, 0.5f);
+				GetPlayerCharacterController()->m_ChaseMusic->FadeIn(1.0f);
+			}
 		}
-	}
-	else
-	{
-		if (m_Music->IsPlaying() == false)
+		else
 		{
-			m_Music->FadeIn(2.0f);
-			m_ChaseMusic->FadeOut(5.0f, 0.5f);
+			if (GetPlayerCharacterController()->m_Music->IsPlaying() == false)
+			{
+				GetPlayerCharacterController()->m_Music->FadeIn(2.0f);
+				GetPlayerCharacterController()->m_ChaseMusic->FadeOut(5.0f, 0.5f);
+			}
 		}
 	}
 }
 
 void APlayerCharacter::Client_StartMusic_Implementation()
 {
-	m_Music->FadeIn(4.0f);
+	if (GetPlayerCharacterController())
+	{
+		GetPlayerCharacterController()->m_Music->FadeIn(4.0f);
+	}
 }
 
 class AMyPlayerState* APlayerCharacter::GetPlayerState()
@@ -220,6 +225,11 @@ class AMyPlayerState* APlayerCharacter::GetPlayerState()
 class ALootingLootersGameStateBase* APlayerCharacter::GetGameState()
 {
 	return Cast<ALootingLootersGameStateBase>(GetWorld()->GetGameState());
+}
+
+class APlayerCharacterController* APlayerCharacter::GetPlayerCharacterController()
+{
+	return Cast<APlayerCharacterController>(GetController());
 }
 
 //if we die remove input and go ragdoll
@@ -243,7 +253,7 @@ void APlayerCharacter::Die()
 
 void APlayerCharacter::Respawn()
 {
-	APlayerController* cont = Cast<APlayerController>(GetController());
+	APlayerCharacterController* cont = GetPlayerCharacterController();
 
 	if (cont && HasAuthority())
 	{
@@ -251,8 +261,8 @@ void APlayerCharacter::Respawn()
 		if (GM)
 		{
 			GM->RespawnPlayer(cont, Team, RespawnLoc);
-			m_Music->Stop();
-			m_ChaseMusic->Stop();
+			cont->m_Music->Stop();
+			cont->m_ChaseMusic->Stop();
 
 			Destroy();
 		}
@@ -284,9 +294,6 @@ void APlayerCharacter::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	m_LootSound->bLooping = false;
-	m_ChaseMusic->Stop();
-	m_Music->VolumeMultiplier = 0.25f;
-	m_Music->Stop();
 }
 
 //Calls ABaseCharacter's Interact

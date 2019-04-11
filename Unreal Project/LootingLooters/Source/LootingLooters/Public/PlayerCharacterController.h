@@ -20,6 +20,14 @@ public:
 	virtual void Possess(APawn* aPawn) override;
 	virtual void UnPossess() override;
 
+	//Ambient music component.
+	UPROPERTY(EditDefaultsOnly)
+		class UAudioComponent* m_Music;
+
+	//Chase music component.
+	UPROPERTY(EditDefaultsOnly)
+		class UAudioComponent* m_ChaseMusic;
+
 protected:
 	virtual void SetupInputComponent() override;
 	virtual void AcknowledgePossession(APawn* PossesedPawn) override;

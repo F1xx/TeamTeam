@@ -30,14 +30,6 @@ protected:
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
 		class UInventoryComponent* m_Inventory;
 
-	//Ambient music component.
-	UPROPERTY(EditDefaultsOnly)
-		class UAudioComponent* m_Music;
-
-	//Chase music component.
-	UPROPERTY(EditDefaultsOnly)
-		class UAudioComponent* m_ChaseMusic;
-
 public:
 	//Server function call to have the server call a sound change from ambient to chase (or vice versa)
 	UFUNCTION(Server, Reliable, WithValidation)
@@ -58,6 +50,9 @@ public:
 	//GameState helper.
 	UFUNCTION()
 		class ALootingLootersGameStateBase* GetGameState();
+
+	UFUNCTION()
+		class APlayerCharacterController* GetPlayerCharacterController();
 
 	//InventoryComponent helper.
 	UFUNCTION(BlueprintCallable)
